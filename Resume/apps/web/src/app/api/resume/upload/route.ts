@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, prisma, getSupabaseAdmin, checkPlanLimit } from "@repo/core";
+import { auth, prisma, getSupabaseAdmin, checkPlanLimit, sanitizeFilename } from "@repo/core";
 import { analyzeResume } from "@repo/ai";
 import { headers } from "next/headers";
 
@@ -63,6 +63,8 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Upload][FILE] Received: ${file.name} (${file.size} bytes)`);
 
+    const sanitizedName = sanitizeFilename(file.name);
+
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
@@ -103,7 +105,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const fileName = `${session.user.id}/${Date.now()}-${file.name}`;
+    const fileName = `${session.user.id}/${Date.now()}-${sanitizedName}`;
     console.log(`[Upload][STEP 2] Uploading to bucket 'resumes': ${fileName}`);
     const { data: uploadData, error: uploadError } = await sb.storage
       .from("resumes")
@@ -135,7 +137,7 @@ export async function POST(request: NextRequest) {
         data: {
           userId: session.user.id,
           fileUrl: publicUrl,
-          fileName: file.name,
+          fileName: sanitizedName,
           rawText,
           isActive: true,
         },
