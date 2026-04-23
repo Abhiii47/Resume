@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(cuid())
+  name          String
+  email         String        @unique
+  emailVerified Boolean       @default(false)
+  image         String?
+  plan          Plan          @default(FREE)
+  stripeCustomerId String?    @unique
+  stripeSubscriptionId String? @unique
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  accounts      Account[]
+  analysis      Analysis[]
+  applications  Application[]
+  interviews    Interview[]
+  matches       Match[]
+  resumes       Resume[]
+  roadmaps      Roadmap[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verifications")
+}
+
+model Resume {
+  id         String    @id @default(cuid())
+  userId     String
+  fileUrl    String
+  fileName   String
+  rawText    String?
+  parsedData Json?
+  score      Int?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  analysis   Analysis?
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("resumes")
+}
+
+model Analysis {
+  id              String   @id @default(cuid())
+  userId          String
+  resumeId        String   @unique
+  strengths       Json     @default("[]")
+  weaknesses      Json     @default("[]")
+  missingSkills   Json     @default("[]")
+  skills          Json     @default("[]")
+  careerPath      String?
+  score           Int      @default(0)
+  summary         String?
+  createdAt       DateTime @default(now())
+  atsScore        Int      @default(0)
+  experienceLevel String?
+  recommendations Json     @default("[]")
+  brandingKit     Json?    // { linkedinHeadline: string, linkedinAbout: string, coldDM: string }
+  isPublic        Boolean  @default(false)
+  publicSlug      String?  @unique
+  resume          Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("analyses")
+}
+
+model Job {
+  id             String        @id @default(cuid())
+  title          String
+  company        String
+  location       String
+  type           JobType       @default(FULL_TIME)
+  skillsRequired Json          @default("[]")
+  description    String
+  salaryMin      Int?
+  salaryMax      Int?
+  source         String?
+  sourceUrl      String?
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  applications   Application[]
+  matches        Match[]
+
+  @@map("jobs")
+}
+
+model Match {
+  id         String   @id @default(cuid())
+  userId     String
+  jobId      String
+  matchScore Int
+  reason     String?
+  createdAt  DateTime @default(now())
+  job        Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, jobId])
+  @@map("matches")
+}
+
+model Application {
+  id        String            @id @default(cuid())
+  userId    String
+  jobId     String
+  status    ApplicationStatus @default(APPLIED)
+  appliedAt DateTime          @default(now())
+  notes     String?
+  job       Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("applications")
+}
+
+model Roadmap {
+  id        String   @id @default(cuid())
+  userId    String
+  week      Int
+  tasks     Json     @default("[]")
+  progress  Int      @default(0)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("roadmaps")
+}
+
+model Interview {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String
+  score     Int?
+  feedback  Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("interviews")
+}
+
+model RateLimit {
+  id        String   @id @default(cuid())
+  key       String   @unique // userId:endpoint
+  count     Int      @default(0)
+  resetAt   DateTime
+  updatedAt DateTime @updatedAt
+
+  @@map("rate_limits")
+}
+
+enum Plan {
+  FREE
+  EARLY_BIRD
+  PREMIUM
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  REMOTE
+  INTERNSHIP
+}
+
+enum ApplicationStatus {
+  APPLIED
+  INTERVIEW
+  OFFER
+  REJECTED
+  WITHDRAWN
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@repo/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@repo/ai": "*",
+    "@repo/core": "*",
+    "@repo/types": "*",
+    "@repo/ui": "*",
+    "clsx": "^2.1.0",
+    "framer-motion": "^12.4.3",
+    "lucide-react": "^1.8.0",
+    "next": "^16.2.0",
+    "pdf-parse": "^2.4.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "resend": "^6.12.0",
+    "stripe": "^22.0.2",
+    "swr": "^2.4.1",
+    "tailwind-merge": "^2.2.0"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "*",
+    "@repo/typescript-config": "*",
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "^5.9.0"
+  }
+}

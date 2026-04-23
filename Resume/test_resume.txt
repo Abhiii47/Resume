@@ -1,0 +1,19 @@
+John Doe
+Software Engineer
+Email: john.doe@example.com
+Phone: 123-456-7890
+
+Summary:
+Experienced full-stack developer with a passion for building scalable web applications and AI integration.
+
+Experience:
+Senior Software Engineer at Tech Corp (2020-Present)
+- Led a team of 5 developers to build a SaaS platform.
+- Optimized database queries, reducing latency by 40%.
+- Integrated OpenAI API for automated content generation.
+
+Skills:
+React, Next.js, TypeScript, Node.js, PostgreSQL, Tailwind CSS, OpenAI, Gemini Flash.
+
+Education:
+B.S. in Computer Science from University of Tech (2016-2020)
