@@ -146,42 +146,43 @@ export async function POST(request: NextRequest) {
       `[Analysis API] AI Analysis complete. Score: ${analysisData.score}`,
     );
 
-    const analysis = await prisma.analysis.upsert({
-      where: { resumeId: targetResume.id },
-      update: {
-        score: analysisData.score,
-        atsScore: analysisData.atsScore,
-        summary: analysisData.summary,
-        strengths: analysisData.strengths,
-        weaknesses: analysisData.weaknesses,
-        missingSkills: analysisData.missingSkills,
-        skills: analysisData.skills,
-        recommendations: analysisData.recommendations,
-        careerPath: analysisData.careerPath,
-        experienceLevel: analysisData.experienceLevel,
-        brandingKit: analysisData.brandingKit as any,
-      },
-      create: {
-        userId: session.user.id,
-        resumeId: targetResume.id,
-        score: analysisData.score,
-        atsScore: analysisData.atsScore,
-        summary: analysisData.summary,
-        strengths: analysisData.strengths,
-        weaknesses: analysisData.weaknesses,
-        missingSkills: analysisData.missingSkills,
-        skills: analysisData.skills,
-        recommendations: analysisData.recommendations,
-        careerPath: analysisData.careerPath,
-        experienceLevel: analysisData.experienceLevel,
-        brandingKit: analysisData.brandingKit as any,
-      },
-    });
-
-    await prisma.resume.update({
-      where: { id: targetResume.id },
-      data: { score: analysisData.score },
-    });
+    const [analysis] = await Promise.all([
+      prisma.analysis.upsert({
+        where: { resumeId: targetResume.id },
+        update: {
+          score: analysisData.score,
+          atsScore: analysisData.atsScore,
+          summary: analysisData.summary,
+          strengths: analysisData.strengths,
+          weaknesses: analysisData.weaknesses,
+          missingSkills: analysisData.missingSkills,
+          skills: analysisData.skills,
+          recommendations: analysisData.recommendations,
+          careerPath: analysisData.careerPath,
+          experienceLevel: analysisData.experienceLevel,
+          brandingKit: analysisData.brandingKit as any,
+        },
+        create: {
+          userId: session.user.id,
+          resumeId: targetResume.id,
+          score: analysisData.score,
+          atsScore: analysisData.atsScore,
+          summary: analysisData.summary,
+          strengths: analysisData.strengths,
+          weaknesses: analysisData.weaknesses,
+          missingSkills: analysisData.missingSkills,
+          skills: analysisData.skills,
+          recommendations: analysisData.recommendations,
+          careerPath: analysisData.careerPath,
+          experienceLevel: analysisData.experienceLevel,
+          brandingKit: analysisData.brandingKit as any,
+        },
+      }),
+      prisma.resume.update({
+        where: { id: targetResume.id },
+        data: { score: analysisData.score },
+      }),
+    ]);
 
     console.log("[Analysis API] Analysis stored and synced successfully.");
 
