@@ -56,3 +56,12 @@ export function getSupabaseAdmin() {
 // Backwards compatibility (optional, but functional if called during request)
 export const supabase = getSupabase;
 export const supabaseAdmin = getSupabaseAdmin;
+
+/**
+ * Resets the lazy-initialized Supabase instances.
+ * ONLY FOR TESTING PURPOSES.
+ */
+export function _resetSupabaseClients() {
+  supabaseInstance = null;
+  supabaseAdminInstance = null;
+}
