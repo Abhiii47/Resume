@@ -67,7 +67,7 @@ export const SidebarBody = (props: React.ComponentProps<"div">) => {
   return (
     <>
       <DesktopSidebar {...props} />
-      <MobileSidebar {...(props as React.ComponentProps<"div">)} />
+      <MobileSidebar {...props} />
     </>
   );
 };
@@ -75,7 +75,7 @@ export const SidebarBody = (props: React.ComponentProps<"div">) => {
 export const DesktopSidebar = ({
   className,
   children,
-  ...props
+  ...rest
 }: {
   className?: string;
   children?: React.ReactNode;
@@ -89,29 +89,33 @@ export const DesktopSidebar = ({
       )}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      {...props}
+      {...rest}
     >
       {children}
     </div>
   );
 };
 
-export const MobileSidebar = () => {
+export const MobileSidebar = (props: React.ComponentProps<"div">) => {
   // Mobile sidebar is disabled for now to focus on PC visibility
   return null;
 };
+
+interface SidebarLinkProps extends Omit<
+  React.ComponentProps<typeof Link>,
+  "href" | "className"
+> {
+  link: { label: string; href: string; icon: React.ReactNode };
+  className?: string;
+  isActive?: boolean;
+}
 
 export const SidebarLink = ({
   link,
   className,
   isActive,
-  ...props
-}: {
-  link: { label: string; href: string; icon: React.ReactNode };
-  className?: string;
-  isActive?: boolean;
-  props?: React.ComponentProps<typeof Link>;
-}) => {
+  ...rest
+}: SidebarLinkProps) => {
   const { open, animate } = useSidebar();
   return (
     <Link
@@ -123,7 +127,7 @@ export const SidebarLink = ({
           : "text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-white/[0.045]",
         className,
       )}
-      {...(props as any)}
+      {...rest}
     >
       {isActive && (
         <motion.div
