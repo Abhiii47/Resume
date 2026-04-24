@@ -317,6 +317,8 @@ export default function SettingsPage() {
                 {account?.plan === "FREE" && (
                   <Link
                     href="/dashboard/billing"
+                  <Link
+                    href="/dashboard/billing"
                     className="px-10 py-5 bg-[var(--bg)] text-[var(--fg)] font-black uppercase tracking-widest hover:scale-105 transition-all text-sm"
                   >
                     UPGRADE_NOW →

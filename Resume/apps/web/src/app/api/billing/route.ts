@@ -11,15 +11,13 @@ export async function GET() {
     }
 
     const userId = session.user.id;
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { plan: true },
+    });
 
-    // Bolt ⚡ Optimization: Execute independent user fetch and aggregate queries concurrently
-    // to reduce cumulative I/O latency
-    const [user, resumesAnalyzed, jobMatchesViewed, roadmapGenerations] =
+    const [resumesAnalyzed, jobMatchesViewed, roadmapGenerations] =
       await Promise.all([
-        prisma.user.findUnique({
-          where: { id: userId },
-          select: { plan: true },
-        }),
         prisma.analysis.count({ where: { userId } }),
         prisma.match.count({ where: { userId } }),
         prisma.roadmap.count({ where: { userId } }),

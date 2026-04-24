@@ -8,29 +8,22 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
 
-    const whereClause = search
-      ? {
-          OR: [
-            { title: { contains: search, mode: "insensitive" } },
-            { company: { contains: search, mode: "insensitive" } },
-            { description: { contains: search, mode: "insensitive" } },
-          ],
-        }
-      : undefined;
+    const jobs = await prisma.job.findMany({
+      where: search
+        ? {
+            OR: [
+              { title: { contains: search, mode: "insensitive" } },
+              { company: { contains: search, mode: "insensitive" } },
+              { description: { contains: search, mode: "insensitive" } },
+            ],
+          }
+        : undefined,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    });
 
-    // Bolt ⚡ Optimization: Execute independent database queries concurrently to reduce cumulative I/O latency
-    // Also fixes a bug where count() didn't use the same where clause as findMany()
-    const [jobs, total] = await Promise.all([
-      prisma.job.findMany({
-        where: whereClause,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-      }),
-      prisma.job.count({
-        where: whereClause,
-      }),
-    ]);
+    const total = await prisma.job.count();
 
     return NextResponse.json({
       jobs,
