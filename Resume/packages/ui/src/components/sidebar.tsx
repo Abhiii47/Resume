@@ -67,7 +67,7 @@ export const SidebarBody = (props: React.ComponentProps<"div">) => {
   return (
     <>
       <DesktopSidebar {...props} />
-      <MobileSidebar {...(props as React.ComponentProps<"div">)} />
+      <MobileSidebar {...props} />
     </>
   );
 };
@@ -75,73 +75,92 @@ export const SidebarBody = (props: React.ComponentProps<"div">) => {
 export const DesktopSidebar = ({
   className,
   children,
-  ...props
+  ...rest
 }: {
   className?: string;
   children?: React.ReactNode;
-} & React.ComponentProps<"div">) => {
-  const { setOpen } = useSidebar();
+} & React.ComponentProps<typeof motion.div>) => {
+  const { setOpen, open, animate } = useSidebar();
   return (
-    <div
+    <motion.div
       className={cn(
-        "sticky top-0 h-screen px-4 py-6 flex flex-col bg-[var(--bg-subtle)] border-r border-[var(--border)] w-[260px] min-w-[260px] flex-shrink-0 z-40 shadow-[18px_0_60px_rgba(0,0,0,0.28)]",
+        "sticky top-0 h-screen px-4 py-6 flex flex-col bg-[var(--bg-subtle)] border-r border-[var(--border)] flex-shrink-0 z-40 shadow-[18px_0_60px_rgba(0,0,0,0.28)]",
         className,
       )}
+      animate={{
+        width: animate ? (open ? "260px" : "80px") : "260px",
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 400,
+        damping: 40,
+      }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      {...props}
+      {...rest}
     >
       {children}
-    </div>
+    </motion.div>
   );
 };
 
-export const MobileSidebar = () => {
+export const MobileSidebar = (props: React.ComponentProps<"div">) => {
   // Mobile sidebar is disabled for now to focus on PC visibility
   return null;
 };
+
+interface SidebarLinkProps extends Omit<
+  React.ComponentProps<typeof Link>,
+  "href" | "className"
+> {
+  link: { label: string; href: string; icon: React.ReactNode };
+  className?: string;
+  isActive?: boolean;
+}
 
 export const SidebarLink = ({
   link,
   className,
   isActive,
-  ...props
-}: {
-  link: { label: string; href: string; icon: React.ReactNode };
-  className?: string;
-  isActive?: boolean;
-  props?: React.ComponentProps<typeof Link>;
-}) => {
+  ...rest
+}: SidebarLinkProps) => {
   const { open, animate } = useSidebar();
   return (
     <Link
       href={link.href}
       className={cn(
-        "group relative flex items-center gap-3 py-2.5 px-3 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] mb-1 overflow-hidden",
+        "group relative flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] mb-1.5 overflow-hidden",
         isActive
-          ? "bg-white/[0.085] text-[var(--fg)] shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
+          ? "text-[var(--fg)] shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
           : "text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-white/[0.045]",
         className,
       )}
-      {...(props as any)}
+      {...rest}
     >
       {isActive && (
         <motion.div
           layoutId="sidebar-active"
-          className="absolute inset-0 rounded-lg border border-white/[0.08] bg-[linear-gradient(90deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025))]"
+          className="absolute inset-0 rounded-xl border border-white/[0.12] bg-[linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
+          transition={{ type: "spring", stiffness: 420, damping: 34 }}
+        />
+      )}
+      {isActive && (
+        <motion.div
+          layoutId="sidebar-active-glow"
+          className="absolute inset-0 bg-white/[0.02] blur-xl"
           transition={{ type: "spring", stiffness: 420, damping: 34 }}
         />
       )}
       {isActive && (
         <motion.div
           layoutId="sidebar-active-rail"
-          className="absolute left-0 z-10 h-5 w-1 rounded-r-full bg-white"
+          className="absolute left-0 z-20 h-5 w-1 rounded-r-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]"
           transition={{ type: "spring", stiffness: 420, damping: 34 }}
         />
       )}
       <div
         className={cn(
-          "relative z-10 transition-transform duration-300 group-hover:scale-110",
+          "relative z-10 transition-all duration-300 group-hover:scale-110 flex-shrink-0",
           isActive
             ? "text-[var(--fg)]"
             : "text-[var(--fg-muted)] group-hover:text-[var(--fg)]",
@@ -151,10 +170,17 @@ export const SidebarLink = ({
       </div>
       <motion.span
         animate={{
-          display: animate ? (open ? "inline-block" : "none") : "inline-block",
           opacity: animate ? (open ? 1 : 0) : 1,
+          x: animate ? (open ? 0 : -10) : 0,
         }}
-        className="relative z-10 text-sm font-medium whitespace-pre"
+        transition={{
+          duration: 0.3,
+          ease: [0.16, 1, 0.3, 1],
+        }}
+        className={cn(
+          "relative z-10 text-sm font-medium whitespace-pre",
+          !open && animate && "pointer-events-none",
+        )}
       >
         {link.label}
       </motion.span>
