@@ -138,7 +138,6 @@ function SidebarContent() {
                 </p>
                 <PlanBadge plan={plan} />
               </div>
-            </div>
             <div className="flex items-center justify-between gap-3 pt-4">
               <Button
                 variant="ghost"
