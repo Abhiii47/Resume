@@ -9,14 +9,14 @@
     "./*": "./src/*.tsx"
   },
   "dependencies": {
+    "@repo/core": "*",
     "clsx": "^2.1.1",
     "framer-motion": "^12.4.3",
     "lucide-react": "^0.475.0",
-    "next": "^16.2.0",
+    "next": "^16.2.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.5.0",
-    "@repo/core": "*"
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
