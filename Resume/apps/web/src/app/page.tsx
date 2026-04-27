@@ -1,159 +1,98 @@
-"use client";
 import Link from "next/link";
-import { Zap, FileText, Brain, Briefcase, Map, MessageSquare, ArrowRight } from "lucide-react";
+import { ArrowRight, FileText, Briefcase, Zap } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-
-const STEPS = [
-  {
-    num: "01",
-    title: "Upload Your Resume",
-    body: "Drop your PDF. Our engine extracts every skill, role, and achievement in seconds.",
-  },
-  {
-    num: "02",
-    title: "Get AI Intelligence",
-    body: "Gemini scores your resume, identifies gaps, builds your LinkedIn kit, and matches you to real live jobs.",
-  },
-  {
-    num: "03",
-    title: "Execute Your Plan",
-    body: "Follow a personalized 12-week roadmap, practice interviews, and track every application — all in one place.",
-  },
-];
-
-const FEATURES = [
-  { icon: Brain, label: "ATS + Placement Score", desc: "Know exactly how recruiters see you. Get an ATS score and overall placement rating out of 100." },
-  { icon: Briefcase, label: "Live Job Matching", desc: "AI ranks real job postings against your actual profile. No more irrelevant listings." },
-  { icon: Map, label: "12-Week Career Roadmap", desc: "Close your skill gaps with a week-by-week AI-generated learning plan. Free resources only." },
-  { icon: MessageSquare, label: "Mock Interview Coach", desc: "Answer questions and get scored feedback instantly. Build confidence before the real thing." },
-  { icon: FileText, label: "LinkedIn Branding Kit", desc: "AI-written headline, About section, and cold DM template. Optimised for recruiter search." },
-  { icon: Zap, label: "Public Career Portfolio", desc: "Share a verified profile page with your score and skills. Your personal proof of work." },
-];
 
 export default function LandingPage() {
   return (
     <div className="bg-[var(--bg)] min-h-screen text-[var(--fg)] overflow-hidden selection:bg-[var(--fg)] selection:text-[var(--bg)]">
-
-      {/* ── Navigation ─────────────────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-[60] border-b border-[var(--border)] bg-[var(--bg)]">
-        <div className="max-w-[1400px] mx-auto px-8 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="h-6 w-6 bg-[var(--fg)] flex items-center justify-center">
-              <Zap className="w-3.5 h-3.5 text-[var(--bg)] fill-current" />
-            </div>
-            <span className="font-black text-base tracking-tighter text-[var(--fg)] italic uppercase">
-              CareerAI
-            </span>
+      {/* ── Navigation ──────────────────────────────────────────────── */}
+      <nav className="fixed top-0 left-0 right-0 z-[60] mix-blend-difference text-white">
+        <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
+          <Link href="/" className="font-black text-xl tracking-tighter uppercase italic">
+            CareerAI
           </Link>
 
-          <div className="flex items-center gap-8">
-            <div className="hidden md:flex items-center gap-8">
-              <Link href="#how-it-works" className="index-label hover:text-[var(--fg)] transition-colors">
-                [ 01 ] HOW_IT_WORKS
-              </Link>
-              <Link href="#features" className="index-label hover:text-[var(--fg)] transition-colors">
-                [ 02 ] FEATURES
-              </Link>
-              <Link href="#pricing" className="index-label hover:text-[var(--fg)] transition-colors">
-                [ 03 ] PRICING
-              </Link>
-            </div>
-            <div className="h-4 w-px bg-[var(--border)] hidden md:block" />
-            <div className="flex items-center gap-4">
-              <Link href="/login" className="index-label hover:text-[var(--fg)] transition-colors">
-                Sign In
-              </Link>
-              <Link href="/signup" className="status-block status-block-active px-4 py-2.5">
-                Get Started →
-              </Link>
-              <ThemeToggle />
-            </div>
+          <div className="flex items-center gap-8 font-bold text-sm tracking-widest uppercase">
+            <Link href="#features" className="hover:opacity-60 transition-opacity">Features</Link>
+            <Link href="#pricing" className="hover:opacity-60 transition-opacity">Pricing</Link>
+            <div className="h-4 w-px bg-white/20" />
+            <Link href="/login" className="hover:opacity-60 transition-opacity">Log In</Link>
+            <Link href="/signup" className="flex items-center gap-2 group">
+              Start
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+            <ThemeToggle />
           </div>
         </div>
       </nav>
 
-      {/* ── Hero ────────────────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col justify-end pb-20 pt-16 bg-dot">
-        {/* Grid overlay */}
-        <div className="absolute inset-0 bg-grid pointer-events-none opacity-40" />
-
-        <div className="relative z-10 max-w-[1400px] mx-auto px-8 w-full">
-          {/* Status bar */}
-          <div className="flex items-center gap-4 mb-12 border-b border-[var(--border)] pb-6">
-            <span className="index-label">[ 00 ] SYSTEM_STATUS</span>
-            <div className="h-px flex-1 bg-[var(--border)]" />
-            <div className="status-block status-block-outline gap-2">
-              <span className="w-1.5 h-1.5 bg-emerald-500 inline-block" style={{ animation: "pulse-dim 2s infinite" }} />
-              ENGINE_ONLINE
-            </div>
+      {/* ── Hero ─────────────────────────────────────────────────────── */}
+      <section className="relative min-h-screen flex flex-col pt-32 pb-12">
+        <div className="max-w-[1400px] mx-auto px-6 w-full flex-1 flex flex-col justify-center">
+          
+          <div className="flex items-center gap-4 mb-8">
+            <span className="index-label">[ 00 ] INIT</span>
+            <div className="h-px w-24 bg-[var(--fg)]" />
           </div>
 
           {/* Main heading */}
-          <h1 className="magazine-heading text-[clamp(4rem,15vw,18rem)] text-[var(--fg)] leading-none mb-0">
+          <h1 className="magazine-heading text-5xl md:text-7xl lg:text-8xl text-[var(--fg)] leading-none mb-0">
             Land Your
           </h1>
-          <h1 className="magazine-heading text-[clamp(4rem,15vw,18rem)] text-[var(--fg-muted)] leading-none mb-16">
+          <h1 className="magazine-heading text-5xl md:text-7xl lg:text-8xl text-[var(--fg-muted)] leading-none mb-12">
             Next Job.
           </h1>
 
-          {/* Sub-row */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
-            <div className="max-w-xl">
-              <p className="text-lg md:text-xl text-[var(--fg-subtle)] font-medium leading-relaxed">
-                CareerAI analyzes your resume, matches you to real jobs, builds a learning roadmap, and coaches you for interviews — all powered by Gemini AI.
-              </p>
-              <p className="index-label mt-4">Free to start. No credit card required.</p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-12">
+            <p className="text-xl md:text-2xl font-medium leading-tight max-w-lg">
+              Upload your resume. Let AI extract your skills, match you to live roles, and generate a step-by-step roadmap to get hired.
+            </p>
 
-            <div className="flex items-center gap-4 flex-shrink-0">
-              <Link
-                href="/signup"
-                className="status-block status-block-active px-8 py-5 text-sm hover:opacity-90 transition-opacity"
-              >
-                Analyze My Resume →
-              </Link>
-              <Link
-                href="#how-it-works"
-                className="status-block status-block-outline px-8 py-5 text-sm"
-              >
-                See How It Works
+            <div className="flex flex-col items-start md:items-end justify-center">
+              <Link href="/signup" className="group">
+                <div className="status-block status-block-active text-xl md:text-3xl px-8 py-6 flex items-center gap-6 hover:bg-transparent hover:text-[var(--fg)] transition-colors cursor-pointer">
+                  Execute 
+                  <ArrowRight className="w-8 h-8 group-hover:translate-x-2 transition-transform" />
+                </div>
               </Link>
             </div>
-          </div>
-        </div>
-
-        {/* Bottom ticker */}
-        <div className="absolute bottom-0 left-0 right-0 border-t border-[var(--border)]">
-          <div className="max-w-[1400px] mx-auto px-8 py-3 flex items-center gap-8 overflow-hidden">
-            {["AI Resume Analysis", "Live Job Matching", "Career Roadmap", "Mock Interview Coach", "LinkedIn Branding Kit", "Public Portfolio"].map((t, i) => (
-              <span key={i} className="index-label whitespace-nowrap">{t}</span>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* ── How It Works ─────────────────────────────────────────────── */}
-      <section id="how-it-works" className="relative border-t border-[var(--border)] bg-[var(--bg-subtle)]">
-        <div className="max-w-[1400px] mx-auto px-8 py-32">
-          <div className="flex items-center gap-6 mb-24">
-            <span className="index-label">[ 01 ] HOW_IT_WORKS</span>
-            <div className="h-px flex-1 bg-[var(--border)]" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 border border-[var(--border)]">
-            {STEPS.map((step, i) => (
-              <div
-                key={i}
+      {/* ── Steps ────────────────────────────────────────────────────── */}
+      <section className="border-t border-[var(--border)] relative bg-[var(--bg)]">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3">
+            {[
+              {
+                num: "01",
+                title: "Upload",
+                desc: "Drop your PDF. We extract every skill and achievement using advanced parsing."
+              },
+              {
+                num: "02",
+                title: "Analyze",
+                desc: "Our Gemini model scores your profile and finds your exact market fit."
+              },
+              {
+                num: "03",
+                title: "Execute",
+                desc: "Follow an AI-generated weekly roadmap to close skill gaps and land interviews."
+              }
+            ].map((step, i) => (
+              <div 
+                key={i} 
                 className="p-12 border-r border-[var(--border)] last:border-r-0 group offset-card hover:z-10 relative"
               >
-                <div className="text-[5rem] font-black font-mono text-[var(--border)] leading-none mb-8 group-hover:text-[var(--fg-muted)] transition-colors">
+                <div className="text-6xl md:text-7xl font-black font-mono text-[var(--border)] leading-none mb-6 group-hover:text-[var(--fg-muted)] transition-colors">
                   {step.num}
                 </div>
                 <h3 className="text-2xl font-black uppercase italic tracking-tight text-[var(--fg)] mb-4 leading-none">
                   {step.title}
                 </h3>
-                <p className="text-[var(--fg-subtle)] text-sm leading-relaxed">
-                  {step.body}
+                <p className="text-[var(--fg-subtle)] font-medium leading-relaxed">
+                  {step.desc}
                 </p>
               </div>
             ))}
@@ -162,161 +101,95 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ─────────────────────────────────────────────────── */}
-      <section id="features" className="relative border-t border-[var(--border)]">
-        <div className="max-w-[1400px] mx-auto px-8 py-32">
-          <div className="flex items-center gap-6 mb-24">
-            <span className="index-label">[ 02 ] CAPABILITIES</span>
-            <div className="h-px flex-1 bg-[var(--border)]" />
-            <span className="index-label">6 MODULES_ACTIVE</span>
+      <section id="features" className="border-t border-[var(--border)] py-32 bg-[var(--bg-muted)]">
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="flex items-center gap-4 mb-16">
+            <span className="index-label">[ 01 ] SYSTEM_CAPABILITIES</span>
+            <div className="h-px w-24 bg-[var(--fg-muted)]" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 border border-[var(--border)]">
-            {FEATURES.map((f, i) => (
-              <div
-                key={i}
-                className="p-10 border-r border-b border-[var(--border)] last:border-r-0 group hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors"
-              >
-                <div className="flex items-start justify-between mb-10">
-                  <f.icon className="h-5 w-5 text-[var(--fg-muted)] group-hover:text-[var(--bg)] transition-colors" />
-                  <span className="index-label group-hover:text-[var(--bg)] opacity-40">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                </div>
-                <h3 className="text-lg font-black uppercase tracking-tight mb-3 leading-none">
-                  {f.label}
-                </h3>
-                <p className="text-sm opacity-60 leading-relaxed">
-                  {f.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Pricing ─────────────────────────────────────────────────── */}
-      <section id="pricing" className="relative border-t border-[var(--border)] bg-[var(--bg-subtle)]">
-        <div className="max-w-[1400px] mx-auto px-8 py-32">
-          <div className="flex items-center gap-6 mb-24">
-            <span className="index-label">[ 03 ] ACCESS_TIERS</span>
-            <div className="h-px flex-1 bg-[var(--border)]" />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 border border-[var(--border)]">
-            {/* Free */}
-            <div className="p-12 border-r border-[var(--border)]">
-              <span className="index-label block mb-8">FREE_TIER</span>
-              <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Starter</h3>
-              <div className="text-5xl font-black font-mono mb-12 tracking-tighter">$0</div>
-              <ul className="space-y-3 mb-12">
-                {["3 Resume Analyses", "5 Job Matches", "1 Career Roadmap", "2 Mock Interviews"].map((f) => (
-                  <li key={f} className="text-xs font-mono text-[var(--fg-subtle)] flex items-center gap-2">
-                    <span className="text-[var(--fg-muted)]">—</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="status-block status-block-outline w-full justify-center py-4">
-                Start Free →
-              </Link>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-24">
+            <div>
+              <FileText className="w-12 h-12 mb-6" />
+              <h3 className="text-4xl font-black uppercase italic tracking-tight mb-4">Resume Parsing</h3>
+              <p className="text-lg text-[var(--fg-muted)] font-medium leading-relaxed">
+                Stop manually entering data. Our system reads your raw PDF, structures it into JSON, and evaluates it against strict ATS guidelines instantly.
+              </p>
             </div>
-
-            {/* Early Bird — highlighted */}
-            <div className="p-12 bg-[var(--fg)] text-[var(--bg)] border-r border-[var(--border)] relative">
-              <div className="absolute top-4 right-4 tag bg-[var(--bg)] text-[var(--fg)]">
-                MOST POPULAR
-              </div>
-              <span className="index-label block mb-8 opacity-40">EARLY_BIRD</span>
-              <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Early Bird</h3>
-              <div className="text-5xl font-black font-mono mb-12 tracking-tighter">$5<span className="text-2xl opacity-50">/mo</span></div>
-              <ul className="space-y-3 mb-12">
-                {["20 Resume Analyses", "30 Job Matches", "5 Career Roadmaps", "10 Mock Interviews", "LinkedIn Branding Kit"].map((f) => (
-                  <li key={f} className="text-xs font-mono opacity-70 flex items-center gap-2">
-                    <span className="opacity-50">—</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="status-block status-block-active w-full justify-center py-4 bg-[var(--bg)] text-[var(--fg)]">
-                Get Early Access →
-              </Link>
+            <div>
+              <Briefcase className="w-12 h-12 mb-6" />
+              <h3 className="text-4xl font-black uppercase italic tracking-tight mb-4">Live Job Matches</h3>
+              <p className="text-lg text-[var(--fg-muted)] font-medium leading-relaxed">
+                We query real job boards and rank your vector against live requirements, showing you exactly where you stand and what skills you're missing.
+              </p>
             </div>
-
-            {/* Premium */}
-            <div className="p-12">
-              <span className="index-label block mb-8">PREMIUM_TIER</span>
-              <h3 className="text-3xl font-black italic uppercase tracking-tighter mb-2">Elite</h3>
-              <div className="text-5xl font-black font-mono mb-12 tracking-tighter">$50<span className="text-2xl opacity-50">/mo</span></div>
-              <ul className="space-y-3 mb-12">
-                {["Everything in Early Bird", "Unlimited Analyses", "Unlimited Job Matches", "Unlimited Roadmaps", "Priority Support"].map((f) => (
-                  <li key={f} className="text-xs font-mono text-[var(--fg-subtle)] flex items-center gap-2">
-                    <span className="text-[var(--fg-muted)]">—</span> {f}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" className="status-block status-block-outline w-full justify-center py-4">
-                Go Elite →
-              </Link>
+            <div>
+              <Zap className="w-12 h-12 mb-6" />
+              <h3 className="text-4xl font-black uppercase italic tracking-tight mb-4">AI Interview Prep</h3>
+              <p className="text-lg text-[var(--fg-muted)] font-medium leading-relaxed">
+                Practice behavioral and technical questions with our LLM coach. Get instant feedback on your answers before the real thing.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── CTA Banner ──────────────────────────────────────────────── */}
-      <section className="border-t border-b border-[var(--border)] bg-[var(--fg)] text-[var(--bg)]">
-        <div className="max-w-[1400px] mx-auto px-8 py-20 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div>
-            <h2 className="magazine-heading text-5xl md:text-7xl">
-              Ready to land<br />
-              <span className="opacity-50">your next job?</span>
-            </h2>
+      {/* ── Pricing ──────────────────────────────────────────────────── */}
+      <section id="pricing" className="border-t border-[var(--border)] py-32 bg-[var(--bg)]">
+        <div className="max-w-[1400px] mx-auto px-6">
+          <div className="flex items-center gap-4 mb-16">
+            <span className="index-label">[ 02 ] DEPLOYMENT</span>
+            <div className="h-px w-24 bg-[var(--fg-muted)]" />
           </div>
-          <Link
-            href="/signup"
-            className="flex-shrink-0 flex items-center gap-3 border border-[var(--bg)] px-10 py-6 font-black text-sm uppercase tracking-widest hover:bg-[var(--bg)] hover:text-[var(--fg)] transition-colors"
-          >
-            Analyze My Resume <ArrowRight className="h-4 w-4" />
-          </Link>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="blueprint-border p-10 flex flex-col">
+              <h3 className="text-2xl font-black uppercase italic tracking-tight mb-2">Starter</h3>
+              <div className="text-6xl font-black font-mono mb-8">$0</div>
+              <ul className="space-y-4 mb-12 flex-1 font-medium text-[var(--fg-muted)]">
+                <li>3 Resume Analyses</li>
+                <li>5 Job Matches</li>
+                <li>1 Roadmap</li>
+              </ul>
+              <Link href="/signup" className="btn-primary w-full text-center">Start Free</Link>
+            </div>
+
+            <div className="offset-card p-10 flex flex-col bg-[var(--fg)] text-[var(--bg)]">
+              <div className="status-block status-block-active text-xs mb-4 w-fit">Most Popular</div>
+              <h3 className="text-2xl font-black uppercase italic tracking-tight mb-2">Early Bird</h3>
+              <div className="text-6xl font-black font-mono mb-8">$5<span className="text-2xl text-[var(--bg)] opacity-50">/mo</span></div>
+              <ul className="space-y-4 mb-12 flex-1 font-medium opacity-80">
+                <li>20 Resume Analyses</li>
+                <li>30 Job Matches</li>
+                <li>5 Roadmaps</li>
+              </ul>
+              <Link href="/signup" className="btn-primary w-full text-center !bg-[var(--bg)] !text-[var(--fg)] !border-[var(--bg)] hover:!bg-transparent hover:!text-[var(--bg)]">Upgrade</Link>
+            </div>
+
+            <div className="blueprint-border p-10 flex flex-col">
+              <h3 className="text-2xl font-black uppercase italic tracking-tight mb-2">Elite</h3>
+              <div className="text-6xl font-black font-mono mb-8">$50<span className="text-2xl text-[var(--fg-muted)]">/mo</span></div>
+              <ul className="space-y-4 mb-12 flex-1 font-medium text-[var(--fg-muted)]">
+                <li>Unlimited Analyses</li>
+                <li>Unlimited Job Matches</li>
+                <li>Priority Support</li>
+              </ul>
+              <Link href="/signup" className="btn-primary w-full text-center">Go Elite</Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── Footer ──────────────────────────────────────────────────── */}
-      <footer className="border-t border-[var(--border)] bg-[var(--bg-subtle)]">
-        <div className="max-w-[1400px] mx-auto px-8 py-16 flex flex-col md:flex-row justify-between items-start gap-12">
-          <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-6 w-6 bg-[var(--fg)] flex items-center justify-center">
-                <Zap className="w-3.5 h-3.5 text-[var(--bg)] fill-current" />
-              </div>
-              <span className="font-black text-base tracking-tighter italic uppercase">CareerAI</span>
-            </div>
-            <p className="index-label leading-relaxed text-[var(--fg-muted)] max-w-xs">
-              AI-powered career acceleration. <br />
-              Upload a resume. Land a job.
-            </p>
+      {/* ── Footer ───────────────────────────────────────────────────── */}
+      <footer className="border-t border-[var(--border)] py-12 bg-[var(--bg)]">
+        <div className="max-w-[1400px] mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="font-black text-xl tracking-tighter uppercase italic">
+            CareerAI
           </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-12">
-            <div className="flex flex-col gap-4">
-              <span className="index-label text-[var(--fg)]">Product</span>
-              <Link href="#how-it-works" className="index-label hover:text-[var(--fg)] transition-colors">How it Works</Link>
-              <Link href="#features" className="index-label hover:text-[var(--fg)] transition-colors">Features</Link>
-              <Link href="#pricing" className="index-label hover:text-[var(--fg)] transition-colors">Pricing</Link>
-            </div>
-            <div className="flex flex-col gap-4">
-              <span className="index-label text-[var(--fg)]">Account</span>
-              <Link href="/login" className="index-label hover:text-[var(--fg)] transition-colors">Sign In</Link>
-              <Link href="/signup" className="index-label hover:text-[var(--fg)] transition-colors">Sign Up</Link>
-            </div>
-            <div className="flex flex-col gap-4">
-              <span className="index-label text-[var(--fg)]">Legal</span>
-              <Link href="/privacy" className="index-label hover:text-[var(--fg)] transition-colors">Privacy</Link>
-              <Link href="/terms" className="index-label hover:text-[var(--fg)] transition-colors">Terms</Link>
-            </div>
+          <div className="flex gap-6 index-label">
+            <Link href="/privacy" className="hover:text-[var(--fg)]">Privacy</Link>
+            <Link href="/terms" className="hover:text-[var(--fg)]">Terms</Link>
           </div>
-        </div>
-
-        <div className="border-t border-[var(--border)] max-w-[1400px] mx-auto px-8 py-6 flex items-center justify-between">
-          <span className="index-label">© 2026 CareerAI — All rights reserved</span>
-          <span className="index-label">Built with Gemini AI</span>
         </div>
       </footer>
     </div>

@@ -49,9 +49,9 @@ export async function GET() {
           }),
           prisma.roadmap.findMany({
             where: { userId, progress: { gt: 0 } },
-            orderBy: { updatedAt: "desc" },
+            orderBy: { createdAt: "desc" },
             take: 1,
-            select: { week: true, progress: true, updatedAt: true },
+            select: { week: true, progress: true, createdAt: true },
           }),
         ]),
       ]);
@@ -94,16 +94,10 @@ export async function GET() {
       activities.push({
         action: "ROADMAP_UPDATE",
         item: `Week ${r.week} — ${r.progress}% complete`,
-        time: formatTime(r.updatedAt),
+        time: formatTime(r.createdAt),
         status: "SYNCHRONIZED",
       });
     }
-
-    // Sort by most recent
-    activities.sort((a, b) => {
-      // Already sorted by time string, just take top 5
-      return 0;
-    });
 
     const stats = {
       score: latestAnalysis?.score ?? 0,
