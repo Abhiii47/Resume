@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { AlertCircle, Briefcase, RefreshCcw } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from "@repo/ui";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -192,7 +191,7 @@ export default function JobsPage() {
 
   if (selectedJob && (optimizing || optimizedResume)) {
     return (
-      <div className="relative flex flex-col h-full gap-10 max-w-6xl mx-auto w-full pb-20 px-4">
+      <div className="relative flex flex-col h-full gap-10 max-w-6xl mx-auto w-full pb-20 px-4 pt-8">
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
           <div className="absolute inset-0 bg-dot opacity-[0.05]" />
         </div>
@@ -208,22 +207,22 @@ export default function JobsPage() {
               setOptimizedResume(null);
               setSaveSuccess(null);
             }}
-            className="index-label text-zinc-600 hover:text-white transition-all"
+            className="index-label text-[var(--fg-muted)] hover:text-[var(--fg)] transition-all"
           >
             {"<-"} Return to Matrix
           </button>
-          <h2 className="index-label text-white">REFINING VECTOR</h2>
+          <h2 className="index-label text-[var(--fg)]">REFINING VECTOR</h2>
           <div className="w-32" />
         </motion.div>
 
         {error && (
-          <div className="p-8 border border-red-500/20 bg-red-500/5 text-xs text-red-500 flex items-center gap-6 font-black uppercase tracking-widest">
+          <div className="p-8 border-2 border-[var(--fg)] bg-red-50 text-xs text-red-600 flex items-center gap-6 font-black uppercase tracking-widest offset-card">
             <AlertCircle className="h-5 w-5" /> {error}
           </div>
         )}
 
         {saveSuccess && (
-          <div className="p-8 border border-emerald-500/20 bg-emerald-500/5 index-label text-emerald-500">
+          <div className="p-8 border-2 border-[var(--fg)] bg-[var(--bg-muted)] index-label text-[var(--fg)] offset-card">
             [ 00 ] {saveSuccess}
           </div>
         )}
@@ -234,9 +233,9 @@ export default function JobsPage() {
             animate={{ opacity: 1, x: 0 }}
             className="flex-1"
           >
-            <div className="blueprint-border p-12 bg-[var(--bg-subtle)] h-full relative">
+            <div className="border-2 border-[var(--fg)] p-12 bg-[var(--bg)] h-full relative offset-card">
               <div className="flex items-center gap-6 mb-12">
-                <span className="status-block status-block-active px-6 py-2">
+                <span className="status-block bg-[var(--fg)] text-[var(--bg)] px-6 py-2">
                   {selectedJob.match?.score}% MATCH_SYNC
                 </span>
               </div>
@@ -245,10 +244,10 @@ export default function JobsPage() {
               </h3>
               <div className="flex flex-wrap items-center gap-6 index-label text-[var(--fg-muted)] mb-12">
                 <span>{selectedJob.company}</span>
-                <div className="w-1 h-1 bg-[var(--border)]" />
+                <div className="w-1 h-1 bg-[var(--fg)]" />
                 <span>{selectedJob.location}</span>
               </div>
-              <div className="text-lg text-[var(--fg-subtle)] leading-relaxed whitespace-pre-wrap overflow-y-auto max-h-[500px] font-medium custom-scrollbar pr-6">
+              <div className="text-lg text-[var(--fg)] leading-relaxed whitespace-pre-wrap overflow-y-auto max-h-[500px] font-medium custom-scrollbar pr-6">
                 {selectedJob.description}
               </div>
             </div>
@@ -260,13 +259,13 @@ export default function JobsPage() {
             transition={{ delay: 0.1 }}
             className="flex-1"
           >
-            <div className="blueprint-border p-10 bg-white/[0.01] h-full relative">
+            <div className="border-2 border-[var(--fg)] p-10 bg-[var(--bg-muted)] h-full relative offset-card">
               <div className="flex items-center justify-between mb-8">
-                <span className="index-label">Refined Output</span>
+                <span className="index-label text-[var(--fg)]">Refined Output</span>
                 {optimizedResume && (
                   <button
                     onClick={handleSaveVersion}
-                    className="status-block status-block-active px-6 py-3"
+                    className="status-block bg-[var(--bg)] text-[var(--fg)] border-2 border-[var(--fg)] px-6 py-3 hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors"
                   >
                     Commit Version {"->"}
                   </button>
@@ -274,21 +273,21 @@ export default function JobsPage() {
               </div>
 
               {optimizing ? (
-                <div className="flex flex-col items-center justify-center gap-12 py-32">
-                  <div className="h-16 w-16 border border-[var(--border)] flex items-center justify-center">
-                    <RefreshCcw className="h-8 w-8 animate-spin" />
+                <div className="flex flex-col items-center justify-center gap-12 py-32 bg-[var(--bg)] border border-[var(--border)]">
+                  <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center">
+                    <RefreshCcw className="h-8 w-8 text-[var(--fg)] animate-spin" />
                   </div>
                   <div className="text-center">
                     <p className="magazine-heading text-3xl text-[var(--fg)] mb-4">
                       Generating Vector
                     </p>
-                    <p className="index-label animate-pulse">
+                    <p className="index-label animate-pulse text-[var(--fg)]">
                       [ 00 ] SYNCING_WITH_GEMINI_CORE
                     </p>
                   </div>
                 </div>
               ) : (
-                <div className="text-sm font-mono bg-black border border-white/5 p-8 whitespace-pre-wrap text-zinc-300 max-h-[550px] overflow-y-auto custom-scrollbar leading-relaxed">
+                <div className="text-sm font-mono bg-[var(--bg)] border-2 border-[var(--border)] p-8 whitespace-pre-wrap text-[var(--fg)] max-h-[550px] overflow-y-auto custom-scrollbar leading-relaxed">
                   {optimizedResume}
                 </div>
               )}
@@ -300,7 +299,7 @@ export default function JobsPage() {
   }
 
   return (
-    <div className="relative flex flex-col gap-10 max-w-6xl mx-auto w-full pb-20 px-4">
+    <div className="relative flex flex-col gap-10 max-w-6xl mx-auto w-full pb-20 px-4 pt-8">
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute inset-0 bg-dot opacity-[0.05]" />
       </div>
@@ -308,20 +307,20 @@ export default function JobsPage() {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 relative z-10"
+        className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 relative z-10 border-b-2 border-[var(--fg)] pb-12"
       >
         <div className="flex flex-col gap-10">
           <div className="flex items-center gap-6 mb-4">
-            <span className="index-label">[ 00 ] OPPORTUNITY_MATRIX</span>
-            <div className="h-px w-24 bg-[var(--border)]" />
+            <span className="index-label text-[var(--fg)]">[ 00 ] OPPORTUNITY_MATRIX</span>
+            <div className="h-px w-24 bg-[var(--fg)]" />
           </div>
 
-          <h1 className="magazine-heading text-6xl md:text-9xl">
+          <h1 className="magazine-heading text-6xl md:text-8xl text-[var(--fg)] leading-none">
             Intelligence <br />
             <span className="text-[var(--fg-muted)]">Match.</span>
           </h1>
 
-          <p className="text-[var(--fg-subtle)] text-xl leading-tight font-medium max-w-2xl uppercase italic tracking-tighter">
+          <p className="text-[var(--fg-subtle)] text-lg leading-tight font-medium max-w-2xl uppercase tracking-tighter">
             AI-ranked job vectors calibrated to your unique career footprint.
             <br />
             Market signals:{" "}
@@ -338,50 +337,47 @@ export default function JobsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="FILTER MATRIX..."
-              className="w-full bg-black border border-white/10 px-4 py-4 text-xs font-mono text-white focus:outline-none focus:border-white/40 transition-all"
+              className="w-full bg-[var(--bg)] border-2 border-[var(--fg)] px-4 py-4 text-xs font-mono text-[var(--fg)] focus:outline-none focus:bg-[var(--bg-muted)] transition-all offset-card"
             />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
+          <button
             onClick={() => fetchMatches({ silent: true })}
             disabled={refreshing}
-            className="h-16 w-16 border border-[var(--border)] bg-transparent hover:bg-[var(--bg-muted)]"
+            className="h-[52px] w-[52px] border-2 border-[var(--fg)] bg-[var(--bg)] flex items-center justify-center hover:bg-[var(--bg-muted)] offset-card"
           >
             <RefreshCcw
               className={cn(
-                "h-6 w-6 text-[var(--fg-muted)]",
+                "h-6 w-6 text-[var(--fg)]",
                 refreshing && "animate-spin",
               )}
             />
-          </Button>
+          </button>
         </div>
       </motion.div>
 
       {error && (
-        <div className="p-3 rounded-lg border border-red-500/30 bg-red-500/10 text-sm text-red-600 flex items-center justify-between gap-3">
-          <span className="flex items-center gap-2">
+        <div className="p-4 border-2 border-red-500 bg-red-50 text-sm text-red-600 flex items-center justify-between gap-3 offset-card">
+          <span className="flex items-center gap-2 font-bold">
             <AlertCircle className="h-4 w-4" /> {error}
           </span>
-          <Button size="sm" variant="outline" onClick={() => fetchMatches()}>
+          <button className="status-block bg-white text-red-600 border-2 border-red-500 px-4 py-1 text-xs" onClick={() => fetchMatches()}>
             Retry
-          </Button>
+          </button>
         </div>
       )}
 
       {!error && info && (
-        <div className="p-4 border border-[var(--border)] bg-[var(--bg-subtle)] index-label text-[var(--fg-muted)]">
+        <div className="p-4 border-2 border-[var(--fg)] bg-[var(--bg-muted)] index-label text-[var(--fg)] offset-card">
           [ INFO ] {info}
         </div>
       )}
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-32 gap-12">
-          <div className="relative h-20 w-20">
-            <div className="absolute inset-0 border border-[var(--border)]" />
-            <div className="absolute inset-0 border border-t-[var(--fg)] animate-spin" />
+          <div className="relative h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)]">
+            <div className="absolute inset-0 border-[var(--fg)] animate-spin border-t-4" />
           </div>
-          <p className="index-label animate-pulse">
+          <p className="index-label animate-pulse text-[var(--fg)]">
             [ 00 ] SYNCING_OPPORTUNITY_ENGINE
           </p>
         </div>
@@ -389,10 +385,10 @@ export default function JobsPage() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="p-32 border border-[var(--border)] bg-[var(--bg-subtle)] text-center relative group blueprint-border"
+          className="p-32 border-2 border-[var(--fg)] bg-[var(--bg)] text-center relative group offset-card"
         >
-          <div className="h-20 w-20 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center mb-10 mx-auto">
-            <Briefcase className="h-10 w-10 text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors" />
+          <div className="h-20 w-20 bg-[var(--bg-muted)] border-2 border-[var(--fg)] flex items-center justify-center mb-10 mx-auto">
+            <Briefcase className="h-10 w-10 text-[var(--fg)] group-hover:scale-110 transition-transform" />
           </div>
           <h3 className="magazine-heading text-4xl text-[var(--fg)] mb-6">
             No Signals Found
@@ -405,7 +401,7 @@ export default function JobsPage() {
           </p>
         </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
           {filteredMatches.map((job) => {
             const score = job.match?.score ?? 0;
             const matchedSkills = job.match?.matchedSkills ?? [];
@@ -415,21 +411,22 @@ export default function JobsPage() {
                 key={job.id}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
+                className="h-full"
               >
-                <div className="blueprint-border p-12 bg-[var(--bg-subtle)] flex flex-col h-full group/card transition-all">
-                  <div className="flex items-start justify-between gap-8 mb-10">
+                <div className="border-2 border-[var(--fg)] p-8 md:p-12 bg-[var(--bg)] flex flex-col h-full group/card transition-all offset-card hover:bg-[var(--bg-muted)] cursor-pointer">
+                  <div className="flex items-start justify-between gap-8 mb-8">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-2xl font-black text-[var(--fg)] italic uppercase tracking-tighter truncate mb-3">
+                      <h3 className="text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter truncate mb-3">
                         {job.title}
                       </h3>
                       <div className="flex items-center gap-4 index-label text-[var(--fg-muted)]">
                         <span>{job.company}</span>
-                        <div className="w-1 h-1 bg-[var(--border)]" />
+                        <div className="w-2 h-2 bg-[var(--fg)]" />
                         <span>{job.location}</span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-3">
-                      <span className="index-label text-white font-mono">
+                      <span className="index-label font-bold text-[var(--fg)] border-2 border-[var(--fg)] px-3 py-1">
                         {score}% MATCH
                       </span>
                       {job.sourceUrl && (
@@ -437,7 +434,7 @@ export default function JobsPage() {
                           href={job.sourceUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="index-label text-zinc-800 hover:text-white transition-all"
+                          className="index-label text-[var(--fg-muted)] hover:text-[var(--fg)] transition-all"
                         >
                           OPEN {"->"}
                         </a>
@@ -450,7 +447,7 @@ export default function JobsPage() {
                       {matchedSkills.slice(0, 4).map((skill, index) => (
                         <span
                           key={index}
-                          className="status-block status-block-outline text-[8px]"
+                          className="status-block bg-[var(--bg)] border border-[var(--fg)] text-[var(--fg)] text-[8px]"
                         >
                           {skill}
                         </span>
@@ -458,15 +455,15 @@ export default function JobsPage() {
                     </div>
                   )}
 
-                  <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between gap-4">
-                    <span className="index-label text-zinc-800">
+                  <div className="mt-auto pt-8 border-t-2 border-[var(--fg)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <span className="index-label text-[var(--fg-muted)]">
                       {job.applied ? "TRACKED" : "READY"}
                     </span>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 w-full md:w-auto">
                       <button
                         onClick={() => handleApply(job)}
                         disabled={Boolean(job.applied) || applyingJobId === job.id}
-                        className="status-block status-block-outline px-6 py-3 disabled:opacity-50"
+                        className="status-block bg-[var(--bg)] text-[var(--fg)] border-2 border-[var(--fg)] px-6 py-3 disabled:opacity-50 hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors flex-1 md:flex-none"
                       >
                         {job.applied
                           ? "Applied"
@@ -476,9 +473,9 @@ export default function JobsPage() {
                       </button>
                       <button
                         onClick={() => handleOptimize(job)}
-                        className="status-block status-block-active px-6 py-3"
+                        className="btn-primary px-6 py-3 flex-1 md:flex-none"
                       >
-                        Optimize Vector {"->"}
+                        Optimize {"->"}
                       </button>
                     </div>
                   </div>

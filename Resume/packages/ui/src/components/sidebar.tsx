@@ -63,7 +63,7 @@ export const Sidebar = ({
   );
 };
 
-export const SidebarBody = (props: React.ComponentProps<"div">) => {
+export const SidebarBody = (props: React.ComponentProps<typeof motion.div>) => {
   return (
     <>
       <DesktopSidebar {...props} />
@@ -76,10 +76,7 @@ export const DesktopSidebar = ({
   className,
   children,
   ...rest
-}: {
-  className?: string;
-  children?: React.ReactNode;
-} & React.ComponentProps<typeof motion.div>) => {
+}: React.ComponentProps<typeof motion.div>) => {
   const { setOpen, open, animate } = useSidebar();
   return (
     <motion.div
@@ -104,7 +101,7 @@ export const DesktopSidebar = ({
   );
 };
 
-export const MobileSidebar = (props: React.ComponentProps<"div">) => {
+export const MobileSidebar = (_props: React.ComponentProps<typeof motion.div>) => {
   // Mobile sidebar is disabled for now to focus on PC visibility
   return null;
 };

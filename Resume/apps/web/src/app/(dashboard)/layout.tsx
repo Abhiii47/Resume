@@ -57,12 +57,12 @@ const planConfig = {
   EARLY_BIRD: {
     label: "Early Bird",
     icon: Sparkles,
-    className: "bg-violet-500/20 text-violet-300 border-violet-500/30",
+    className: "bg-[var(--fg)] text-[var(--bg)] border-[var(--border)]",
   },
   PREMIUM: {
     label: "Elite",
     icon: Crown,
-    className: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+    className: "bg-[var(--fg)] text-[var(--bg)] border-[var(--border)]",
   },
 };
 
@@ -70,7 +70,7 @@ function PlanBadge({ plan }: { plan: "FREE" | "EARLY_BIRD" | "PREMIUM" }) {
   const config = planConfig[plan] ?? planConfig.FREE;
   return (
     <span
-      className="index-label text-[8px] border border-white/10 px-1.5 py-0.5 rounded-sm bg-white/5"
+      className="index-label text-[8px] border border-[var(--border)] px-1.5 py-0.5 rounded-sm bg-[var(--bg-muted)] text-[var(--fg)]"
     >
       {config.label}
     </span>
@@ -89,10 +89,10 @@ function SidebarContent() {
   return (
     <Sidebar open={open} setOpen={setOpen} animate={false}>
       <SidebarBody className="w-64 border-r border-[var(--border)] p-0 bg-[var(--bg-subtle)]/80 backdrop-blur-3xl">
-        <div className="p-8 border-b border-white/5">
+        <div className="p-8 border-b border-[var(--border)]">
           <div className="flex items-center gap-3">
-            <div className="h-6 w-6 bg-white flex items-center justify-center">
-              <Zap className="h-3.5 w-3.5 text-black fill-black" />
+            <div className="h-6 w-6 bg-[var(--fg)] flex items-center justify-center">
+              <Zap className="h-3.5 w-3.5 text-[var(--bg)] fill-[var(--bg)]" />
             </div>
             <span className="font-black text-lg text-[var(--fg)] tracking-tighter italic uppercase">
               CareerAI
@@ -120,19 +120,19 @@ function SidebarContent() {
         </nav>
 
         {/* User Profile & Logout */}
-        <div className="p-6 border-t border-white/5">
-          <div className="p-4 bg-white/[0.02] blueprint-border group hover:bg-white/[0.04] transition-all">
+        <div className="p-6 border-t border-[var(--border)]">
+          <div className="p-4 bg-[var(--bg)] blueprint-border group hover:bg-[var(--bg-muted)] transition-all">
             <div className="flex items-center gap-3 mb-4">
-              <Avatar className="h-8 w-8 rounded-none border border-white/10">
+              <Avatar className="h-8 w-8 rounded-none border border-[var(--border)]">
                 {session?.user?.image ? (
                   <AvatarImage src={session.user.image} className="object-cover" />
                 ) : null}
-                <AvatarFallback className="bg-zinc-900 text-[10px] text-zinc-500 font-mono">
+                <AvatarFallback className="bg-[var(--bg-muted)] text-[10px] text-[var(--fg)] font-mono">
                   {session?.user?.name?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="index-label text-white truncate leading-none mb-1">
+                <p className="index-label text-[var(--fg)] truncate leading-none mb-1">
                   {session?.user?.name || "User"}
                 </p>
                 <PlanBadge plan={plan} />

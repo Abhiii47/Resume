@@ -153,7 +153,7 @@ export default function AnalysisPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-6">
-        <div className="h-10 w-10 border border-[var(--fg)] border-t-transparent animate-spin" />
+        <div className="h-10 w-10 border-4 border-[var(--fg)] border-t-transparent animate-spin" />
         <p className="index-label">
           [ LOG_SYNC ] Synchronizing intelligence...
         </p>
@@ -164,7 +164,7 @@ export default function AnalysisPage() {
   const activeResume = resumes.find((r) => r.id === activeResumeId);
 
   const Skeleton = ({ className }: { className?: string }) => (
-    <div className={cn("animate-pulse bg-[var(--fg-muted)]/10 border border-[var(--border)]", className)} />
+    <div className={cn("animate-pulse bg-[var(--bg-muted)] border border-[var(--border)]", className)} />
   );
 
   return (
@@ -186,35 +186,35 @@ export default function AnalysisPage() {
               key={resume.id}
               onClick={() => setActiveResumeId(resume.id)}
               className={cn(
-                "group relative w-full p-8 border-b border-x border-[var(--border)] transition-all first:border-t",
+                "group relative w-full p-8 border-[var(--border)] transition-all",
                 activeResumeId === resume.id
-                  ? "bg-[var(--fg)] text-[var(--bg)]"
-                  : "bg-transparent border-[var(--border)] hover:bg-[var(--bg-subtle)]",
+                  ? "offset-card bg-[var(--fg)] text-[var(--bg)] border-2 border-[var(--fg)] translate-x-1"
+                  : "bg-[var(--bg)] border hover:bg-[var(--bg-muted)]",
               )}
             >
-              <div className="flex flex-col gap-2 relative z-10">
+              <div className="flex flex-col gap-2 relative z-10 text-left">
                 <p
                   className={cn(
                     "text-xs font-black truncate transition-colors uppercase italic tracking-tight",
                     activeResumeId === resume.id
-                      ? "text-white"
-                      : "text-zinc-600 group-hover:text-zinc-400",
+                      ? "text-[var(--bg)]"
+                      : "text-[var(--fg)] group-hover:text-[var(--fg-muted)]",
                   )}
                 >
                   {idx.toString().padStart(2, '0')} / {resume.fileName}
                 </p>
-                <div className="flex items-center justify-between">
-                  <span className="index-label text-[8px]">
+                <div className="flex items-center justify-between mt-2">
+                  <span className={cn("index-label text-[8px]", activeResumeId === resume.id ? "text-[var(--bg)] opacity-70" : "")}>
                     {new Date(resume.createdAt).toLocaleDateString()}
                   </span>
                   {resume.score ? (
                     <span
-                      className="index-label text-[8px] text-white"
+                      className={cn("index-label text-[8px] font-bold", activeResumeId === resume.id ? "text-[var(--bg)]" : "text-[var(--fg)]")}
                     >
                       SCORE: {resume.score}
                     </span>
                   ) : (
-                    <span className="index-label text-[8px] text-zinc-800">
+                    <span className="index-label text-[8px] opacity-50">
                       SYNC
                     </span>
                   )}
@@ -225,7 +225,7 @@ export default function AnalysisPage() {
 
           <Link
             href="/dashboard/resume"
-            className="w-full p-6 border border-dashed border-white/10 index-label text-zinc-600 hover:border-white/40 hover:text-white transition-all flex items-center justify-center gap-3 mt-4"
+            className="w-full p-6 blueprint-border bg-[var(--bg-muted)] hover:bg-[var(--bg)] text-[var(--fg)] font-bold text-sm tracking-widest uppercase transition-all flex items-center justify-center gap-3 mt-4"
           >
             Upload Vector →
           </Link>
@@ -242,28 +242,28 @@ export default function AnalysisPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto"
             >
-              <div className="h-16 w-16 bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6">
+              <div className="h-16 w-16 border-2 border-red-500 bg-red-50 flex items-center justify-center mb-6">
                 <AlertTriangle className="h-8 w-8 text-red-500" />
               </div>
               <h2 className="magazine-heading text-2xl text-[var(--fg)] mb-3">
                 Analysis Obstacle
               </h2>
-              <p className="text-zinc-400 text-sm mb-2">{error.message}</p>
+              <p className="text-[var(--fg-muted)] text-sm mb-2">{error.message}</p>
               {error.details && (
-                <p className="text-[var(--fg-muted)] text-xs bg-[var(--bg-subtle)] p-6 border border-[var(--border)] leading-relaxed mb-8 font-mono">
+                <p className="text-[var(--fg)] text-xs bg-[var(--bg-muted)] p-6 border border-[var(--border)] leading-relaxed mb-8 font-mono">
                   {error.details}
                 </p>
               )}
               <div className="flex gap-4">
                 <button
                   onClick={() => mutateAnalysis()}
-                  className="status-block status-block-outline px-8 py-3"
+                  className="btn-primary"
                 >
                   Retry
                 </button>
                 <button
                   onClick={() => handleReanalyze()}
-                  className="status-block status-block-active px-8 py-3"
+                  className="btn-primary !bg-red-500 !border-red-500 !text-white hover:!bg-red-600"
                 >
                   Force Re-Run
                 </button>
@@ -276,34 +276,32 @@ export default function AnalysisPage() {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center justify-center py-20 px-4 text-center max-w-md mx-auto"
             >
-              <div className="h-20 w-20 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center mb-10 group">
-                <Sparkles className="h-10 w-10 text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors" />
+              <div className="h-20 w-20 bg-[var(--bg-muted)] border-2 border-[var(--fg)] flex items-center justify-center mb-10 group">
+                <Sparkles className="h-10 w-10 text-[var(--fg)]" />
               </div>
               <h2 className="magazine-heading text-3xl text-[var(--fg)] mb-4">
                 Ready for Insight
               </h2>
-              <p className="text-zinc-500 text-sm leading-relaxed mb-10">
+              <p className="text-[var(--fg-muted)] text-sm leading-relaxed mb-10">
                 This resume hasn&apos;t been scanned by our AI engine yet.
                 Let&apos;s see how much potential we can find.
               </p>
               <button
                 onClick={() => handleReanalyze()}
                 disabled={reanalyzing}
-                className="status-block status-block-active px-12 py-6 text-sm hover:scale-105 transition-all"
+                className="btn-primary flex items-center justify-center gap-3 w-full"
               >
-                <div className="relative z-10 flex items-center gap-3">
-                  {reanalyzing ? (
-                    <>
-                      <div className="h-4 w-4 border border-[var(--bg)] border-t-transparent animate-spin" />
-                      SYSTEM_WARMING_UP...
-                    </>
-                  ) : (
-                    <>
-                      <Activity className="h-5 w-5" />
-                      ANALYZE_VECTOR_NOW
-                    </>
-                  )}
-                </div>
+                {reanalyzing ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent animate-spin" />
+                    SYSTEM_WARMING_UP...
+                  </>
+                ) : (
+                  <>
+                    <Activity className="h-5 w-5" />
+                    ANALYZE_VECTOR_NOW
+                  </>
+                )}
               </button>
             </motion.div>
           ) : (
@@ -311,19 +309,19 @@ export default function AnalysisPage() {
               key="content"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col gap-12 blueprint-border p-12 bg-white/[0.01] relative"
+              className="flex flex-col gap-12 p-8 border-2 border-[var(--border)] relative bg-[var(--bg)]"
             >
               {/* --- ANALYZING OVERLAY --- */}
               {reanalyzing && (
-                <div className="absolute inset-0 z-40 bg-[var(--bg)]/80 backdrop-blur-xl flex flex-col items-center justify-center gap-12">
-                  <div className="relative h-28 w-28 border border-[var(--border)] flex items-center justify-center">
+                <div className="absolute inset-0 z-40 bg-[var(--bg)]/90 backdrop-blur-sm flex flex-col items-center justify-center gap-12">
+                  <div className="relative h-28 w-28 border-4 border-[var(--fg)] flex items-center justify-center">
                     <Target className="h-12 w-12 text-[var(--fg)] animate-pulse" />
                   </div>
                   <div className="text-center">
                     <h3 className="magazine-heading text-5xl text-[var(--fg)] mb-4">
                       Computing...
                     </h3>
-                    <p className="index-label animate-pulse">
+                    <p className="index-label animate-pulse text-[var(--fg)]">
                       [ 00 ] PROCESSING_DIMENSIONAL_VECTORS
                     </p>
                   </div>
@@ -334,49 +332,49 @@ export default function AnalysisPage() {
               <div className="flex flex-col md:flex-row md:items-start justify-between gap-10">
                 <div className="flex-1">
                   <div className="flex flex-col gap-6">
-                    <div className="flex items-center gap-4 animate-fade-in-up">
-                      <span className="index-label text-white">[ 01 ] Report</span>
-                      <div className="h-px w-20 bg-white/10" />
+                    <div className="flex items-center gap-4">
+                      <span className="index-label text-[var(--fg)]">[ 01 ] Report</span>
+                      <div className="h-px w-20 bg-[var(--fg)]" />
                     </div>
                     
-                    <h1 className="magazine-heading text-4xl md:text-6xl animate-fade-in-up">
+                    <h1 className="magazine-heading text-4xl md:text-6xl text-[var(--fg)]">
                       {activeResume?.fileName || "Unknown Vector"}
                     </h1>
                   </div>
                   {analysisValidating && !analysis ? (
-                    <div className="space-y-2">
+                    <div className="space-y-4 mt-6">
                       <Skeleton className="h-4 w-full" />
                       <Skeleton className="h-4 w-3/4" />
                     </div>
                   ) : (
-                    <p className="text-lg text-zinc-400 max-w-2xl leading-relaxed font-medium">
+                    <p className="text-lg text-[var(--fg-muted)] max-w-2xl leading-relaxed font-medium mt-6">
                       {analysis.summary}
                     </p>
                   )}
                 </div>
 
                 <div className="flex flex-col items-end gap-6">
-                  <div className="flex items-center gap-8 border border-white/10 p-8 bg-black/40">
+                  <div className="flex items-center gap-8 border-2 border-[var(--fg)] p-8 offset-card">
                     <div className="flex flex-col items-center gap-2">
-                      <span className="index-label text-zinc-600">Match Score</span>
-                      <span className="text-5xl font-black text-white font-mono">{analysis.score}</span>
+                      <span className="index-label text-[var(--fg)]">Match Score</span>
+                      <span className="text-5xl font-black text-[var(--fg)] font-mono">{analysis.score}</span>
                     </div>
-                    <div className="h-10 w-px bg-white/10" />
+                    <div className="h-10 w-px bg-[var(--fg)]" />
                     <div className="flex flex-col items-center gap-2">
-                      <span className="index-label text-zinc-600">ATS Value</span>
-                      <span className="text-5xl font-black text-white font-mono">{analysis.atsScore}</span>
+                      <span className="index-label text-[var(--fg)]">ATS Value</span>
+                      <span className="text-5xl font-black text-[var(--fg)] font-mono">{analysis.atsScore}</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-6">
+                  <div className="flex items-center gap-6 mt-4">
                     <button
                       onClick={handleShare}
-                      className="index-label text-white hover:underline transition-all"
+                      className="index-label text-[var(--fg)] hover:underline transition-all"
                     >
                       Export Results →
                     </button>
                     <button
                       onClick={() => handleReanalyze()}
-                      className="index-label text-zinc-600 hover:text-white transition-all"
+                      className="index-label text-[var(--fg-muted)] hover:text-[var(--fg)] transition-all"
                     >
                       Sync Engine
                     </button>
@@ -392,19 +390,19 @@ export default function AnalysisPage() {
                   className="grid grid-cols-1 md:grid-cols-2 gap-8"
                 >
                   {/* LinkedIn Branding Kit */}
-                  <div className="blueprint-border p-8 bg-white/[0.01]">
-                    <span className="index-label block mb-8">02 / BRANDING</span>
+                  <div className="blueprint-border p-8 bg-[var(--bg-muted)]">
+                    <span className="index-label block mb-8 text-[var(--fg)]">02 / BRANDING</span>
                     <div className="space-y-6">
                       <div>
-                        <span className="index-label text-zinc-700 block mb-2">Headline Vector</span>
-                        <p className="text-sm text-zinc-300 font-medium leading-relaxed italic">
+                        <span className="index-label text-[var(--fg-muted)] block mb-2">Headline Vector</span>
+                        <p className="text-sm text-[var(--fg)] font-medium leading-relaxed italic border-l-2 border-[var(--fg)] pl-4">
                           &ldquo;{analysis.brandingKit?.linkedinHeadline}&rdquo;
                         </p>
                       </div>
-                      <div className="h-px bg-white/5" />
+                      <div className="h-px bg-[var(--border)]" />
                       <div>
-                        <span className="index-label text-zinc-700 block mb-2">High-Signal DM</span>
-                        <p className="text-sm text-zinc-400 font-medium leading-relaxed italic line-clamp-2">
+                        <span className="index-label text-[var(--fg-muted)] block mb-2">High-Signal DM</span>
+                        <p className="text-sm text-[var(--fg)] font-medium leading-relaxed italic border-l-2 border-[var(--fg)] pl-4 line-clamp-3">
                           &ldquo;{analysis.brandingKit?.coldDM}&rdquo;
                         </p>
                       </div>
@@ -412,31 +410,31 @@ export default function AnalysisPage() {
                   </div>
 
                   {/* Public Portfolio */}
-                  <div className="blueprint-border p-8 bg-white/[0.01]">
+                  <div className="blueprint-border p-8 bg-[var(--bg-muted)]">
                     <div className="flex items-center justify-between mb-8">
-                      <span className="index-label block">03 / VISIBILITY</span>
+                      <span className="index-label block text-[var(--fg)]">03 / VISIBILITY</span>
                       <button
                         onClick={handleToggleVisibility}
                         className={cn(
                           "status-block transition-all",
-                          analysis.isPublic ? "status-block-active" : "status-block-outline"
+                          analysis.isPublic ? "status-block-active" : "bg-[var(--bg)] text-[var(--fg)]"
                         )}
                       >
                         {analysis.isPublic ? "LIVE" : "LOCAL"}
                       </button>
                     </div>
                     <div className="flex flex-col gap-6">
-                      <p className="index-label text-zinc-600 leading-relaxed normal-case tracking-normal">
+                      <p className="index-label text-[var(--fg-muted)] leading-relaxed normal-case tracking-normal">
                         Your career trajectory is serialized and accessible to global recruiting engines.
                       </p>
                       {analysis.isPublic && (
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 px-4 py-3 border border-white/10 bg-black text-[10px] font-mono text-white truncate">
+                        <div className="flex items-center gap-0 mt-auto">
+                          <div className="flex-1 px-4 py-3 border border-[var(--border)] bg-[var(--bg)] text-[10px] font-mono text-[var(--fg)] truncate">
                             {origin}/u/{analysis.id}
                           </div>
                           <button 
                             onClick={() => copyToClipboard(`${origin}/u/${analysis.id}`)}
-                            className="p-3 border border-white/10 hover:bg-white hover:text-black transition-all"
+                            className="p-3 border border-[var(--border)] border-l-0 bg-[var(--bg)] hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-all"
                           >
                             <Copy className="h-4 w-4" />
                           </button>
@@ -451,13 +449,13 @@ export default function AnalysisPage() {
               <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
                 {/* Left Side: Skills & Strengths (3 cols) */}
                 <div className="md:col-span-3 flex flex-col gap-8">
-                  <div className="blueprint-border p-8 bg-white/[0.01]">
-                    <span className="index-label block mb-8">04 / CORE STRENGTHS</span>
+                  <div className="blueprint-border p-8 bg-[var(--bg)]">
+                    <span className="index-label block mb-8 text-[var(--fg)]">04 / CORE STRENGTHS</span>
                     <ul className="grid grid-cols-1 gap-6">
                       {(analysis.strengths as string[]).map((str, i) => (
                         <li key={i} className="flex gap-4">
-                          <span className="index-label text-zinc-800">[{i+1}]</span>
-                          <span className="text-base text-zinc-300 leading-snug font-medium italic">
+                          <span className="index-label text-[var(--fg-muted)]">[{i+1}]</span>
+                          <span className="text-base text-[var(--fg)] leading-snug font-medium italic">
                             {str}
                           </span>
                         </li>
@@ -465,13 +463,13 @@ export default function AnalysisPage() {
                     </ul>
                   </div>
 
-                  <div className="blueprint-border p-8 bg-white/[0.01]">
-                    <span className="index-label block mb-8">05 / SKILLS MATRIX</span>
+                  <div className="blueprint-border p-8 bg-[var(--bg)]">
+                    <span className="index-label block mb-8 text-[var(--fg)]">05 / SKILLS MATRIX</span>
                     <div className="flex flex-wrap gap-2">
                       {(analysis.skills as string[]).map((skill, i) => (
                         <span
                           key={i}
-                          className="status-block status-block-outline"
+                          className="status-block bg-[var(--bg)] text-[var(--fg)]"
                         >
                           {skill}
                         </span>
@@ -482,29 +480,29 @@ export default function AnalysisPage() {
 
                 {/* Right Side: Gaps & Path (2 cols) */}
                 <div className="md:col-span-2 flex flex-col gap-8">
-                  <div className="p-8 rounded-3xl border border-amber-500/10 bg-amber-500/[0.02]">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 flex items-center gap-3 mb-8">
-                      <AlertTriangle className="h-4 w-4 text-amber-500" /> Improvement Area
+                  <div className="p-8 border-2 border-[var(--fg)] bg-[var(--bg-muted)] offset-card">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--fg)] flex items-center gap-3 mb-8">
+                      <AlertTriangle className="h-4 w-4" /> Improvement Area
                     </h3>
                     <ul className="flex flex-col gap-5">
                       {(analysis.weaknesses as string[]).map((w, i) => (
                         <li key={i} className="flex items-start gap-4">
-                          <div className="h-1.5 w-1.5 rounded-full bg-amber-500 mt-2 flex-shrink-0 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-                          <span className="text-sm text-zinc-500 font-medium leading-relaxed">{w}</span>
+                          <div className="h-1.5 w-1.5 bg-[var(--fg)] mt-2 flex-shrink-0" />
+                          <span className="text-sm text-[var(--fg)] font-medium leading-relaxed">{w}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="p-8 rounded-3xl border border-red-500/10 bg-red-500/[0.02]">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600 flex items-center gap-3 mb-8">
-                      <Target className="h-4 w-4 text-red-500" /> Missing Intelligence
+                  <div className="p-8 border-2 border-[var(--fg)] bg-[var(--bg-muted)] offset-card">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--fg)] flex items-center gap-3 mb-8">
+                      <Target className="h-4 w-4" /> Missing Intelligence
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {(analysis.missingSkills as string[]).map((skill, i) => (
                         <span
                           key={i}
-                          className="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 text-[10px] font-black uppercase tracking-widest border border-red-500/10"
+                          className="px-3 py-1.5 bg-[var(--bg)] text-[var(--fg)] text-[10px] font-black uppercase tracking-widest border border-[var(--border)]"
                         >
                           {skill}
                         </span>
@@ -512,25 +510,25 @@ export default function AnalysisPage() {
                     </div>
                   </div>
 
-                  <div className="mt-auto p-8 rounded-3xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform">
-                      <Rocket className="h-24 w-24 text-white" />
+                  <div className="mt-auto p-8 border-2 border-[var(--fg)] bg-[var(--fg)] text-[var(--bg)] relative overflow-hidden group offset-card">
+                    <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                      <Rocket className="h-24 w-24 text-[var(--bg)]" />
                     </div>
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500 mb-2">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--bg)] mb-2 opacity-80">
                       Trajectory Path
                     </h3>
                     {analysisValidating && !analysis ? (
-                      <Skeleton className="h-10 w-full" />
+                      <Skeleton className="h-10 w-full !bg-[var(--bg)]" />
                     ) : (
-                      <p className="text-2xl font-black text-white italic uppercase tracking-tight">
+                      <p className="text-2xl font-black text-[var(--bg)] italic uppercase tracking-tight relative z-10">
                         {analysis.careerPath}
                       </p>
                     )}
-                    <div className="mt-6 flex items-center gap-3">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-zinc-600">
+                    <div className="mt-6 flex items-center gap-3 relative z-10">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[var(--bg)] opacity-80">
                         Vector:
                       </span>
-                      <span className="px-3 py-1 rounded-xl bg-white text-black text-[10px] font-black uppercase tracking-widest shadow-xl">
+                      <span className="px-3 py-1 bg-[var(--bg)] text-[var(--fg)] text-[10px] font-black uppercase tracking-widest border-2 border-[var(--bg)]">
                         {analysis.experienceLevel}
                       </span>
                     </div>
@@ -539,11 +537,11 @@ export default function AnalysisPage() {
               </div>
 
               {/* Footer Recommendations */}
-              <div className="pt-6 border-t border-white/5">
-                <h3 className="text-xs font-black uppercase tracking-widest text-zinc-500 mb-4 flex items-center gap-2">
+              <div className="pt-8 border-t border-[var(--border)]">
+                <h3 className="text-xs font-black uppercase tracking-widest text-[var(--fg)] mb-6 flex items-center gap-2">
                   <Zap className="h-3 w-3" /> Strategic Advice
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {analysisValidating && !analysis
                     ? [1, 2].map((i) => (
                         <Skeleton key={i} className="h-20 w-full" />
@@ -551,10 +549,10 @@ export default function AnalysisPage() {
                     : (analysis.recommendations as string[]).map((rec, i) => (
                         <div
                           key={i}
-                          className="p-4 rounded-xl bg-white/5 border border-white/5 flex gap-4 items-center"
+                          className="p-6 bg-[var(--bg-muted)] border border-[var(--border)] flex gap-4 items-start"
                         >
-                          <Sparkles className="h-5 w-5 text-zinc-600 flex-shrink-0" />
-                          <p className="text-xs text-zinc-400 font-medium leading-relaxed">
+                          <Sparkles className="h-5 w-5 text-[var(--fg-muted)] flex-shrink-0 mt-1" />
+                          <p className="text-sm text-[var(--fg)] font-medium leading-relaxed">
                             {rec}
                           </p>
                         </div>
@@ -565,23 +563,6 @@ export default function AnalysisPage() {
           )}
         </AnimatePresence>
       </main>
-
-      {/* Global CSS for custom scrollbar - usually should be in globals.css but adding here for convenience */}
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
-      `}</style>
     </div>
   );
 }

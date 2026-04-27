@@ -16,7 +16,6 @@ import {
   ShieldAlert,
   KeyRound,
 } from "lucide-react";
-// Button import cleaned
 import { useSession, signOut } from "@repo/core/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -31,9 +30,9 @@ type AccountData = {
 };
 
 const planMeta = {
-  FREE: { label: "Starter", icon: Zap, color: "text-zinc-400" },
-  EARLY_BIRD: { label: "Early Bird", icon: Sparkles, color: "text-violet-400" },
-  PREMIUM: { label: "Elite", icon: Crown, color: "text-yellow-400" },
+  FREE: { label: "Starter", icon: Zap },
+  EARLY_BIRD: { label: "Early Bird", icon: Sparkles },
+  PREMIUM: { label: "Elite", icon: Crown },
 };
 
 export default function SettingsPage() {
@@ -157,65 +156,66 @@ export default function SettingsPage() {
   const currentPlanMeta = (account && planMeta[account.plan]) ? planMeta[account.plan] : planMeta.FREE;
 
   return (
-    <div className="relative flex flex-col gap-10 max-w-4xl mx-auto w-full pb-20 px-4">
-      {/* Background Decor */}
+    <div className="flex flex-col gap-10 max-w-6xl mx-auto w-full pb-20 px-4 pt-8">
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute inset-0 bg-dot opacity-[0.05]" />
       </div>
 
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative z-10"
+        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b-2 border-[var(--fg)] pb-12"
       >
-        <div className="flex items-center gap-6 mb-8">
-          <span className="index-label">[ 00 ] CONTROL_CENTER</span>
-          <div className="h-px w-24 bg-[var(--border)]" />
-        </div>
+        <div>
+          <div className="flex items-center gap-6 mb-4">
+            <span className="index-label text-[var(--fg)]">[ 00 ] CONTROL_CENTER</span>
+            <div className="h-px w-24 bg-[var(--fg)]" />
+          </div>
 
-        <h1 className="magazine-heading text-6xl md:text-9xl mb-8">
-          System <br />
-          <span className="text-[var(--fg-muted)]">Control.</span>
-        </h1>
-        
-        <p className="text-[var(--fg-subtle)] text-xl leading-tight font-medium max-w-2xl uppercase italic tracking-tighter">
-          Calibrate career trajectory and security vectors. <br />
-          Identity parameters: <span className="text-[var(--fg)] font-black">ACTIVE</span>{" // "}
-          Billing protocols: <span className="text-[var(--fg)] font-mono">STABLE</span>
-        </p>
+          <h1 className="magazine-heading text-6xl md:text-8xl text-[var(--fg)] leading-none">
+            Settings.
+          </h1>
+          
+          <p className="text-[var(--fg-subtle)] text-lg leading-tight font-medium max-w-xl uppercase tracking-tighter mt-6">
+            Calibrate career trajectory and security vectors. <br />
+            Identity parameters: <span className="text-[var(--fg)] font-black">ACTIVE</span>{" // "}
+            Protocols: <span className="text-[var(--fg)] font-mono">STABLE</span>
+          </p>
+        </div>
       </motion.div>
 
       {loading ? (
-        <div className="flex items-center gap-3 py-16 justify-center">
-          <Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" />
-          <span className="text-sm text-[var(--fg-muted)]">
-            Loading account...
-          </span>
+        <div className="flex flex-col items-center justify-center py-32 gap-12">
+          <div className="relative h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)]">
+            <div className="absolute inset-0 border-[var(--fg)] animate-spin border-t-4" />
+          </div>
+          <p className="index-label animate-pulse text-[var(--fg)]">
+            [ 00 ] SYNCING_ACCOUNT_DATA
+          </p>
         </div>
       ) : (
         <>
           {/* Profile Card */}
-          <section className="blueprint-border bg-[var(--bg-subtle)]">
-            <div className="px-10 py-8 border-b border-[var(--border)]">
-              <h2 className="index-label">
+          <section className="border-2 border-[var(--fg)] bg-[var(--bg)] offset-card">
+            <div className="px-8 py-6 border-b-2 border-[var(--fg)] bg-[var(--bg-muted)]">
+              <h2 className="index-label text-[var(--fg)]">
                 [ 01 ] IDENTITY_PROFILE
               </h2>
             </div>
 
-            <div className="divide-y divide-[var(--border)]">
+            <div className="divide-y-2 divide-[var(--fg)]">
               {/* Name */}
-              <div className="flex items-center justify-between px-10 py-10 group/item">
-                <div className="flex items-center gap-8">
-                  <div className="h-16 w-16 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center text-[var(--fg-muted)] group-hover/item:text-[var(--fg)] transition-colors">
-                    <User className="h-8 w-8" />
+              <div className="flex flex-col md:flex-row md:items-center justify-between p-8 group/item gap-6">
+                <div className="flex items-start md:items-center gap-6 md:gap-8">
+                  <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg)] group-hover/item:bg-[var(--fg)] group-hover/item:text-[var(--bg)] transition-colors flex-shrink-0">
+                    <User className="h-6 w-6" />
                   </div>
                   <div>
                     <p className="index-label mb-2 text-[var(--fg-muted)]">
                       DISPLAY_IDENTITY
                     </p>
                     {editingName ? (
-                      <div className="flex items-center gap-4 mt-2">
+                      <div className="flex flex-wrap items-center gap-4 mt-2">
                         <input
                           autoFocus
                           value={nameValue}
@@ -224,36 +224,38 @@ export default function SettingsPage() {
                             if (e.key === "Enter") saveName();
                             if (e.key === "Escape") setEditingName(false);
                           }}
-                          className="bg-[var(--bg)] border border-[var(--border)] px-6 py-3 text-sm text-[var(--fg)] focus:outline-none focus:border-[var(--fg)] w-80 font-mono"
+                          className="bg-[var(--bg-muted)] border-2 border-[var(--fg)] px-4 py-3 text-sm text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] w-full md:w-80 font-bold transition-colors"
                         />
-                        <button
-                          onClick={saveName}
-                          disabled={savingName}
-                          className="h-12 w-12 bg-[var(--fg)] text-[var(--bg)] flex items-center justify-center hover:opacity-90 transition-all"
-                        >
-                          {savingName ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Check className="h-5 w-5" />
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingName(false);
-                            setNameError(null);
-                          }}
-                          className="h-12 w-12 border border-[var(--border)] flex items-center justify-center hover:bg-[var(--bg-muted)] transition-all text-[var(--fg-muted)]"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={saveName}
+                            disabled={savingName}
+                            className="h-[48px] w-[48px] bg-[var(--fg)] text-[var(--bg)] border-2 border-[var(--fg)] flex items-center justify-center hover:bg-[var(--bg)] hover:text-[var(--fg)] transition-colors"
+                          >
+                            {savingName ? (
+                              <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                              <Check className="h-5 w-5" />
+                            )}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setEditingName(false);
+                              setNameError(null);
+                            }}
+                            className="h-[48px] w-[48px] bg-[var(--bg-muted)] border-2 border-[var(--fg)] flex items-center justify-center hover:bg-[var(--bg)] transition-colors text-[var(--fg)]"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        </div>
                       </div>
                     ) : (
-                      <p className="text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter">
+                      <p className="text-3xl md:text-4xl font-black text-[var(--fg)] italic uppercase tracking-tighter">
                         {account?.name}
                       </p>
                     )}
                     {nameError && (
-                      <p className="index-label text-red-500 mt-3">[ ERROR ] {nameError}</p>
+                      <p className="index-label text-red-600 mt-3 font-bold">[ ERROR ] {nameError}</p>
                     )}
                   </div>
                 </div>
@@ -263,47 +265,47 @@ export default function SettingsPage() {
                       setEditingName(true);
                       setNameValue(account?.name ?? "");
                     }}
-                    className="status-block status-block-outline h-12 w-12 justify-center"
+                    className="status-block bg-[var(--bg)] text-[var(--fg)] border-2 border-[var(--fg)] h-14 w-14 justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors"
                   >
                     <Pencil className="h-5 w-5" />
                   </button>
                 )}
               </div>
 
-              <div className="flex items-center gap-8 px-10 py-10">
-                <div className="h-16 w-16 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center text-[var(--fg-muted)]">
-                  <Mail className="h-8 w-8" />
+              <div className="flex items-start md:items-center gap-6 md:gap-8 p-8">
+                <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg)] flex-shrink-0">
+                  <Mail className="h-6 w-6" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="index-label mb-2 text-[var(--fg-muted)]">COMMUNICATION_VECTOR</p>
-                  <p className="text-2xl font-black text-[var(--fg)] italic uppercase tracking-tighter">
+                  <p className="text-2xl md:text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter truncate">
                     {account?.email}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-8 px-10 py-10">
-                <div className="h-16 w-16 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center text-[var(--fg-muted)]">
-                  <Calendar className="h-8 w-8" />
+              <div className="flex items-center gap-6 md:gap-8 p-8">
+                <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg)] flex-shrink-0">
+                  <Calendar className="h-6 w-6" />
                 </div>
                 <div>
                   <p className="index-label mb-2 text-[var(--fg-muted)]">SYNC_DATE</p>
-                  <p className="text-2xl font-black text-[var(--fg)] italic uppercase tracking-tighter">
+                  <p className="text-2xl md:text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter">
                     {account?.createdAt}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between px-10 py-10 bg-[var(--fg)] text-[var(--bg)]">
-                <div className="flex items-center gap-8">
-                  <div className="h-16 w-16 border border-[var(--bg)] flex items-center justify-center">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-8 bg-[var(--fg)] text-[var(--bg)] gap-6">
+                <div className="flex items-center gap-6 md:gap-8">
+                  <div className="h-16 w-16 border-2 border-[var(--bg)] flex items-center justify-center flex-shrink-0">
                     <PlanIcon className="h-8 w-8 fill-current" />
                   </div>
                   <div>
-                    <p className="index-label mb-2 opacity-50">
+                    <p className="index-label mb-2 opacity-70">
                       INTELLIGENCE_TIER
                     </p>
-                    <p className="text-3xl font-black italic uppercase tracking-tighter">
+                    <p className="text-4xl font-black italic uppercase tracking-tighter text-[var(--bg)]">
                       {currentPlanMeta.label}
                     </p>
                   </div>
@@ -311,9 +313,9 @@ export default function SettingsPage() {
                 {account?.plan === "FREE" && (
                   <Link
                     href="/dashboard/billing"
-                    className="px-10 py-5 bg-[var(--bg)] text-[var(--fg)] font-black uppercase tracking-widest hover:scale-105 transition-all text-sm"
+                    className="px-8 py-4 bg-[var(--bg)] text-[var(--fg)] border-2 border-[var(--bg)] font-black uppercase tracking-widest text-sm flex items-center gap-2 hover:bg-transparent hover:text-[var(--bg)] transition-colors w-full md:w-auto justify-center"
                   >
-                    UPGRADE_NOW →
+                    UPGRADE_NOW <Zap className="h-4 w-4" />
                   </Link>
                 )}
               </div>
@@ -321,20 +323,20 @@ export default function SettingsPage() {
           </section>
 
           {/* Security Card */}
-          <section className="blueprint-border bg-[var(--bg-subtle)]">
-            <div className="px-10 py-8 border-b border-[var(--border)]">
-              <h2 className="index-label">
+          <section className="border-2 border-[var(--fg)] bg-[var(--bg)] offset-card">
+            <div className="px-8 py-6 border-b-2 border-[var(--fg)] bg-[var(--bg-muted)]">
+              <h2 className="index-label text-[var(--fg)]">
                 [ 02 ] SECURITY_VECTORS
               </h2>
             </div>
 
-            <div className="px-10 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-8">
-              <div className="flex items-center gap-8">
-                <div className="h-16 w-16 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center text-[var(--fg-muted)]">
-                  <KeyRound className="h-8 w-8" />
+            <div className="p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+              <div className="flex items-center gap-6 md:gap-8">
+                <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg)] flex-shrink-0">
+                  <KeyRound className="h-6 w-6" />
                 </div>
                 <div>
-                  <p className="text-2xl font-black text-[var(--fg)] italic uppercase tracking-tighter leading-none mb-2">Access Token</p>
+                  <p className="text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter leading-none mb-3">Access Token</p>
                   <p className="index-label text-[var(--fg-muted)]">
                     [ STATUS ] {resetSent
                       ? "CHECK_INBOX_FOR_VECTOR"
@@ -345,35 +347,35 @@ export default function SettingsPage() {
               <button
                 onClick={handlePasswordReset}
                 disabled={resettingPassword || resetSent}
-                className="status-block status-block-outline px-8 py-4"
+                className="status-block bg-[var(--bg-muted)] text-[var(--fg)] border-2 border-[var(--fg)] px-8 py-4 disabled:opacity-50 hover:bg-[var(--bg)] transition-colors w-full md:w-auto"
               >
                 {resettingPassword ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                 ) : resetSent ? (
                   "Vector Sent ✓"
                 ) : (
-                  "Recalibrate Password"
+                  "Recalibrate Token"
                 )}
               </button>
             </div>
           </section>
 
           {/* Danger Zone */}
-          <section className="blueprint-border border-red-500/40 bg-red-500/[0.02]">
-            <div className="px-10 py-8 border-b border-red-500/20">
-              <h2 className="index-label text-red-500">
+          <section className="border-2 border-red-500 bg-red-50 offset-card">
+            <div className="px-8 py-6 border-b-2 border-red-500 bg-red-100">
+              <h2 className="index-label text-red-600 font-bold">
                 [ 03 ] TERMINAL_PROTOCOL
               </h2>
             </div>
 
-            <div className="px-10 py-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-12 relative z-10">
-              <div className="flex items-center gap-8">
-                <div className="h-16 w-16 bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-500">
+            <div className="p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative z-10">
+              <div className="flex items-center gap-6 md:gap-8">
+                <div className="h-16 w-16 bg-red-100 border-2 border-red-500 flex items-center justify-center text-red-600 flex-shrink-0">
                    <ShieldAlert className="h-8 w-8" />
                 </div>
                 <div>
-                  <p className="text-2xl font-black text-[var(--fg)] italic uppercase tracking-tighter leading-none mb-2">Delete Account</p>
-                  <p className="index-label text-red-500/60">
+                  <p className="text-3xl font-black text-red-600 italic uppercase tracking-tighter leading-none mb-3">Delete Account</p>
+                  <p className="index-label text-red-600 font-bold">
                     [ WARNING ] PERMANENT_VECTOR_PURGE_REQUIRED
                   </p>
                 </div>
@@ -381,30 +383,30 @@ export default function SettingsPage() {
 
               {!deleteConfirm ? (
                 <button
-                  className="status-block border-red-500/40 text-red-500 hover:bg-red-500/10 px-10 py-5"
+                  className="status-block bg-white text-red-600 border-2 border-red-500 px-8 py-4 hover:bg-red-600 hover:text-white transition-colors w-full md:w-auto"
                   onClick={() => setDeleteConfirm(true)}
                 >
-                  PURGE_DATA →
+                  PURGE_DATA
                 </button>
               ) : (
-                <div className="flex items-center gap-6 flex-shrink-0">
-                  <span className="index-label text-red-500 font-black">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-shrink-0 w-full md:w-auto">
+                  <span className="index-label text-red-600 font-black text-center sm:text-left mb-2 sm:mb-0">
                     CONFIRM_PURGE?
                   </span>
                   <button
                     onClick={handleDelete}
                     disabled={deleting}
-                    className="status-block bg-red-500 text-white hover:bg-red-600 px-8 py-4 disabled:opacity-50"
+                    className="status-block bg-red-600 text-white border-2 border-red-600 px-8 py-4 disabled:opacity-50 hover:bg-red-700 transition-colors"
                   >
                     {deleting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
                     ) : (
                       "EXECUTE"
                     )}
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(false)}
-                    className="status-block status-block-outline px-8 py-4"
+                    className="status-block bg-white text-red-600 border-2 border-red-500 px-8 py-4 hover:bg-red-50 transition-colors"
                   >
                     ABORT
                   </button>

@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   BadgeCheck,
-  CreditCard,
   Crown,
   Loader2,
   Sparkles,
@@ -12,7 +11,6 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from "@repo/ui";
 import { useSession, PLAN_LIMITS } from "@repo/core/client";
 
 type BillingState = {
@@ -40,26 +38,26 @@ function UsageBar({
   const nearLimit = !isUnlimited && pct >= 80;
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <span className="text-xs font-medium text-[var(--fg-muted)]">
+    <div className="mb-4 last:mb-0">
+      <div className="flex items-center justify-between mb-2">
+        <span className="index-label text-[var(--fg)]">
           {label}
         </span>
-        <span className="text-xs text-[var(--fg-muted)]">
+        <span className="index-label text-[var(--fg)] font-bold">
           {isUnlimited ? (
-            <span className="text-emerald-500 font-semibold">Unlimited</span>
+            <span className="text-[var(--fg)]">UNLIMITED</span>
           ) : (
-            <span className={nearLimit ? "text-amber-400 font-semibold" : ""}>
+            <span className={nearLimit ? "text-amber-500" : ""}>
               {used} / {limit as number}
             </span>
           )}
         </span>
       </div>
       {!isUnlimited && (
-        <div className="h-1.5 w-full rounded-full bg-[var(--border)]">
+        <div className="h-2 w-full border border-[var(--border)] bg-[var(--bg-muted)]">
           <div
-            className={`h-1.5 rounded-full transition-all duration-500 ${
-              nearLimit ? "bg-amber-400" : "bg-white"
+            className={`h-full transition-all duration-500 ${
+              nearLimit ? "bg-amber-500" : "bg-[var(--fg)]"
             }`}
             style={{ width: `${pct}%` }}
           />
@@ -180,76 +178,86 @@ export default function BillingPage() {
   const planLimits = PLAN_LIMITS[billing?.plan ?? "FREE"];
 
   return (
-    <div className="flex flex-col gap-8 max-w-5xl mx-auto w-full">
+    <div className="flex flex-col gap-10 max-w-6xl mx-auto w-full pb-20 px-4 pt-8">
+      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+        <div className="absolute inset-0 bg-dot opacity-[0.05]" />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b-2 border-[var(--fg)] pb-12"
       >
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="h-6 w-6 rounded-md bg-[var(--accent)] flex items-center justify-center">
-                <CreditCard className="h-3.5 w-3.5 text-[var(--accent-fg)]" />
-              </div>
-              <span className="text-xs text-[var(--fg-muted)] font-medium uppercase tracking-wider">
-                Billing
-              </span>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight">Plan & Usage</h1>
-            <p className="text-sm text-[var(--fg-subtle)] mt-1">
-              Manage your subscription and monitor product usage in real time.
-            </p>
+        <div>
+          <div className="flex items-center gap-6 mb-4">
+            <span className="index-label text-[var(--fg)]">[ 00 ] BILLING_MATRIX</span>
+            <div className="h-px w-24 bg-[var(--fg)]" />
           </div>
-          <Button size="sm" variant="outline" onClick={fetchBilling}>
-            Refresh
-          </Button>
+          <h1 className="magazine-heading text-6xl md:text-8xl text-[var(--fg)] leading-none">
+            Usage.
+          </h1>
+          <p className="text-[var(--fg-subtle)] text-lg leading-tight font-medium max-w-xl uppercase tracking-tighter mt-6">
+            Manage your subscription tier and monitor system usage across all features.
+          </p>
+        </div>
+        <div className="flex items-center gap-4 w-full md:w-auto">
+          <button
+            onClick={fetchBilling}
+            className="btn-primary h-[52px] px-8 flex items-center gap-3 text-sm flex-1 md:flex-none justify-center"
+          >
+            <Zap className="h-4 w-4" /> Refresh Status
+          </button>
         </div>
       </motion.div>
 
       {loading ? (
-        <div className="flex items-center justify-center gap-3 py-16">
-          <Loader2 className="h-5 w-5 animate-spin text-[var(--fg-muted)]" />
-          <span className="text-sm text-[var(--fg-muted)]">
-            Loading billing...
-          </span>
+        <div className="flex flex-col items-center justify-center py-32 gap-12">
+          <div className="relative h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)]">
+            <div className="absolute inset-0 border-[var(--fg)] animate-spin border-t-4" />
+          </div>
+          <p className="index-label animate-pulse text-[var(--fg)]">
+            [ 00 ] SYNCING_BILLING_ENGINE
+          </p>
         </div>
       ) : error ? (
-        <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-600 text-sm">
+        <div className="p-8 border-2 border-[var(--fg)] bg-red-50 text-red-600 font-bold offset-card">
           {error}
         </div>
       ) : billing ? (
         <>
           {/* Current Plan Card */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-5 rounded-xl border border-[var(--border)] bg-[var(--card)]">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs uppercase tracking-wider text-[var(--fg-muted)]">
-                  Current Plan
-                </span>
-                {billing.plan === "PREMIUM" ? (
-                  <Crown className="h-4 w-4 text-yellow-500" />
-                ) : billing.plan === "EARLY_BIRD" ? (
-                  <Sparkles className="h-4 w-4 text-violet-400" />
-                ) : (
-                  <Zap className="h-4 w-4 text-[var(--fg-muted)]" />
-                )}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="p-8 border-2 border-[var(--fg)] bg-[var(--bg)] flex flex-col justify-between offset-card">
+              <div>
+                <div className="flex items-center justify-between mb-8">
+                  <span className="index-label text-[var(--fg)]">
+                    Current Plan
+                  </span>
+                  {billing.plan === "PREMIUM" ? (
+                    <Crown className="h-6 w-6 text-[var(--fg)]" />
+                  ) : billing.plan === "EARLY_BIRD" ? (
+                    <Sparkles className="h-6 w-6 text-[var(--fg)]" />
+                  ) : (
+                    <Zap className="h-6 w-6 text-[var(--fg-muted)]" />
+                  )}
+                </div>
+                <p className="magazine-heading text-5xl text-[var(--fg)] mb-2">{billing.plan}</p>
+                <p className="index-label text-[var(--fg-muted)] mt-4">
+                  STATUS:{" "}
+                  <span className="font-bold uppercase text-[var(--fg)]">{billing.status}</span>
+                </p>
               </div>
-              <p className="text-2xl font-bold">{billing.plan}</p>
-              <p className="text-xs text-[var(--fg-muted)] mt-1">
-                Status:{" "}
-                <span className="font-medium capitalize">{billing.status}</span>
-              </p>
               {billing.renewsAt && (
-                <p className="text-xs text-[var(--fg-muted)] mt-1">
-                  Renews {new Date(billing.renewsAt).toLocaleDateString()}
+                <p className="index-label text-[var(--fg)] mt-8 border-t-2 border-[var(--fg)] pt-4">
+                  RENEWS: {new Date(billing.renewsAt).toLocaleDateString()}
                 </p>
               )}
             </div>
 
             {/* Usage bars */}
-            <div className="md:col-span-2 p-5 rounded-xl border border-[var(--border)] bg-[var(--card)] flex flex-col gap-4">
-              <p className="text-xs uppercase tracking-wider text-[var(--fg-muted)] mb-1">
-                Usage This Period
+            <div className="md:col-span-2 p-8 border-2 border-[var(--fg)] bg-[var(--bg)] flex flex-col gap-6 offset-card">
+              <p className="index-label text-[var(--fg)] mb-2">
+                [ PERIOD_USAGE ]
               </p>
               <UsageBar
                 label="Resume Analyses"
@@ -270,89 +278,93 @@ export default function BillingPage() {
           </div>
 
           {/* Pricing Grid */}
-          <div>
-            <p className="text-xs uppercase tracking-wider text-[var(--fg-muted)] mb-4">
-              All Plans
+          <div className="mt-8">
+            <p className="index-label text-[var(--fg)] mb-6">
+              [ ALL_PLANS ]
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {PLANS.map((plan) => {
                 const isCurrent = billing.plan === plan.id;
                 const isEarlyBird = plan.id === "EARLY_BIRD";
                 return (
                   <div
                     key={plan.id}
-                    className={`relative p-6 rounded-2xl border flex flex-col gap-4 transition-all ${
+                    className={`relative p-8 md:p-10 border-2 flex flex-col gap-8 transition-all offset-card ${
                       isEarlyBird
-                        ? "border-white/20 bg-white/5"
-                        : "border-[var(--border)] bg-[var(--card)]"
+                        ? "border-[var(--fg)] bg-[var(--fg)] text-[var(--bg)]"
+                        : "border-[var(--border)] bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--fg)]"
                     }`}
                   >
                     {isEarlyBird && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-white text-black text-[10px] font-bold rounded-full tracking-wider">
+                      <div className="absolute top-0 right-0 px-4 py-2 bg-[var(--bg)] text-[var(--fg)] index-label border-b-2 border-l-2 border-[var(--fg)] font-bold">
                         POPULAR
                       </div>
                     )}
 
                     <div>
-                      <p className="text-sm font-semibold text-white mb-1">
+                      <p className={`magazine-heading text-3xl mb-4 ${isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]"}`}>
                         {plan.name}
                       </p>
                       <div className="flex items-baseline gap-1">
-                        <span className="text-3xl font-black text-white">
+                        <span className={`text-6xl font-black ${isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]"}`}>
                           {plan.price}
                         </span>
-                        <span className="text-sm text-[var(--fg-muted)]">
+                        <span className={`index-label ${isEarlyBird ? "text-[var(--bg)] opacity-80" : "text-[var(--fg-muted)]"}`}>
                           {plan.period}
                         </span>
                       </div>
                     </div>
 
-                    <ul className="space-y-2 flex-1">
+                    <ul className="space-y-4 flex-1">
                       {plan.features.map((f) => (
                         <li
                           key={f}
-                          className="flex items-center gap-2 text-xs text-[var(--fg-muted)]"
+                          className={`flex items-start gap-3 index-label normal-case tracking-normal ${isEarlyBird ? "text-[var(--bg)] font-medium" : "text-[var(--fg-muted)]"}`}
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5 text-white flex-shrink-0" />
+                          <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]"}`} />
                           {f}
                         </li>
                       ))}
                     </ul>
 
                     {isCurrent ? (
-                      <div className="flex items-center gap-2 text-xs font-semibold text-emerald-500">
-                        <BadgeCheck className="h-4 w-4" />
-                        Current Plan
+                      <div className={`flex items-center justify-center gap-2 index-label py-4 border-2 ${isEarlyBird ? "border-[var(--bg)] text-[var(--bg)]" : "border-[var(--fg)] text-[var(--fg)]"} bg-transparent mt-4`}>
+                        <BadgeCheck className="h-5 w-5" />
+                        CURRENT_PLAN
                       </div>
                     ) : plan.cta ? (
-                      <Button
+                      <button
                         onClick={() =>
                           handleUpgrade(plan.id as "EARLY_BIRD" | "PREMIUM")
                         }
                         disabled={!!upgrading}
-                        size="sm"
-                        className={`w-full ${isEarlyBird ? "bg-white text-black hover:bg-zinc-200" : ""}`}
-                        variant={isEarlyBird ? "default" : "outline"}
+                        className={`w-full py-4 index-label flex items-center justify-center gap-2 border-2 transition-colors mt-4 ${
+                          isEarlyBird 
+                            ? "bg-[var(--bg)] text-[var(--fg)] border-[var(--bg)] hover:bg-transparent hover:text-[var(--bg)] hover:border-[var(--bg)]" 
+                            : "bg-[var(--bg)] text-[var(--fg)] border-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)]"
+                        }`}
                       >
                         {upgrading === plan.id ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          <Loader2 className="h-5 w-5 animate-spin" />
                         ) : (
                           <>
                             {plan.cta}
-                            <ArrowUpRight className="h-3.5 w-3.5 ml-1" />
+                            <ArrowUpRight className="h-4 w-4 ml-1" />
                           </>
                         )}
-                      </Button>
-                    ) : null}
+                      </button>
+                    ) : (
+                      <div className="py-4 mt-4 opacity-0 hidden md:block">Spacer</div>
+                    )}
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <p className="text-xs text-[var(--fg-muted)]">
-            Signed in as {session?.user?.email || "user"}.
-          </p>
+          <div className="p-4 border-2 border-[var(--fg)] bg-[var(--bg-muted)] index-label text-[var(--fg)] text-center offset-card mt-4">
+            [ AUTH ] Signed in as {session?.user?.email || "user"}.
+          </div>
         </>
       ) : null}
     </div>

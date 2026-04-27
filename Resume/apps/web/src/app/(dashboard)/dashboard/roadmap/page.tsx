@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   CheckCircle2,
   ExternalLink,
@@ -12,7 +12,6 @@ import {
 import { motion } from "framer-motion";
 import { Roadmap, RoadmapWeek } from "@repo/types";
 import useSWR from "swr";
-import { useMemo } from "react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 
@@ -114,17 +113,17 @@ export default function RoadmapPage() {
     return (
       <div className="flex flex-col gap-16 max-w-5xl mx-auto w-full animate-pulse py-20">
         <div className="flex justify-between items-end border-b border-[var(--border)] pb-12">
-          <div className="space-y-6">
-            <div className="h-4 w-32 bg-[var(--border)]" />
-            <div className="h-20 w-80 bg-[var(--border)]" />
+          <div className="space-y-6 w-full">
+            <div className="h-4 w-32 bg-[var(--bg-muted)] border border-[var(--border)]" />
+            <div className="h-20 w-full max-w-md bg-[var(--bg-muted)] border border-[var(--border)]" />
           </div>
-          <div className="h-20 w-40 bg-[var(--border)]" />
+          <div className="h-20 w-40 bg-[var(--bg-muted)] border border-[var(--border)]" />
         </div>
         <div className="space-y-12">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-64 w-full border border-[var(--border)]"
+              className="h-64 w-full border-2 border-[var(--border)] bg-[var(--bg-muted)]"
             />
           ))}
         </div>
@@ -135,18 +134,15 @@ export default function RoadmapPage() {
   if (generating) {
     return (
       <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] gap-10 max-w-md mx-auto text-center">
-        <div className="relative h-28 w-28">
-          <div className="absolute inset-0 border border-[var(--border)]" />
-          <div className="absolute inset-0 border border-t-[var(--fg)] animate-spin" />
-          <div className="absolute inset-0 flex items-center justify-center">
-             <Map className="h-8 w-8 text-white animate-pulse" />
-          </div>
+        <div className="relative h-28 w-28 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)]">
+          <div className="absolute inset-0 border-[var(--fg)] animate-spin border-t-4" />
+          <Map className="h-12 w-12 text-[var(--fg)] animate-pulse" />
         </div>
         <div className="animate-fade-in-up">
           <h2 className="magazine-heading text-4xl text-[var(--fg)] mb-4">
             Mapping Intelligence
           </h2>
-          <p className="index-label animate-pulse">
+          <p className="index-label animate-pulse text-[var(--fg)]">
             [ 00 ] CONSTRUCTING_VECTOR_PATH
           </p>
         </div>
@@ -161,7 +157,7 @@ export default function RoadmapPage() {
     : 0;
 
   return (
-    <div className="relative flex flex-col gap-16 max-w-5xl mx-auto w-full pb-32">
+    <div className="relative flex flex-col gap-16 max-w-5xl mx-auto w-full pb-32 pt-8">
       {/* Background Decor - Minimalist */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute inset-0 bg-dot opacity-[0.05]" />
@@ -172,16 +168,16 @@ export default function RoadmapPage() {
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10"
       >
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 border-b border-[var(--border)] pb-16">
-          <div className="flex flex-col gap-8">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 border-b-2 border-[var(--fg)] pb-12">
+          <div className="flex flex-col gap-6">
             <div className="flex items-center gap-4">
-              <span className="index-label">[ 00 ] ROADMAP_PROTOCOL</span>
-              <div className="h-px w-24 bg-[var(--border)]" />
+              <span className="index-label text-[var(--fg)]">[ 00 ] ROADMAP_PROTOCOL</span>
+              <div className="h-px w-24 bg-[var(--fg)]" />
             </div>
-            <h1 className="magazine-heading text-6xl md:text-8xl text-[var(--fg)]">
+            <h1 className="magazine-heading text-5xl md:text-7xl text-[var(--fg)] leading-none">
               {roadmap?.title || "Career Roadmap"}
             </h1>
-            <p className="text-[var(--fg-subtle)] text-xl max-w-xl font-medium leading-tight uppercase italic tracking-tight">
+            <p className="text-[var(--fg-subtle)] text-lg max-w-xl font-medium leading-tight uppercase tracking-tight">
               {roadmap?.description ||
                 "A serialized 12-week path to career dominance."}
             </p>
@@ -191,18 +187,18 @@ export default function RoadmapPage() {
             <button
               onClick={() => mutateRoadmap()}
               disabled={roadmapValidating}
-              className="status-block status-block-outline h-16 w-16 justify-center"
+              className="status-block bg-[var(--bg)] text-[var(--fg)] h-16 w-16 flex items-center justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors border-2 border-[var(--fg)]"
             >
               <RefreshCcw
-                className={cn("h-6 w-6 text-[var(--fg-muted)]", roadmapValidating && "animate-spin")}
+                className={cn("h-6 w-6", roadmapValidating && "animate-spin")}
               />
             </button>
-            <div className="px-10 py-6 border border-[var(--border)] bg-[var(--bg-subtle)] flex items-center gap-6">
+            <div className="px-10 py-4 border-2 border-[var(--fg)] bg-[var(--bg)] flex items-center gap-6 offset-card">
               <div className="flex flex-col items-center">
-                <span className="text-4xl font-black italic tracking-tighter text-[var(--fg)] leading-none">
+                <span className="text-4xl font-black font-mono text-[var(--fg)] leading-none">
                   {progressPercent}%
                 </span>
-                <span className="index-label mt-2">SYNC_STATUS</span>
+                <span className="index-label mt-2 text-[var(--fg)]">SYNC_STATUS</span>
               </div>
             </div>
           </div>
@@ -210,27 +206,27 @@ export default function RoadmapPage() {
       </motion.div>
 
       {error && (
-        <div className="p-8 border border-red-500/20 bg-red-500/5 text-xs text-red-500 flex items-center justify-between gap-6 font-black uppercase tracking-widest">
+        <div className="p-8 border-2 border-red-500 bg-red-50 text-xs text-red-600 flex items-center justify-between gap-6 font-black uppercase tracking-widest offset-card">
           <span className="flex items-center gap-4">
             <AlertCircle className="h-5 w-5" /> {error}
           </span>
-          <button onClick={() => mutateRoadmap()} className="status-block status-block-outline border-red-500/20 text-red-500 px-6 py-2">
+          <button onClick={() => mutateRoadmap()} className="status-block bg-white text-red-600 border-2 border-red-500 px-6 py-2">
             Retry Sync
           </button>
         </div>
       )}
 
       {feedback && !error && (
-        <div className="p-4 border border-emerald-500/20 bg-emerald-500/5 index-label text-emerald-500">
+        <div className="p-4 border-2 border-[var(--fg)] bg-[var(--bg-muted)] index-label text-[var(--fg)] offset-card">
           [ FEEDBACK ] {feedback}
         </div>
       )}
 
       {!roadmap || steps.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-32 px-4 text-center max-w-xl mx-auto">
-          <div className="p-16 border border-[var(--border)] bg-[var(--bg-subtle)] w-full relative group blueprint-border">
-            <div className="h-20 w-20 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center mb-10 mx-auto">
-              <Map className="h-10 w-10 text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors" />
+          <div className="p-16 border-2 border-[var(--fg)] bg-[var(--bg)] w-full relative group offset-card">
+            <div className="h-20 w-20 bg-[var(--bg-muted)] border-2 border-[var(--fg)] flex items-center justify-center mb-10 mx-auto">
+              <Map className="h-10 w-10 text-[var(--fg)] group-hover:scale-110 transition-transform" />
             </div>
             <h1 className="magazine-heading text-3xl text-[var(--fg)] mb-4">No Roadmap Detected</h1>
             <p className="index-label text-[var(--fg-muted)] mb-12">
@@ -238,16 +234,16 @@ export default function RoadmapPage() {
             </p>
             <button
               onClick={handleGenerate}
-              className="status-block status-block-active px-12 py-6 text-sm hover:scale-105 transition-all"
+              className="btn-primary px-12 py-6 text-sm hover:scale-105 transition-all"
             >
               Initialize Generation →
             </button>
           </div>
         </div>
       ) : (
-        <div className="space-y-6 relative">
+        <div className="space-y-8 relative">
           {/* Vertical Timeline Line */}
-          <div className="absolute left-10 top-0 bottom-0 w-px bg-gradient-to-b from-white/10 via-white/5 to-transparent hidden md:block" />
+          <div className="absolute left-10 top-0 bottom-0 w-1 bg-[var(--fg)] opacity-10 hidden md:block" />
 
           {steps.map((step, idx) => {
             const isCompleted = step.progress === 100;
@@ -258,40 +254,36 @@ export default function RoadmapPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.08 }}
                 className={cn(
-                  "p-12 border border-[var(--border)] bg-[var(--bg-subtle)] transition-all relative group overflow-hidden blueprint-border",
-                  isCompleted && "border-emerald-500/40 bg-emerald-500/[0.05]"
+                  "p-8 md:p-12 border-2 border-[var(--fg)] bg-[var(--bg)] transition-all relative group overflow-hidden offset-card",
+                  isCompleted ? "bg-[var(--bg)] opacity-70" : ""
                 )}
               >
-                {isCompleted && (
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 blur-3xl -z-10" />
-                )}
-
                 <div className="flex flex-col md:flex-row md:items-start gap-8 relative z-10">
                   {/* Indicator */}
                   <div className="flex-shrink-0 flex items-center justify-center">
                     <div className={cn(
-                      "h-16 w-16 border flex items-center justify-center transition-all duration-300",
+                      "h-20 w-20 border-2 flex items-center justify-center transition-all duration-300",
                       isCompleted 
-                        ? "bg-emerald-500 border-emerald-400 text-black" 
-                        : "bg-[var(--bg-muted)] border-[var(--border)] text-[var(--fg-muted)] group-hover:border-[var(--fg)] group-hover:text-[var(--fg)]"
+                        ? "bg-[var(--fg)] border-[var(--fg)] text-[var(--bg)]" 
+                        : "bg-[var(--bg)] border-[var(--fg)] text-[var(--fg)] group-hover:bg-[var(--fg)] group-hover:text-[var(--bg)]"
                     )}>
-                      {isCompleted ? <CheckCircle2 className="h-8 w-8" /> : <span className="text-xl font-black italic">{idx + 1}</span>}
+                      {isCompleted ? <CheckCircle2 className="h-10 w-10" /> : <span className="text-3xl font-black font-mono">{idx + 1}</span>}
                     </div>
                   </div>
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-600">
+                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--fg-muted)]">
                         {step.week}
                       </span>
                         <button
                           onClick={() => handleToggleProgress(step.id, step.progress)}
                           className={cn(
-                            "px-6 py-2 border text-[10px] font-black uppercase tracking-widest transition-all",
+                            "px-6 py-2 border-2 text-[10px] font-black uppercase tracking-widest transition-all",
                             isCompleted
-                              ? "bg-emerald-500/20 text-emerald-500 border-emerald-500/40"
-                              : "status-block status-block-outline"
+                              ? "bg-[var(--fg)] text-[var(--bg)] border-[var(--fg)]"
+                              : "bg-[var(--bg)] text-[var(--fg)] border-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)]"
                           )}
                         >
                           {isCompleted ? "COMPLETED" : "MARK_DONE"}
@@ -299,24 +291,24 @@ export default function RoadmapPage() {
                     </div>
 
                     <h3 className={cn(
-                      "text-3xl font-black italic uppercase tracking-tighter mb-6 transition-all",
+                      "text-3xl md:text-4xl font-black italic uppercase tracking-tighter mb-6 transition-all",
                       isCompleted ? "text-[var(--fg-muted)] line-through" : "text-[var(--fg)]"
                     )}>
                       {step.title}
                     </h3>
 
-                    <div className="space-y-3 mb-8">
+                    <div className="space-y-4 mb-8">
                       {(step.description || "")
                         .split("\n")
                         .filter(Boolean)
                         .map((task: string, tIdx: number) => (
                           <div
                             key={tIdx}
-                            className="flex items-start gap-3 text-sm text-zinc-400 font-medium"
+                            className="flex items-start gap-3 text-sm text-[var(--fg)] font-medium"
                           >
                             <div className={cn(
-                              "h-2 w-2 mt-2 flex-shrink-0 transition-colors",
-                              isCompleted ? "bg-emerald-500" : "bg-[var(--border)]"
+                              "h-2 w-2 mt-2 flex-shrink-0 transition-colors border border-[var(--fg)]",
+                              isCompleted ? "bg-[var(--fg-muted)] border-[var(--fg-muted)]" : "bg-[var(--fg)]"
                             )} />
                             <span className={cn(isCompleted && "text-[var(--fg-muted)]")}>{task}</span>
                           </div>
@@ -324,7 +316,8 @@ export default function RoadmapPage() {
                     </div>
 
                     {step.resources?.length > 0 && (
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-[var(--border)]">
+                        <span className="index-label w-full block mb-2 text-[var(--fg-muted)]">Resources</span>
                         {step.resources
                           .slice(0, 3)
                           .map((res: string, rIdx: number) => (
@@ -333,7 +326,7 @@ export default function RoadmapPage() {
                               href={res}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="group/res flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[var(--fg-muted)] px-6 py-3 border border-[var(--border)] bg-[var(--bg-muted)] hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-all"
+                              className="group/res flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[var(--fg)] px-6 py-3 border border-[var(--fg)] bg-[var(--bg-muted)] hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-all"
                             >
                               Resource {rIdx + 1}
                               <ExternalLink className="h-3 w-3" />
@@ -351,12 +344,12 @@ export default function RoadmapPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: steps.length * 0.08 + 0.2 }}
-            className="p-16 border border-[var(--border)] bg-[var(--bg-subtle)] text-center relative overflow-hidden group blueprint-border"
+            className="p-16 border-2 border-[var(--fg)] bg-[var(--bg)] text-center relative overflow-hidden group offset-card"
           >
-            <div className="h-20 w-20 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center mx-auto mb-8 relative z-10">
-              <Rocket className="h-10 w-10 text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-all group-hover:scale-110" />
+            <div className="h-20 w-20 bg-[var(--bg-muted)] border-2 border-[var(--fg)] flex items-center justify-center mx-auto mb-8 relative z-10">
+              <Rocket className="h-10 w-10 text-[var(--fg)] group-hover:scale-110 transition-transform" />
             </div>
-            <p className="index-label text-[var(--fg-muted)] relative z-10">
+            <p className="index-label text-[var(--fg)] relative z-10 font-bold">
               [ 00 ] COMPLETE_ALL_MODULES_TO_UNLOCK_DOMINANCE
             </p>
           </motion.div>
