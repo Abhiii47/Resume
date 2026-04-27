@@ -55,6 +55,31 @@ export async function GET() {
       );
     }
 
+    const requestedMatches = 6;
+    const availablePlanSlots =
+      limitCheck.limit === -1
+        ? requestedMatches
+        : Math.max(limitCheck.limit - limitCheck.used, 0);
+    const availableDailySlots =
+      limitCheck.plan === "FREE"
+        ? Math.max(10 - dailyCheck.used, 0)
+        : requestedMatches;
+    const matchBudget = Math.min(
+      requestedMatches,
+      availablePlanSlots,
+      availableDailySlots,
+    );
+
+    if (matchBudget <= 0) {
+      return NextResponse.json({
+        matches: [],
+        message:
+          limitCheck.plan === "FREE"
+            ? "You've used the available job matches for now. Upgrade or come back after the daily reset."
+            : "You've used the available job matches for your current plan.",
+      });
+    }
+
     // 1. Get user's latest analysis
     const analysis = await prisma.analysis.findFirst({
       where: { userId: session.user.id },
@@ -98,7 +123,7 @@ export async function GET() {
       });
     }
 
-    const jobsToMatch = liveJobs.slice(0, 6);
+    const jobsToMatch = liveJobs.slice(0, matchBudget);
     const jobsForBatch = jobsToMatch.map((job, idx) => ({
       id: `live-${idx}`,
       title: job.jobTitle,
@@ -111,25 +136,95 @@ export async function GET() {
       jobsForBatch,
     );
 
-    const matches = batchResults
-      .map((result, idx) => {
-        const job = jobsToMatch[idx];
+    const persistedMatches = await Promise.all(
+      batchResults.map(async (result, idx) => {
+        const liveJob = jobsToMatch[idx];
+        const description = `${liveJob.jobTitle} role at ${liveJob.companyName} based in ${liveJob.location}. This opportunity aligns with your ${analysis.careerPath} career path.`;
+
+        const existingJob = await prisma.job.findFirst({
+          where: liveJob.link
+            ? { sourceUrl: liveJob.link }
+            : {
+                title: liveJob.jobTitle,
+                company: liveJob.companyName,
+                location: liveJob.location,
+              },
+          select: { id: true },
+        });
+
+        const jobRecord = existingJob
+          ? await prisma.job.update({
+              where: { id: existingJob.id },
+              data: {
+                title: liveJob.jobTitle,
+                company: liveJob.companyName,
+                location: liveJob.location,
+                description,
+                source: "yepapi",
+                sourceUrl: liveJob.link,
+                isActive: true,
+              },
+            })
+          : await prisma.job.create({
+              data: {
+                title: liveJob.jobTitle,
+                company: liveJob.companyName,
+                location: liveJob.location,
+                description,
+                source: "yepapi",
+                sourceUrl: liveJob.link,
+                isActive: true,
+              },
+            });
+
+        const matchRecord = await prisma.match.upsert({
+          where: {
+            userId_jobId: {
+              userId: session.user.id,
+              jobId: jobRecord.id,
+            },
+          },
+          update: {
+            matchScore: result.score,
+            reason: result.reasoning,
+          },
+          create: {
+            userId: session.user.id,
+            jobId: jobRecord.id,
+            matchScore: result.score,
+            reason: result.reasoning,
+          },
+        });
+
+        const existingApplication = await prisma.application.findFirst({
+          where: {
+            userId: session.user.id,
+            jobId: jobRecord.id,
+          },
+          select: { id: true },
+        });
+
         return {
-          id: result.jobId,
-          title: job.jobTitle,
-          company: job.companyName,
-          location: job.location,
-          description: `${job.jobTitle} role at ${job.companyName} based in ${job.location}. This opportunity aligns with your ${analysis.careerPath} career path.`,
+          id: jobRecord.id,
+          title: jobRecord.title,
+          company: jobRecord.company,
+          location: jobRecord.location,
+          description: jobRecord.description,
           match: {
-            score: result.score,
+            score: matchRecord.matchScore,
             matchedSkills: result.matchedSkills,
             missingSkills: result.missingSkills,
             reasoning: result.reasoning,
           },
-          sourceUrl: job.link,
+          sourceUrl: jobRecord.sourceUrl ?? undefined,
+          applied: Boolean(existingApplication),
         };
-      })
-      .sort((a, b) => b.match.score - a.match.score);
+      }),
+    );
+
+    const matches = persistedMatches.sort(
+      (a, b) => (b.match.score ?? 0) - (a.match.score ?? 0),
+    );
 
     return NextResponse.json({ matches });
   } catch (error) {

@@ -10,7 +10,6 @@ import {
   Rocket,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import { Button } from "@repo/ui";
 import { Roadmap, RoadmapWeek } from "@repo/types";
 import useSWR from "swr";
 import { useMemo } from "react";

@@ -73,7 +73,7 @@ export default function TermsOfService() {
           <section>
             <h2 className="text-xl font-black text-white uppercase tracking-wider mb-4">7. Limitation of Liability</h2>
             <p>
-              CareerAI is provided "as is" without warranties of any kind. We are not liable for any damages arising from your use of the platform or reliance on AI-generated advice.
+              CareerAI is provided &quot;as is&quot; without warranties of any kind. We are not liable for any damages arising from your use of the platform or reliance on AI-generated advice.
             </p>
           </section>
 

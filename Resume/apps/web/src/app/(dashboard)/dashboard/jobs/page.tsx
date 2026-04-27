@@ -1,11 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  Briefcase,
-  RefreshCcw,
-  AlertCircle,
-} from "lucide-react";
+import { AlertCircle, Briefcase, RefreshCcw } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@repo/ui";
 import { clsx, type ClassValue } from "clsx";
@@ -22,6 +18,7 @@ type JobMatch = {
   location: string;
   description: string;
   sourceUrl?: string;
+  applied?: boolean;
   match?: {
     score?: number;
     matchedSkills?: string[];
@@ -32,11 +29,10 @@ export default function JobsPage() {
   const [matches, setMatches] = useState<JobMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
+  const [applyingJobId, setApplyingJobId] = useState<string | null>(null);
   const [optimizing, setOptimizing] = useState(false);
   const [selectedJob, setSelectedJob] = useState<JobMatch | null>(null);
   const [optimizedResume, setOptimizedResume] = useState<string | null>(null);
-
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -62,8 +58,8 @@ export default function JobsPage() {
 
       setMatches(Array.isArray(data.matches) ? data.matches : []);
       setInfo(data?.message || null);
-    } catch (e) {
-      console.error("Match fetch failed", e);
+    } catch (fetchError) {
+      console.error("Match fetch failed", fetchError);
       setError("Network error while loading job matches.");
     } finally {
       if (!silent) {
@@ -75,7 +71,7 @@ export default function JobsPage() {
   }
 
   useEffect(() => {
-    fetchMatches();
+    void fetchMatches();
     const id = setInterval(() => {
       void fetchMatches({ silent: true });
     }, 60000);
@@ -113,8 +109,8 @@ export default function JobsPage() {
       }
 
       setOptimizedResume(data.optimizedText);
-    } catch (e) {
-      console.error("Optimization failed", e);
+    } catch (optimizeError) {
+      console.error("Optimization failed", optimizeError);
       setError("Network error while optimizing resume.");
     } finally {
       setOptimizing(false);
@@ -149,23 +145,54 @@ export default function JobsPage() {
       }
 
       setSaveSuccess("Optimized resume version saved successfully.");
-    } catch (e) {
-      console.error("Save failed", e);
+    } catch (saveError) {
+      console.error("Save failed", saveError);
       setError("Network error while saving optimized resume.");
     }
   };
 
+  const handleApply = async (job: JobMatch) => {
+    setApplyingJobId(job.id);
+    setError(null);
+    setInfo(null);
+
+    try {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jobId: job.id }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data?.error || "Failed to track application.");
+        return;
+      }
+
+      setMatches((current) =>
+        current.map((entry) =>
+          entry.id === job.id ? { ...entry, applied: true } : entry,
+        ),
+      );
+      setInfo(data?.message || "Application saved to your tracker.");
+    } catch (applyError) {
+      console.error("Application tracking failed", applyError);
+      setError("Network error while tracking application.");
+    } finally {
+      setApplyingJobId(null);
+    }
+  };
+
   const filteredMatches = matches.filter(
-    (j) =>
+    (job) =>
       !searchQuery ||
-      j.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      j.company?.toLowerCase().includes(searchQuery.toLowerCase()),
+      job.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      job.company?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   if (selectedJob && (optimizing || optimizedResume)) {
     return (
       <div className="relative flex flex-col h-full gap-10 max-w-6xl mx-auto w-full pb-20 px-4">
-        {/* Background Decor */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
           <div className="absolute inset-0 bg-dot opacity-[0.05]" />
         </div>
@@ -183,7 +210,7 @@ export default function JobsPage() {
             }}
             className="index-label text-zinc-600 hover:text-white transition-all"
           >
-            ← Return to Matrix
+            {"<-"} Return to Matrix
           </button>
           <h2 className="index-label text-white">REFINING VECTOR</h2>
           <div className="w-32" />
@@ -213,7 +240,9 @@ export default function JobsPage() {
                   {selectedJob.match?.score}% MATCH_SYNC
                 </span>
               </div>
-              <h3 className="magazine-heading text-5xl text-[var(--fg)] mb-8">{selectedJob.title}</h3>
+              <h3 className="magazine-heading text-5xl text-[var(--fg)] mb-8">
+                {selectedJob.title}
+              </h3>
               <div className="flex flex-wrap items-center gap-6 index-label text-[var(--fg-muted)] mb-12">
                 <span>{selectedJob.company}</span>
                 <div className="w-1 h-1 bg-[var(--border)]" />
@@ -239,7 +268,7 @@ export default function JobsPage() {
                     onClick={handleSaveVersion}
                     className="status-block status-block-active px-6 py-3"
                   >
-                    Commit Version →
+                    Commit Version {"->"}
                   </button>
                 )}
               </div>
@@ -250,8 +279,12 @@ export default function JobsPage() {
                     <RefreshCcw className="h-8 w-8 animate-spin" />
                   </div>
                   <div className="text-center">
-                    <p className="magazine-heading text-3xl text-[var(--fg)] mb-4">Generating Vector</p>
-                    <p className="index-label animate-pulse">[ 00 ] SYNCING_WITH_GEMINI_CORE</p>
+                    <p className="magazine-heading text-3xl text-[var(--fg)] mb-4">
+                      Generating Vector
+                    </p>
+                    <p className="index-label animate-pulse">
+                      [ 00 ] SYNCING_WITH_GEMINI_CORE
+                    </p>
                   </div>
                 </div>
               ) : (
@@ -268,7 +301,6 @@ export default function JobsPage() {
 
   return (
     <div className="relative flex flex-col gap-10 max-w-6xl mx-auto w-full pb-20 px-4">
-      {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
         <div className="absolute inset-0 bg-dot opacity-[0.05]" />
       </div>
@@ -288,11 +320,14 @@ export default function JobsPage() {
             Intelligence <br />
             <span className="text-[var(--fg-muted)]">Match.</span>
           </h1>
-          
+
           <p className="text-[var(--fg-subtle)] text-xl leading-tight font-medium max-w-2xl uppercase italic tracking-tighter">
-            AI-ranked job vectors calibrated to your unique career footprint. <br />
-            Market signals: <span className="text-[var(--fg)] font-black">ACTIVE</span> // 
-            Match protocols: <span className="text-[var(--fg)] font-mono">OPTIMIZED</span>
+            AI-ranked job vectors calibrated to your unique career footprint.
+            <br />
+            Market signals:{" "}
+            <span className="text-[var(--fg)] font-black">ACTIVE</span>
+            {" // "}Match protocols:{" "}
+            <span className="text-[var(--fg)] font-mono">OPTIMIZED</span>
           </p>
         </div>
 
@@ -314,7 +349,10 @@ export default function JobsPage() {
             className="h-16 w-16 border border-[var(--border)] bg-transparent hover:bg-[var(--bg-muted)]"
           >
             <RefreshCcw
-              className={cn("h-6 w-6 text-[var(--fg-muted)]", refreshing && "animate-spin")}
+              className={cn(
+                "h-6 w-6 text-[var(--fg-muted)]",
+                refreshing && "animate-spin",
+              )}
             />
           </Button>
         </div>
@@ -343,7 +381,9 @@ export default function JobsPage() {
             <div className="absolute inset-0 border border-[var(--border)]" />
             <div className="absolute inset-0 border border-t-[var(--fg)] animate-spin" />
           </div>
-          <p className="index-label animate-pulse">[ 00 ] SYNCING_OPPORTUNITY_ENGINE</p>
+          <p className="index-label animate-pulse">
+            [ 00 ] SYNCING_OPPORTUNITY_ENGINE
+          </p>
         </div>
       ) : filteredMatches.length === 0 ? (
         <motion.div
@@ -354,9 +394,12 @@ export default function JobsPage() {
           <div className="h-20 w-20 bg-[var(--bg-muted)] border border-[var(--border)] flex items-center justify-center mb-10 mx-auto">
             <Briefcase className="h-10 w-10 text-[var(--fg-muted)] group-hover:text-[var(--fg)] transition-colors" />
           </div>
-          <h3 className="magazine-heading text-4xl text-[var(--fg)] mb-6">No Signals Found</h3>
+          <h3 className="magazine-heading text-4xl text-[var(--fg)] mb-6">
+            No Signals Found
+          </h3>
           <p className="index-label text-[var(--fg-muted)] max-w-sm mx-auto">
-            [ 00 ] {searchQuery
+            [ 00 ]{" "}
+            {searchQuery
               ? "MATRIX_EMPTY_FOR_QUERY"
               : "UPLOAD_VECTOR_TO_ACTIVATE_ALGORITHM"}
           </p>
@@ -366,6 +409,7 @@ export default function JobsPage() {
           {filteredMatches.map((job) => {
             const score = job.match?.score ?? 0;
             const matchedSkills = job.match?.matchedSkills ?? [];
+
             return (
               <motion.div
                 key={job.id}
@@ -395,7 +439,7 @@ export default function JobsPage() {
                           rel="noopener noreferrer"
                           className="index-label text-zinc-800 hover:text-white transition-all"
                         >
-                          OPEN →
+                          OPEN {"->"}
                         </a>
                       )}
                     </div>
@@ -403,9 +447,9 @@ export default function JobsPage() {
 
                   {matchedSkills.length > 0 && (
                     <div className="flex flex-wrap gap-2 mb-10">
-                      {matchedSkills.slice(0, 4).map((skill, i) => (
+                      {matchedSkills.slice(0, 4).map((skill, index) => (
                         <span
-                          key={i}
+                          key={index}
                           className="status-block status-block-outline text-[8px]"
                         >
                           {skill}
@@ -414,16 +458,29 @@ export default function JobsPage() {
                     </div>
                   )}
 
-                  <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between">
+                  <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between gap-4">
                     <span className="index-label text-zinc-800">
-                      READY
+                      {job.applied ? "TRACKED" : "READY"}
                     </span>
-                    <button
-                      onClick={() => handleOptimize(job)}
-                      className="status-block status-block-active px-6 py-3"
-                    >
-                      Optimize Vector →
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleApply(job)}
+                        disabled={Boolean(job.applied) || applyingJobId === job.id}
+                        className="status-block status-block-outline px-6 py-3 disabled:opacity-50"
+                      >
+                        {job.applied
+                          ? "Applied"
+                          : applyingJobId === job.id
+                            ? "Saving..."
+                            : "Track Apply"}
+                      </button>
+                      <button
+                        onClick={() => handleOptimize(job)}
+                        className="status-block status-block-active px-6 py-3"
+                      >
+                        Optimize Vector {"->"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>

@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       const analysisData = await analyzeResume(rawText);
       console.log(`[Upload][STEP 5] Success. Score: ${analysisData.score}, ATS: ${analysisData.atsScore}`);
 
-      const analysis = await prisma.analysis.create({
+      await prisma.analysis.create({
         data: {
           userId: session.user.id,
           resumeId: resume.id,

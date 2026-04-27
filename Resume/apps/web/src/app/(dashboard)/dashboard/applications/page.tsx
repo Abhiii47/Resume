@@ -70,6 +70,7 @@ type ApplicationApiItem = {
     company?: string | null;
     location?: string | null;
     matchScore?: number | null;
+    sourceUrl?: string | null;
   } | null;
 };
 

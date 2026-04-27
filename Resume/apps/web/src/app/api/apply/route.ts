@@ -15,10 +15,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "jobId is required" }, { status: 400 });
     }
 
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      select: { id: true },
+    });
+
+    if (!job) {
+      return NextResponse.json({ error: "Job not found" }, { status: 404 });
+    }
+
+    const existingApplication = await prisma.application.findFirst({
+      where: {
+        userId: session.user.id,
+        jobId: job.id,
+      },
+    });
+
+    if (existingApplication) {
+      return NextResponse.json({ application: existingApplication });
+    }
+
     const application = await prisma.application.create({
       data: {
         userId: session.user.id,
-        jobId,
+        jobId: job.id,
         status: "APPLIED",
       },
     });

@@ -20,12 +20,6 @@ import {
 import { useSession, signOut } from "@repo/core/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 type Plan = "FREE" | "EARLY_BIRD" | "PREMIUM";
 
@@ -130,7 +124,7 @@ export default function SettingsPage() {
     try {
       // Better-Auth exposes a client-side forgot password flow
       // We call the API directly since we're already signed in
-      const res = await fetch("/api/auth/forget-password", {
+      const res = await fetch("/api/auth/request-password-reset", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -187,7 +181,7 @@ export default function SettingsPage() {
         
         <p className="text-[var(--fg-subtle)] text-xl leading-tight font-medium max-w-2xl uppercase italic tracking-tighter">
           Calibrate career trajectory and security vectors. <br />
-          Identity parameters: <span className="text-[var(--fg)] font-black">ACTIVE</span> // 
+          Identity parameters: <span className="text-[var(--fg)] font-black">ACTIVE</span>{" // "}
           Billing protocols: <span className="text-[var(--fg)] font-mono">STABLE</span>
         </p>
       </motion.div>
@@ -315,8 +309,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
                 {account?.plan === "FREE" && (
-                  <Link
-                    href="/dashboard/billing"
                   <Link
                     href="/dashboard/billing"
                     className="px-10 py-5 bg-[var(--bg)] text-[var(--fg)] font-black uppercase tracking-widest hover:scale-105 transition-all text-sm"

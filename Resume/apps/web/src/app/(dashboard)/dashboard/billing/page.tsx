@@ -104,8 +104,9 @@ const PLANS = [
     period: "/mo",
     features: [
       "Everything in Early Bird",
-      "1-on-1 Human Review",
-      "ATS-Bypass Guarantee",
+      "Unlimited Analyses",
+      "Unlimited Job Matches",
+      "Unlimited Roadmaps",
       "Priority Support",
     ],
     cta: "Upgrade to Elite",

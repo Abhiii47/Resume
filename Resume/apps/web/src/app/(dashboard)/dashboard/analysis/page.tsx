@@ -3,10 +3,6 @@
 import { useEffect, useState, useMemo } from "react";
 import useSWR from "swr";
 import {
-  Briefcase,
-  ExternalLink,
-  RefreshCcw,
-  AlertCircle,
   AlertTriangle,
   Target,
   Zap,
@@ -396,18 +392,21 @@ export default function AnalysisPage() {
                   className="grid grid-cols-1 md:grid-cols-2 gap-8"
                 >
                   {/* LinkedIn Branding Kit */}
-                  {/* LinkedIn Branding Kit */}
                   <div className="blueprint-border p-8 bg-white/[0.01]">
                     <span className="index-label block mb-8">02 / BRANDING</span>
                     <div className="space-y-6">
                       <div>
                         <span className="index-label text-zinc-700 block mb-2">Headline Vector</span>
-                        <p className="text-sm text-zinc-300 font-medium leading-relaxed italic">"{analysis.brandingKit?.linkedinHeadline}"</p>
+                        <p className="text-sm text-zinc-300 font-medium leading-relaxed italic">
+                          &ldquo;{analysis.brandingKit?.linkedinHeadline}&rdquo;
+                        </p>
                       </div>
                       <div className="h-px bg-white/5" />
                       <div>
                         <span className="index-label text-zinc-700 block mb-2">High-Signal DM</span>
-                        <p className="text-sm text-zinc-400 font-medium leading-relaxed italic line-clamp-2">"{analysis.brandingKit?.coldDM}"</p>
+                        <p className="text-sm text-zinc-400 font-medium leading-relaxed italic line-clamp-2">
+                          &ldquo;{analysis.brandingKit?.coldDM}&rdquo;
+                        </p>
                       </div>
                     </div>
                   </div>

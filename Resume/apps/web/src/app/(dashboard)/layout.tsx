@@ -28,7 +28,6 @@ import {
   CreditCard,
 } from "lucide-react";
 import { useSession, signOut } from "@repo/core/client";
-import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface NavItem {
@@ -138,6 +137,7 @@ function SidebarContent() {
                 </p>
                 <PlanBadge plan={plan} />
               </div>
+            </div>
             <div className="flex items-center justify-between gap-3 pt-4">
               <Button
                 variant="ghost"

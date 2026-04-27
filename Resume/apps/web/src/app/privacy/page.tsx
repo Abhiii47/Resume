@@ -31,7 +31,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="text-xl font-black text-white uppercase tracking-wider mb-4">1. Introduction</h2>
             <p>
-              Welcome to CareerAI ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our platform.
+              Welcome to CareerAI (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and protect your information when you use our platform.
             </p>
           </section>
 

@@ -95,7 +95,7 @@ export default async function PublicPortfolioPage({ params }: Props) {
                 {analysis.user.name}
               </h1>
               <p className="text-zinc-400 text-xl md:text-2xl font-medium max-w-2xl leading-relaxed italic">
-                "{analysis.summary}"
+                &ldquo;{analysis.summary}&rdquo;
               </p>
             </div>
 

@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
         recommendations: analysisData.recommendations,
         careerPath: analysisData.careerPath,
         experienceLevel: analysisData.experienceLevel,
-        brandingKit: analysisData.brandingKit as any,
+        brandingKit: JSON.parse(JSON.stringify(analysisData.brandingKit)),
       },
       create: {
         userId: session.user.id,
@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
         recommendations: analysisData.recommendations,
         careerPath: analysisData.careerPath,
         experienceLevel: analysisData.experienceLevel,
-        brandingKit: analysisData.brandingKit as any,
+        brandingKit: JSON.parse(JSON.stringify(analysisData.brandingKit)),
       },
     });
 

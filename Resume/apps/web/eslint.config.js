@@ -5,6 +5,9 @@ module.exports = (async () => {
   return [
     ...nextJsConfig,
     {
+      ignores: ["scratch/**"],
+    },
+    {
       files: [
         "*.config.js",
         "next.config.js",
