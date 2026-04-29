@@ -18,6 +18,8 @@ model User {
   stripeSubscriptionId String? @unique
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  marketSentiment String?    @default("STABLE")
+  profileVisibility Int?     @default(85)
   accounts      Account[]
   analysis      Analysis[]
   applications  Application[]
@@ -105,6 +107,8 @@ model Analysis {
   atsScore        Int      @default(0)
   experienceLevel String?
   recommendations Json     @default("[]")
+  skillsMatrix    Json?    // { technical: number, softSkills: number, ... }
+  diagnostic      Json?    // { formattingTelemetry: {}, keywordSaturation: [], ... }
   brandingKit     Json?    // { linkedinHeadline: string, linkedinAbout: string, coldDM: string }
   isPublic        Boolean  @default(false)
   publicSlug      String?  @unique

@@ -28,6 +28,15 @@ const ResumeAnalysisSchema = z.object({
   skills: z
     .array(z.string())
     .describe("All technical and soft skills detected"),
+  skillsMatrix: z
+    .object({
+      technical: z.number().min(0).max(100).describe("Technical proficiency score"),
+      softSkills: z.number().min(0).max(100).describe("Communication and interpersonal score"),
+      leadership: z.number().min(0).max(100).describe("Management and leadership score"),
+      strategy: z.number().min(0).max(100).describe("Strategic thinking and problem solving score"),
+      experience: z.number().min(0).max(100).describe("Depth and relevance of experience score"),
+    })
+    .describe("Multi-dimensional skill assessment for visualization"),
   careerPath: z
     .string()
     .describe("Recommended career path based on the resume"),
@@ -51,8 +60,26 @@ const ResumeAnalysisSchema = z.object({
     .describe("Personal branding assets for LinkedIn and networking"),
 });
 
+const ResumeDiagnosticSchema = z.object({
+  formattingTelemetry: z.object({
+    hasMultipleColumns: z.boolean().describe("Whether the resume uses a multi-column layout"),
+    hasTables: z.boolean().describe("Whether tables are detected (bad for ATS)"),
+    hasNonStandardFonts: z.boolean().describe("Whether non-standard fonts are used"),
+    hasContactInfo: z.boolean().describe("Whether email/phone are clearly visible"),
+    hasSectionHeaders: z.boolean().describe("Whether standard headers like Experience/Education are used"),
+    isScannedImage: z.boolean().describe("Whether the PDF appears to be a flat image"),
+  }).describe("Technical telemetry on resume structure"),
+  keywordSaturation: z.array(z.object({
+    keyword: z.string(),
+    found: z.boolean(),
+    relevance: z.number().min(0).max(100),
+  })).describe("Industry-specific keyword matching results"),
+  atsProbability: z.number().min(0).max(100).describe("Probability of passing an automated filter"),
+  criticalFailures: z.array(z.string()).describe("List of issues that would cause an instant rejection"),
+});
+
 export const JobMatchSchema = z.object({
-  matchScore: z.number().min(0).max(100),
+  score: z.number().min(0).max(100), // Standardized from matchScore
   reason: z.string(),
   matchedSkills: z.array(z.string()),
   missingSkills: z.array(z.string()),
@@ -103,16 +130,49 @@ Provide:
 4. Weaknesses or gaps
 5. Missing skills
 6. All detected skills
-7. Recommended career path
-8. Experience level assessment
-9. Actionable recommendations to improve
-10. Professional summary
-11. A LinkedIn Branding Kit:
+7. A skillsMatrix: Assess proficiency (0-100) in:
+   - technical: Core tools, languages, frameworks.
+   - softSkills: Collaboration, communication.
+   - leadership: Project ownership, mentoring, management.
+   - strategy: Problem solving, business impact, planning.
+   - experience: Years in field, senior-level contributions.
+8. Recommended career path
+9. Experience level assessment
+10. Actionable recommendations to improve
+11. Professional summary
+12. A LinkedIn Branding Kit:
     - Headline: Optimized for recruiter search
     - About: A compelling career narrative
     - Cold DM: A high-conversion networking message
 
 Be specific, actionable, and encouraging yet honest.`,
+  });
+
+  return object;
+}
+
+/**
+ * Perform a deep technical diagnostic of a resume for ATS compatibility
+ */
+export async function diagnosticResume(resumeText: string) {
+  const { object } = await generateObject({
+    model,
+    schema: ResumeDiagnosticSchema,
+    prompt: `You are a technical ATS (Applicant Tracking System) diagnostic engine. 
+    
+Perform a deep-layer telemetry scan of the following resume text. 
+
+[RESUME_START]
+${resumeText}
+[RESUME_END]
+
+Evaluate:
+1. Formatting Telemetry: Identify structural issues like multiple columns, tables, or non-standard fonts that break ATS parsers.
+2. Keyword Saturation: Detect relevant industry keywords and verify if they are present.
+3. ATS Probability: Calculate the percentage chance this resume passes a standard Workday or Greenhouse filter.
+4. Critical Failures: List any "instant-fail" issues (e.g. missing contact info, unreadable text).
+
+Respond strictly with technical diagnostic data.`,
   });
 
   return object;

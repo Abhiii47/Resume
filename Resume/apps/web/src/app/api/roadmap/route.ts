@@ -131,11 +131,14 @@ export async function POST() {
       Array.isArray(analysis.missingSkills) ? analysis.missingSkills : []
     ) as string[];
     const careerPath = analysis.careerPath || "Software Engineer";
+    const seniority = analysis.experienceLevel === "entry" ? "junior" : 
+                      analysis.experienceLevel === "senior" || analysis.experienceLevel === "lead" ? "senior" : 
+                      "intermediate";
 
     const aiRoadmap = await generateRoadmap(
       careerPath,
       missingSkills,
-      "intermediate",
+      seniority,
     );
 
     await prisma.$transaction([

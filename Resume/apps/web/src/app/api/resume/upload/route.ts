@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, prisma, getSupabaseAdmin, checkPlanLimit, sanitizeFilename } from "@repo/core";
-import { analyzeResume } from "@repo/ai";
+import { analyzeResume, diagnosticResume } from "@repo/ai";
 import { headers } from "next/headers";
 
 async function parsePdf(buffer: Buffer): Promise<string> {
@@ -172,7 +172,10 @@ export async function POST(request: NextRequest) {
     // 6. Trigger AI Analysis
     console.log("[Upload][STEP 5] Starting AI analysis with Gemini 1.5 Flash...");
     try {
-      const analysisData = await analyzeResume(rawText);
+      const [analysisData, diagnosticData] = await Promise.all([
+        analyzeResume(rawText),
+        diagnosticResume(rawText)
+      ]);
       console.log(`[Upload][STEP 5] Success. Score: ${analysisData.score}, ATS: ${analysisData.atsScore}`);
 
       await prisma.analysis.create({
@@ -189,6 +192,8 @@ export async function POST(request: NextRequest) {
           recommendations: analysisData.recommendations,
           careerPath: analysisData.careerPath,
           experienceLevel: analysisData.experienceLevel,
+          skillsMatrix: analysisData.skillsMatrix,
+          diagnostic: diagnosticData,
           brandingKit: analysisData.brandingKit,
         },
       });

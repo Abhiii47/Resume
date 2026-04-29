@@ -15,14 +15,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("dark");
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as Theme;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle("light", savedTheme === "light");
-      document.documentElement.classList.toggle("dark", savedTheme === "dark");
+    // Check if the html tag already has a theme class (from layout script)
+    const isDark = document.documentElement.classList.contains("dark");
+    const isLight = document.documentElement.classList.contains("light");
+    
+    if (isDark) {
+      setTheme("dark");
+    } else if (isLight) {
+      setTheme("light");
     } else {
-      // Default to dark for the Itsua aesthetic
-      document.documentElement.classList.add("dark");
+      // Fallback if script didn't run
+      const savedTheme = localStorage.getItem("theme") as Theme || "dark";
+      setTheme(savedTheme);
+      document.documentElement.classList.add(savedTheme);
     }
   }, []);
 

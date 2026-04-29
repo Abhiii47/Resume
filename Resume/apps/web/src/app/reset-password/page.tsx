@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useSearchParams } from "next/navigation";
-import { ThemeToggle } from "@repo/ui";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();

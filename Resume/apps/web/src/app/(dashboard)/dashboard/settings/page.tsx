@@ -156,166 +156,151 @@ export default function SettingsPage() {
   const currentPlanMeta = (account && planMeta[account.plan]) ? planMeta[account.plan] : planMeta.FREE;
 
   return (
-    <div className="flex flex-col gap-10 max-w-6xl mx-auto w-full pb-20 px-4 pt-8">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute inset-0 bg-dot opacity-[0.05]" />
-      </div>
-
+    <div className="relative flex flex-col gap-16 max-w-7xl mx-auto w-full pb-32 pt-16 px-8 min-h-screen">
       <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b-2 border-[var(--fg)] pb-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col md:flex-row justify-between items-end gap-12 border-b-4 border-[var(--fg)] pb-16"
       >
-        <div>
-          <div className="flex items-center gap-6 mb-4">
-            <span className="index-label text-[var(--fg)]">[ 00 ] CONTROL_CENTER</span>
-            <div className="h-px w-24 bg-[var(--fg)]" />
+        <div className="flex-1 space-y-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-6">
+              <span className="index-label bg-[var(--fg)] text-[var(--bg)] px-3 py-1 font-black">[ 00 ] CONTROL_CENTER</span>
+              <div className="h-px w-32 bg-[var(--fg)]" />
+            </div>
+            <h1 className="magazine-heading text-6xl md:text-9xl text-[var(--fg)] leading-[0.8]">
+              Settings.
+            </h1>
           </div>
-
-          <h1 className="magazine-heading text-6xl md:text-8xl text-[var(--fg)] leading-none">
-            Settings.
-          </h1>
-          
-          <p className="text-[var(--fg-subtle)] text-lg leading-tight font-medium max-w-xl uppercase tracking-tighter mt-6">
-            Calibrate career trajectory and security vectors. <br />
-            Identity parameters: <span className="text-[var(--fg)] font-black">ACTIVE</span>{" // "}
-            Protocols: <span className="text-[var(--fg)] font-mono">STABLE</span>
+          <p className="text-2xl text-[var(--fg)] font-bold leading-tight uppercase italic max-w-3xl border-l-4 border-[var(--fg)] pl-8">
+            Calibrate career trajectory and security vectors. 
+            Protocols: <span className="text-emerald-500 font-black animate-pulse">SYSTEM_STABLE</span>
           </p>
         </div>
       </motion.div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-32 gap-12">
-          <div className="relative h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)]">
-            <div className="absolute inset-0 border-[var(--fg)] animate-spin border-t-4" />
+        <div className="flex flex-col items-center justify-center py-48 gap-16">
+          <div className="relative h-32 w-32 border-8 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)] shadow-[20px_20px_0_0_var(--bg-muted)]">
+            <div className="absolute inset-0 border-t-8 border-[var(--fg)] animate-spin" />
+            <User className="h-12 w-12" />
           </div>
-          <p className="index-label animate-pulse text-[var(--fg)]">
-            [ 00 ] SYNCING_ACCOUNT_DATA
-          </p>
+          <div className="text-center">
+             <h3 className="magazine-heading text-5xl mb-4">Syncing Account</h3>
+             <p className="index-label text-2xl font-black animate-pulse">[ 00 ] DECODING_IDENTITY_PARAMS</p>
+          </div>
         </div>
       ) : (
-        <>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Profile Card */}
-          <section className="border-2 border-[var(--fg)] bg-[var(--bg)] offset-card">
-            <div className="px-8 py-6 border-b-2 border-[var(--fg)] bg-[var(--bg-muted)]">
-              <h2 className="index-label text-[var(--fg)]">
-                [ 01 ] IDENTITY_PROFILE
+          <section className="border-4 border-[var(--fg)] bg-[var(--bg)] offset-card shadow-none relative blueprint-corners lg:col-span-2">
+            <div className="corner-bl" />
+            <div className="corner-br" />
+            <div className="px-10 py-8 border-b-4 border-[var(--fg)] bg-[var(--bg-muted)]">
+              <h2 className="magazine-heading text-4xl">
+                [ 01 ] Identity.
               </h2>
             </div>
 
-            <div className="divide-y-2 divide-[var(--fg)]">
+            <div className="divide-y-4 divide-[var(--fg)]">
               {/* Name */}
-              <div className="flex flex-col md:flex-row md:items-center justify-between p-8 group/item gap-6">
-                <div className="flex items-start md:items-center gap-6 md:gap-8">
-                  <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg)] group-hover/item:bg-[var(--fg)] group-hover/item:text-[var(--bg)] transition-colors flex-shrink-0">
-                    <User className="h-6 w-6" />
+              <div className="flex flex-col md:flex-row md:items-center justify-between p-12 group/item gap-12">
+                <div className="flex items-center gap-10">
+                  <div className="h-24 w-24 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)] group-hover/item:bg-[var(--fg)] group-hover/item:text-[var(--bg)] transition-all shadow-[8px_8px_0_0_var(--fg)] group-hover/item:shadow-none flex-shrink-0">
+                    <User className="h-10 w-10" />
                   </div>
                   <div>
-                    <p className="index-label mb-2 text-[var(--fg-muted)]">
+                    <p className="index-label mb-4 text-[var(--fg-muted)] font-black text-sm uppercase">
                       DISPLAY_IDENTITY
                     </p>
                     {editingName ? (
-                      <div className="flex flex-wrap items-center gap-4 mt-2">
+                      <div className="flex flex-wrap items-center gap-6">
                         <input
                           autoFocus
                           value={nameValue}
                           onChange={(e) => setNameValue(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") saveName();
-                            if (e.key === "Escape") setEditingName(false);
-                          }}
-                          className="bg-[var(--bg-muted)] border-2 border-[var(--fg)] px-4 py-3 text-sm text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] w-full md:w-80 font-bold transition-colors"
+                          className="bg-[var(--bg-muted)] border-4 border-[var(--fg)] px-8 py-4 text-2xl text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] w-full md:w-96 font-black italic uppercase transition-all"
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-4">
                           <button
                             onClick={saveName}
                             disabled={savingName}
-                            className="h-[48px] w-[48px] bg-[var(--fg)] text-[var(--bg)] border-2 border-[var(--fg)] flex items-center justify-center hover:bg-[var(--bg)] hover:text-[var(--fg)] transition-colors"
+                            className="h-16 w-16 bg-[var(--fg)] text-[var(--bg)] border-4 border-[var(--fg)] flex items-center justify-center hover:bg-emerald-500 transition-all"
                           >
-                            {savingName ? (
-                              <Loader2 className="h-5 w-5 animate-spin" />
-                            ) : (
-                              <Check className="h-5 w-5" />
-                            )}
+                            {savingName ? <Loader2 className="h-8 w-8 animate-spin" /> : <Check className="h-8 w-8" />}
                           </button>
                           <button
-                            onClick={() => {
-                              setEditingName(false);
-                              setNameError(null);
-                            }}
-                            className="h-[48px] w-[48px] bg-[var(--bg-muted)] border-2 border-[var(--fg)] flex items-center justify-center hover:bg-[var(--bg)] transition-colors text-[var(--fg)]"
+                            onClick={() => { setEditingName(false); setNameError(null); }}
+                            className="h-16 w-16 bg-[var(--bg-muted)] border-4 border-[var(--fg)] flex items-center justify-center hover:bg-red-500 hover:text-white transition-all text-[var(--fg)]"
                           >
-                            <X className="h-5 w-5" />
+                            <X className="h-8 w-8" />
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <p className="text-3xl md:text-4xl font-black text-[var(--fg)] italic uppercase tracking-tighter">
+                      <p className="text-5xl md:text-7xl font-black text-[var(--fg)] italic uppercase tracking-tighter leading-none">
                         {account?.name}
                       </p>
                     )}
                     {nameError && (
-                      <p className="index-label text-red-600 mt-3 font-bold">[ ERROR ] {nameError}</p>
+                      <p className="index-label text-red-600 mt-4 font-black">[ ERROR ] {nameError}</p>
                     )}
                   </div>
                 </div>
                 {!editingName && (
                    <button
-                    onClick={() => {
-                      setEditingName(true);
-                      setNameValue(account?.name ?? "");
-                    }}
-                    className="status-block bg-[var(--bg)] text-[var(--fg)] border-2 border-[var(--fg)] h-14 w-14 justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors"
+                    onClick={() => { setEditingName(true); setNameValue(account?.name ?? ""); }}
+                    className="status-block bg-[var(--bg)] text-[var(--fg)] border-4 border-[var(--fg)] h-20 w-20 justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-all shadow-[8px_8px_0_0_var(--fg)] hover:shadow-none"
                   >
-                    <Pencil className="h-5 w-5" />
+                    <Pencil className="h-8 w-8" />
                   </button>
                 )}
               </div>
 
-              <div className="flex items-start md:items-center gap-6 md:gap-8 p-8">
-                <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg)] flex-shrink-0">
-                  <Mail className="h-6 w-6" />
+              <div className="grid grid-cols-1 md:grid-cols-2 divide-y-4 md:divide-y-0 md:divide-x-4 divide-[var(--fg)]">
+                <div className="flex items-center gap-10 p-12 bg-[var(--bg)]">
+                  <div className="h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg-muted)] flex-shrink-0 shadow-[8px_8px_0_0_var(--fg)]">
+                    <Mail className="h-8 w-8" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="index-label mb-3 text-[var(--fg-muted)] font-black text-xs uppercase">VECTOR_COMM</p>
+                    <p className="text-2xl md:text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter truncate leading-none">
+                      {account?.email}
+                    </p>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="index-label mb-2 text-[var(--fg-muted)]">COMMUNICATION_VECTOR</p>
-                  <p className="text-2xl md:text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter truncate">
-                    {account?.email}
-                  </p>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-6 md:gap-8 p-8">
-                <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg)] flex-shrink-0">
-                  <Calendar className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="index-label mb-2 text-[var(--fg-muted)]">SYNC_DATE</p>
-                  <p className="text-2xl md:text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter">
-                    {account?.createdAt}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-8 bg-[var(--fg)] text-[var(--bg)] gap-6">
-                <div className="flex items-center gap-6 md:gap-8">
-                  <div className="h-16 w-16 border-2 border-[var(--bg)] flex items-center justify-center flex-shrink-0">
-                    <PlanIcon className="h-8 w-8 fill-current" />
+                <div className="flex items-center gap-10 p-12 bg-[var(--bg)]">
+                  <div className="h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg-muted)] flex-shrink-0 shadow-[8px_8px_0_0_var(--fg)]">
+                    <Calendar className="h-8 w-8" />
                   </div>
                   <div>
-                    <p className="index-label mb-2 opacity-70">
-                      INTELLIGENCE_TIER
+                    <p className="index-label mb-3 text-[var(--fg-muted)] font-black text-xs uppercase">SYNC_ORIGIN</p>
+                    <p className="text-2xl md:text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter leading-none">
+                      {account?.createdAt}
                     </p>
-                    <p className="text-4xl font-black italic uppercase tracking-tighter text-[var(--bg)]">
-                      {currentPlanMeta.label}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col md:flex-row items-center justify-between p-12 bg-[var(--fg)] text-[var(--bg)] gap-12">
+                <div className="flex items-center gap-10">
+                  <div className="h-24 w-24 border-4 border-[var(--bg)] flex items-center justify-center flex-shrink-0 bg-[var(--bg)] text-[var(--fg)] shadow-[12px_12px_0_0_rgba(255,255,255,0.2)]">
+                    <PlanIcon className="h-12 w-12 fill-current" />
+                  </div>
+                  <div>
+                    <p className="index-label mb-3 opacity-60 font-black text-xs uppercase">INTELLIGENCE_LEVEL</p>
+                    <p className="text-6xl font-black italic uppercase tracking-tighter text-[var(--bg)] leading-none">
+                      {currentPlanMeta.label}.
                     </p>
                   </div>
                 </div>
                 {account?.plan === "FREE" && (
                   <Link
                     href="/dashboard/billing"
-                    className="px-8 py-4 bg-[var(--bg)] text-[var(--fg)] border-2 border-[var(--bg)] font-black uppercase tracking-widest text-sm flex items-center gap-2 hover:bg-transparent hover:text-[var(--bg)] transition-colors w-full md:w-auto justify-center"
+                    className="px-16 py-6 bg-[var(--bg)] text-[var(--fg)] border-4 border-[var(--bg)] font-black uppercase tracking-widest text-xl flex items-center gap-4 hover:bg-transparent hover:text-[var(--bg)] transition-all w-full md:w-auto justify-center group"
                   >
-                    UPGRADE_NOW <Zap className="h-4 w-4" />
+                    UPGRADE_NOW <Zap className="h-6 w-6 group-hover:scale-125 transition-transform" />
                   </Link>
                 )}
               </div>
@@ -323,99 +308,97 @@ export default function SettingsPage() {
           </section>
 
           {/* Security Card */}
-          <section className="border-2 border-[var(--fg)] bg-[var(--bg)] offset-card">
-            <div className="px-8 py-6 border-b-2 border-[var(--fg)] bg-[var(--bg-muted)]">
-              <h2 className="index-label text-[var(--fg)]">
-                [ 02 ] SECURITY_VECTORS
+          <section className="border-4 border-[var(--fg)] bg-[var(--bg)] offset-card shadow-none relative blueprint-corners">
+            <div className="corner-bl" />
+            <div className="corner-br" />
+            <div className="px-10 py-8 border-b-4 border-[var(--fg)] bg-[var(--bg-muted)]">
+              <h2 className="magazine-heading text-4xl">
+                [ 02 ] Security.
               </h2>
             </div>
 
-            <div className="p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-              <div className="flex items-center gap-6 md:gap-8">
-                <div className="h-16 w-16 border-2 border-[var(--fg)] flex items-center justify-center text-[var(--fg)] bg-[var(--bg)] flex-shrink-0">
-                  <KeyRound className="h-6 w-6" />
+            <div className="p-12 space-y-12">
+              <div className="flex items-center gap-10">
+                <div className="h-24 w-24 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg-muted)] flex-shrink-0 shadow-[8px_8px_0_0_var(--fg)]">
+                  <KeyRound className="h-10 w-10" />
                 </div>
-                <div>
-                  <p className="text-3xl font-black text-[var(--fg)] italic uppercase tracking-tighter leading-none mb-3">Access Token</p>
-                  <p className="index-label text-[var(--fg-muted)]">
-                    [ STATUS ] {resetSent
-                      ? "CHECK_INBOX_FOR_VECTOR"
-                      : "SEND_RECALIBRATION_LINK"}
+                <div className="flex-1">
+                  <h3 className="text-4xl font-black italic uppercase tracking-tighter leading-none mb-4">Recalibrate.</h3>
+                  <p className="index-label text-base font-black italic opacity-60">
+                    [ STATUS ] {resetSent ? "SIGNAL_TRANSMITTED" : "READY_FOR_SYNC"}
                   </p>
                 </div>
               </div>
               <button
                 onClick={handlePasswordReset}
                 disabled={resettingPassword || resetSent}
-                className="status-block bg-[var(--bg-muted)] text-[var(--fg)] border-2 border-[var(--fg)] px-8 py-4 disabled:opacity-50 hover:bg-[var(--bg)] transition-colors w-full md:w-auto"
+                className="btn-primary w-full py-6 text-xl"
               >
                 {resettingPassword ? (
-                  <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                  <Loader2 className="h-8 w-8 animate-spin mx-auto" />
                 ) : resetSent ? (
-                  "Vector Sent ✓"
+                  "SIGNAL_SENT ✓"
                 ) : (
-                  "Recalibrate Token"
+                  "INITIATE_RECALIBRATION"
                 )}
               </button>
             </div>
           </section>
 
           {/* Danger Zone */}
-          <section className="border-2 border-red-500 bg-red-50 offset-card">
-            <div className="px-8 py-6 border-b-2 border-red-500 bg-red-100">
-              <h2 className="index-label text-red-600 font-bold">
-                [ 03 ] TERMINAL_PROTOCOL
+          <section className="border-4 border-red-600 bg-red-50 offset-card shadow-none relative blueprint-corners overflow-hidden">
+            <div className="corner-bl !border-red-600" />
+            <div className="corner-br !border-red-600" />
+            <div className="px-10 py-8 border-b-4 border-red-600 bg-red-100">
+              <h2 className="magazine-heading text-4xl text-red-600">
+                [ 03 ] Terminal.
               </h2>
             </div>
 
-            <div className="p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative z-10">
-              <div className="flex items-center gap-6 md:gap-8">
-                <div className="h-16 w-16 bg-red-100 border-2 border-red-500 flex items-center justify-center text-red-600 flex-shrink-0">
-                   <ShieldAlert className="h-8 w-8" />
+            <div className="p-12 space-y-12 relative z-10">
+              <div className="flex items-center gap-10">
+                <div className="h-24 w-24 bg-red-600 border-4 border-red-600 flex items-center justify-center text-white flex-shrink-0 shadow-[8px_8px_0_0_#991b1b]">
+                   <ShieldAlert className="h-12 w-12" />
                 </div>
-                <div>
-                  <p className="text-3xl font-black text-red-600 italic uppercase tracking-tighter leading-none mb-3">Delete Account</p>
-                  <p className="index-label text-red-600 font-bold">
-                    [ WARNING ] PERMANENT_VECTOR_PURGE_REQUIRED
+                <div className="flex-1">
+                  <h3 className="text-4xl font-black text-red-600 italic uppercase tracking-tighter leading-none mb-4">Purge Node.</h3>
+                  <p className="index-label text-red-600 font-black text-sm italic">
+                    [ WARNING ] IRREVERSIBLE_DATA_ERASURE_PROTOCOL
                   </p>
                 </div>
               </div>
 
               {!deleteConfirm ? (
                 <button
-                  className="status-block bg-white text-red-600 border-2 border-red-500 px-8 py-4 hover:bg-red-600 hover:text-white transition-colors w-full md:w-auto"
+                  className="w-full py-6 bg-red-600 text-white font-black uppercase text-xl border-4 border-red-600 hover:bg-white hover:text-red-600 transition-all italic"
                   onClick={() => setDeleteConfirm(true)}
                 >
-                  PURGE_DATA
+                  EXECUTE_PURGE
                 </button>
               ) : (
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-shrink-0 w-full md:w-auto">
-                  <span className="index-label text-red-600 font-black text-center sm:text-left mb-2 sm:mb-0">
-                    CONFIRM_PURGE?
-                  </span>
-                  <button
-                    onClick={handleDelete}
-                    disabled={deleting}
-                    className="status-block bg-red-600 text-white border-2 border-red-600 px-8 py-4 disabled:opacity-50 hover:bg-red-700 transition-colors"
-                  >
-                    {deleting ? (
-                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                    ) : (
-                      "EXECUTE"
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(false)}
-                    className="status-block bg-white text-red-600 border-2 border-red-500 px-8 py-4 hover:bg-red-50 transition-colors"
-                  >
-                    ABORT
-                  </button>
+                <div className="flex flex-col gap-6">
+                  <div className="flex items-center gap-6">
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="flex-1 py-6 bg-red-600 text-white font-black text-2xl border-4 border-red-600 hover:bg-red-800 transition-all uppercase italic"
+                    >
+                      {deleting ? <Loader2 className="h-10 w-10 animate-spin mx-auto" /> : "CONFIRM"}
+                    </button>
+                    <button
+                      onClick={() => setDeleteConfirm(false)}
+                      className="flex-1 py-6 bg-white text-red-600 font-black text-2xl border-4 border-red-600 hover:bg-red-50 transition-all uppercase italic"
+                    >
+                      ABORT
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           </section>
-        </>
+        </div>
       )}
     </div>
   );
 }
+

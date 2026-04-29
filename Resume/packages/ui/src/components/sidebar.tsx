@@ -126,7 +126,7 @@ export const SidebarLink = ({
     <Link
       href={link.href}
       className={cn(
-        "group relative flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] mb-1.5 overflow-hidden",
+        "group relative flex items-center gap-3 py-2.5 px-3 rounded-none transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] mb-1.5 overflow-hidden",
         isActive
           ? "text-[var(--fg)] shadow-[0_14px_36px_rgba(0,0,0,0.22)]"
           : "text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-white/[0.045]",
@@ -137,7 +137,7 @@ export const SidebarLink = ({
       {isActive && (
         <motion.div
           layoutId="sidebar-active"
-          className="absolute inset-0 rounded-xl border border-white/[0.12] bg-[linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
+          className="absolute inset-0 rounded-none border border-white/[0.12] bg-[linear-gradient(135deg,rgba(255,255,255,0.12),rgba(255,255,255,0.04))] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
           transition={{ type: "spring", stiffness: 420, damping: 34 }}
         />
       )}
@@ -151,7 +151,7 @@ export const SidebarLink = ({
       {isActive && (
         <motion.div
           layoutId="sidebar-active-rail"
-          className="absolute left-0 z-20 h-5 w-1 rounded-r-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]"
+          className="absolute left-0 z-20 h-5 w-1 rounded-none bg-white shadow-[0_0_10px_rgba(255,255,255,0.8)]"
           transition={{ type: "spring", stiffness: 420, damping: 34 }}
         />
       )}

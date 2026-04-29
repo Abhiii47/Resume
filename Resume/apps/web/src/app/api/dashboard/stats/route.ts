@@ -13,12 +13,12 @@ export async function GET() {
     const userId = session.user.id;
 
     // Fetch real user-specific data in parallel
-    const [latestAnalysis, applicationCount, roadmapProgress, matchCount, recentActivity] =
+    const [latestAnalysis, applicationCount, roadmapProgress, matchCount, recentActivity, userData] =
       await Promise.all([
         prisma.analysis.findFirst({
           where: { userId },
           orderBy: { createdAt: "desc" },
-          select: { score: true },
+          select: { score: true, skillsMatrix: true },
         }),
         prisma.application.count({ where: { userId } }),
         prisma.roadmap.aggregate({
@@ -27,7 +27,7 @@ export async function GET() {
           _count: { id: true },
         }),
         prisma.match.count({ where: { userId } }),
-        // Real recent activity: last 5 events from analyses, matches, applications
+        // Real recent activity: last 5 events
         Promise.all([
           prisma.analysis.findMany({
             where: { userId },
@@ -54,6 +54,10 @@ export async function GET() {
             select: { week: true, progress: true, createdAt: true },
           }),
         ]),
+        prisma.user.findUnique({
+          where: { id: userId },
+          select: { marketSentiment: true, profileVisibility: true },
+        }),
       ]);
 
     const [analyses, matches, applications, roadmaps] = recentActivity;
@@ -104,13 +108,16 @@ export async function GET() {
       applications: applicationCount,
       matches: matchCount,
       roadmap: Math.round(roadmapProgress._avg.progress ?? 0),
+      skillsMatrix: latestAnalysis?.skillsMatrix || null,
+      marketSentiment: userData?.marketSentiment || "STABLE",
+      profileVisibility: userData?.profileVisibility || 85,
     };
 
-    return NextResponse.json({ stats, activities: activities.slice(0, 5) });
+    return NextResponse.json({ stats, activities: activities.slice(0, 5), userId });
   } catch (error) {
     console.error("Stats fetch error:", error);
     return NextResponse.json({
-      stats: { score: 0, applications: 0, matches: 0, roadmap: 0 },
+      stats: { score: 0, applications: 0, matches: 0, roadmap: 0, skillsMatrix: null, marketSentiment: "STABLE", profileVisibility: 85 },
       activities: [],
     });
   }

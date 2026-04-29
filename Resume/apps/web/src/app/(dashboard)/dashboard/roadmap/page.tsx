@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import {
-  CheckCircle2,
   ExternalLink,
   Map,
   RefreshCcw,
@@ -12,12 +11,7 @@ import {
 import { motion } from "framer-motion";
 import { Roadmap, RoadmapWeek } from "@repo/types";
 import useSWR from "swr";
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from "@repo/ui";
 
 export default function RoadmapPage() {
   const [localFeedback, setLocalFeedback] = useState<string | null>(null);
@@ -106,24 +100,23 @@ export default function RoadmapPage() {
 
   const error =
     localError || (swrError ? "Failed to synchronize roadmap" : null);
-  const feedback = localFeedback;
   const isLoading = roadmapLoading && !roadmapData;
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-16 max-w-5xl mx-auto w-full animate-pulse py-20">
-        <div className="flex justify-between items-end border-b border-[var(--border)] pb-12">
+      <div className="flex flex-col gap-16 max-w-7xl mx-auto w-full animate-pulse py-24 px-8 bg-[var(--bg)]">
+        <div className="flex flex-col md:flex-row justify-between items-end border-b-4 border-[var(--border)] pb-12 gap-8">
           <div className="space-y-6 w-full">
-            <div className="h-4 w-32 bg-[var(--bg-muted)] border border-[var(--border)]" />
-            <div className="h-20 w-full max-w-md bg-[var(--bg-muted)] border border-[var(--border)]" />
+            <div className="h-6 w-48 bg-[var(--bg-muted)] border-2 border-[var(--border)]" />
+            <div className="h-24 w-full max-w-2xl bg-[var(--bg-muted)] border-2 border-[var(--border)]" />
           </div>
-          <div className="h-20 w-40 bg-[var(--bg-muted)] border border-[var(--border)]" />
+          <div className="h-24 w-48 bg-[var(--bg-muted)] border-2 border-[var(--border)]" />
         </div>
-        <div className="space-y-12">
-          {[1, 2, 3].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+          {[1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="h-64 w-full border-2 border-[var(--border)] bg-[var(--bg-muted)]"
+              className="h-80 w-full border-4 border-[var(--border)] bg-[var(--bg-muted)]"
             />
           ))}
         </div>
@@ -133,16 +126,15 @@ export default function RoadmapPage() {
 
   if (generating) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-200px)] gap-10 max-w-md mx-auto text-center">
-        <div className="relative h-28 w-28 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)]">
-          <div className="absolute inset-0 border-[var(--fg)] animate-spin border-t-4" />
-          <Map className="h-12 w-12 text-[var(--fg)] animate-pulse" />
+      <div className="flex flex-col items-center justify-center h-screen bg-[var(--bg)] gap-16 p-8">
+        <div className="relative h-40 w-40 border-8 border-[var(--fg)] flex items-center justify-center shadow-[20px_20px_0_0_var(--bg-muted)]">
+          <Map className="h-20 w-20 text-[var(--fg)] animate-ping" />
         </div>
-        <div className="animate-fade-in-up">
-          <h2 className="magazine-heading text-4xl text-[var(--fg)] mb-4">
-            Mapping Intelligence
+        <div className="text-center">
+          <h2 className="magazine-heading text-5xl text-[var(--fg)] mb-6">
+            Constructing.
           </h2>
-          <p className="index-label animate-pulse text-[var(--fg)]">
+          <p className="index-label text-xl font-black animate-pulse text-[var(--fg)] tracking-[0.2em]">
             [ 00 ] CONSTRUCTING_VECTOR_PATH
           </p>
         </div>
@@ -157,185 +149,158 @@ export default function RoadmapPage() {
     : 0;
 
   return (
-    <div className="relative flex flex-col gap-16 max-w-5xl mx-auto w-full pb-32 pt-8">
-      {/* Background Decor - Minimalist */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute inset-0 bg-dot opacity-[0.05]" />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10"
-      >
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 border-b-2 border-[var(--fg)] pb-12">
-          <div className="flex flex-col gap-6">
-            <div className="flex items-center gap-4">
-              <span className="index-label text-[var(--fg)]">[ 00 ] ROADMAP_PROTOCOL</span>
-              <div className="h-px w-24 bg-[var(--fg)]" />
+    <div className="relative flex flex-col gap-12 max-w-7xl mx-auto w-full pb-32 pt-16 px-8 min-h-screen">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-12 border-b-4 border-[var(--fg)] pb-12">
+        <div className="flex-1 space-y-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-6">
+              <span className="index-label bg-[var(--fg)] text-[var(--bg)] px-3 py-1 font-black">[ 00 ] ROADMAP_PROTOCOL</span>
+              <div className="h-px w-32 bg-[var(--fg)]" />
             </div>
-            <h1 className="magazine-heading text-5xl md:text-7xl text-[var(--fg)] leading-none">
-              {roadmap?.title || "Career Roadmap"}
+            <h1 className="magazine-heading text-3xl md:text-5xl text-[var(--fg)] leading-tight">
+              {roadmap?.title || "Career Roadmap."}
             </h1>
-            <p className="text-[var(--fg-subtle)] text-lg max-w-xl font-medium leading-tight uppercase tracking-tight">
-              {roadmap?.description ||
-                "A serialized 12-week path to career dominance."}
-            </p>
           </div>
+          <p className="text-lg text-[var(--fg)] font-bold leading-tight uppercase italic max-w-3xl border-l-4 border-[var(--fg)] pl-6">
+            &ldquo;{roadmap?.description || "A serialized path to career dominance through structured intelligence."}&rdquo;
+          </p>
+        </div>
 
-          <div className="flex items-center gap-6">
-            <button
-              onClick={() => mutateRoadmap()}
-              disabled={roadmapValidating}
-              className="status-block bg-[var(--bg)] text-[var(--fg)] h-16 w-16 flex items-center justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors border-2 border-[var(--fg)]"
-            >
-              <RefreshCcw
-                className={cn("h-6 w-6", roadmapValidating && "animate-spin")}
-              />
-            </button>
-            <div className="px-10 py-4 border-2 border-[var(--fg)] bg-[var(--bg)] flex items-center gap-6 offset-card">
-              <div className="flex flex-col items-center">
-                <span className="text-4xl font-black font-mono text-[var(--fg)] leading-none">
-                  {progressPercent}%
-                </span>
-                <span className="index-label mt-2 text-[var(--fg)]">SYNC_STATUS</span>
-              </div>
-            </div>
+        <div className="flex items-center gap-8 min-w-[320px]">
+          <button
+            onClick={() => mutateRoadmap()}
+            disabled={roadmapValidating}
+            className="status-block bg-[var(--bg)] text-[var(--fg)] h-24 w-24 border-4 border-[var(--fg)] flex items-center justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-all group"
+          >
+            <RefreshCcw
+              className={cn("h-8 w-8 group-hover:rotate-180 transition-transform duration-500", roadmapValidating && "animate-spin")}
+            />
+          </button>
+          <div className="flex-1 px-12 py-6 border-4 border-[var(--fg)] bg-[var(--fg)] text-[var(--bg)] offset-card shadow-none flex flex-col items-center justify-center min-w-[180px]">
+             <span className="text-5xl font-black font-mono leading-none">{progressPercent}%</span>
+             <span className="index-label text-[var(--bg)] opacity-60 text-xs mt-2">SYNC_COMPLETED</span>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {error && (
-        <div className="p-8 border-2 border-red-500 bg-red-50 text-xs text-red-600 flex items-center justify-between gap-6 font-black uppercase tracking-widest offset-card">
-          <span className="flex items-center gap-4">
-            <AlertCircle className="h-5 w-5" /> {error}
-          </span>
-          <button onClick={() => mutateRoadmap()} className="status-block bg-white text-red-600 border-2 border-red-500 px-6 py-2">
-            Retry Sync
+        <div className="p-10 border-4 border-red-600 bg-red-50 flex items-center justify-between gap-10 offset-card relative blueprint-corners shadow-none">
+          <div className="corner-bl !border-red-600" />
+          <div className="corner-br !border-red-600" />
+          <div className="flex items-center gap-6">
+            <AlertCircle className="h-10 w-10 text-red-600" />
+            <div className="flex flex-col">
+              <span className="magazine-heading text-2xl text-red-600">Protocol Failure</span>
+              <span className="index-label text-red-900 font-bold">{error}</span>
+            </div>
+          </div>
+          <button onClick={() => mutateRoadmap()} className="status-block bg-red-600 text-white border-4 border-red-600 px-10 py-4 text-sm hover:bg-white hover:text-red-600 transition-all font-black">
+            RE_SYNC_PROTOCOL
           </button>
         </div>
       )}
 
-      {feedback && !error && (
-        <div className="p-4 border-2 border-[var(--fg)] bg-[var(--bg-muted)] index-label text-[var(--fg)] offset-card">
-          [ FEEDBACK ] {feedback}
-        </div>
-      )}
-
       {!roadmap || steps.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-32 px-4 text-center max-w-xl mx-auto">
-          <div className="p-16 border-2 border-[var(--fg)] bg-[var(--bg)] w-full relative group offset-card">
-            <div className="h-20 w-20 bg-[var(--bg-muted)] border-2 border-[var(--fg)] flex items-center justify-center mb-10 mx-auto">
-              <Map className="h-10 w-10 text-[var(--fg)] group-hover:scale-110 transition-transform" />
+        <div className="flex flex-col items-center justify-center py-32 px-4 text-center max-w-4xl mx-auto w-full">
+          <div className="p-20 border-[6px] border-[var(--fg)] bg-[var(--bg)] w-full relative group offset-card shadow-none blueprint-corners">
+            <div className="corner-bl" />
+            <div className="corner-br" />
+            <div className="h-40 w-40 bg-[var(--fg)] border-4 border-[var(--fg)] flex items-center justify-center mb-16 mx-auto shadow-[16px_16px_0_0_var(--accent)]">
+              <Map className="h-20 w-20 text-[var(--bg)] group-hover:scale-110 group-hover:rotate-12 transition-transform" />
             </div>
-            <h1 className="magazine-heading text-3xl text-[var(--fg)] mb-4">No Roadmap Detected</h1>
-            <p className="index-label text-[var(--fg-muted)] mb-12">
-              [ 00 ] UPLOAD_VECTOR_TO_INITIALIZE_PATH
+            <h1 className="magazine-heading text-4xl text-[var(--fg)] mb-6 tracking-tighter">Path_Uninitialized.</h1>
+            <p className="text-lg text-[var(--fg)] font-black uppercase tracking-tight leading-relaxed mb-12 italic opacity-80 border-y-2 border-[var(--fg)] py-6 max-w-xl mx-auto">
+              [ 00 ] UPLOAD_SOURCE_VECTOR_TO_GENERATE_TRAJECTORY_PATH
             </p>
             <button
               onClick={handleGenerate}
-              className="btn-primary px-12 py-6 text-sm hover:scale-105 transition-all"
+              className="btn-primary px-12 py-6 text-lg hover:translate-x-2 transition-all flex items-center gap-4 mx-auto"
             >
-              Initialize Generation →
+              INITIALIZE_GENERATION <Rocket className="h-6 w-6 animate-bounce" />
             </button>
           </div>
         </div>
       ) : (
-        <div className="space-y-8 relative">
-          {/* Vertical Timeline Line */}
-          <div className="absolute left-10 top-0 bottom-0 w-1 bg-[var(--fg)] opacity-10 hidden md:block" />
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative">
           {steps.map((step, idx) => {
             const isCompleted = step.progress === 100;
             return (
               <motion.div
                 key={step.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.08 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.1 }}
                 className={cn(
-                  "p-8 md:p-12 border-2 border-[var(--fg)] bg-[var(--bg)] transition-all relative group overflow-hidden offset-card",
-                  isCompleted ? "bg-[var(--bg)] opacity-70" : ""
+                  "p-12 border-4 border-[var(--fg)] bg-[var(--bg)] transition-all relative group overflow-hidden offset-card flex flex-col justify-between blueprint-corners",
+                  isCompleted ? "opacity-60 grayscale-[0.8]" : "hover:bg-[var(--bg-muted)]"
                 )}
               >
-                <div className="flex flex-col md:flex-row md:items-start gap-8 relative z-10">
-                  {/* Indicator */}
-                  <div className="flex-shrink-0 flex items-center justify-center">
-                    <div className={cn(
-                      "h-20 w-20 border-2 flex items-center justify-center transition-all duration-300",
-                      isCompleted 
-                        ? "bg-[var(--fg)] border-[var(--fg)] text-[var(--bg)]" 
-                        : "bg-[var(--bg)] border-[var(--fg)] text-[var(--fg)] group-hover:bg-[var(--fg)] group-hover:text-[var(--bg)]"
-                    )}>
-                      {isCompleted ? <CheckCircle2 className="h-10 w-10" /> : <span className="text-3xl font-black font-mono">{idx + 1}</span>}
-                    </div>
+                <div className="corner-bl" />
+                <div className="corner-br" />
+                
+                <div className="space-y-10 relative z-10">
+                  <div className="flex items-center justify-between border-b-2 border-[var(--fg)] pb-6">
+                    <span className="index-label font-black text-base">{step.week}</span>
+                    <button
+                      onClick={() => handleToggleProgress(step.id, step.progress)}
+                      className={cn(
+                        "status-block px-6 py-2 transition-all border-2",
+                        isCompleted
+                          ? "bg-[var(--fg)] text-[var(--bg)] border-[var(--fg)]"
+                          : "bg-[var(--bg)] text-[var(--fg)] border-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)]"
+                      )}
+                    >
+                      {isCompleted ? "VERIFIED" : "MARK_READY"}
+                    </button>
                   </div>
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                      <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[var(--fg-muted)]">
-                        {step.week}
-                      </span>
-                        <button
-                          onClick={() => handleToggleProgress(step.id, step.progress)}
-                          className={cn(
-                            "px-6 py-2 border-2 text-[10px] font-black uppercase tracking-widest transition-all",
-                            isCompleted
-                              ? "bg-[var(--fg)] text-[var(--bg)] border-[var(--fg)]"
-                              : "bg-[var(--bg)] text-[var(--fg)] border-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)]"
-                          )}
-                        >
-                          {isCompleted ? "COMPLETED" : "MARK_DONE"}
-                        </button>
-                    </div>
-
+                  <div className="flex gap-6 items-start">
+                    <span className="magazine-heading text-2xl text-[var(--fg-muted)] opacity-20">{(idx + 1).toString().padStart(2, "0")}</span>
                     <h3 className={cn(
-                      "text-3xl md:text-4xl font-black italic uppercase tracking-tighter mb-6 transition-all",
+                      "text-xl font-black italic uppercase tracking-tighter leading-tight transition-all",
                       isCompleted ? "text-[var(--fg-muted)] line-through" : "text-[var(--fg)]"
                     )}>
                       {step.title}
                     </h3>
+                  </div>
 
-                    <div className="space-y-4 mb-8">
-                      {(step.description || "")
-                        .split("\n")
-                        .filter(Boolean)
-                        .map((task: string, tIdx: number) => (
-                          <div
-                            key={tIdx}
-                            className="flex items-start gap-3 text-sm text-[var(--fg)] font-medium"
-                          >
-                            <div className={cn(
-                              "h-2 w-2 mt-2 flex-shrink-0 transition-colors border border-[var(--fg)]",
-                              isCompleted ? "bg-[var(--fg-muted)] border-[var(--fg-muted)]" : "bg-[var(--fg)]"
-                            )} />
-                            <span className={cn(isCompleted && "text-[var(--fg-muted)]")}>{task}</span>
-                          </div>
-                        ))}
-                    </div>
-
-                    {step.resources?.length > 0 && (
-                      <div className="flex flex-wrap gap-3 mt-6 pt-6 border-t border-[var(--border)]">
-                        <span className="index-label w-full block mb-2 text-[var(--fg-muted)]">Resources</span>
-                        {step.resources
-                          .slice(0, 3)
-                          .map((res: string, rIdx: number) => (
-                            <a
-                              key={rIdx}
-                              href={res}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="group/res flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[var(--fg)] px-6 py-3 border border-[var(--fg)] bg-[var(--bg-muted)] hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-all"
-                            >
-                              Resource {rIdx + 1}
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          ))}
-                      </div>
-                    )}
+                  <div className="space-y-6">
+                    {(step.description || "")
+                      .split("\n")
+                      .filter(Boolean)
+                      .map((task: string, tIdx: number) => (
+                        <div
+                          key={tIdx}
+                          className="flex items-start gap-4 text-base text-[var(--fg)] font-bold uppercase leading-tight italic"
+                        >
+                          <div className={cn(
+                            "h-3 w-3 mt-1 flex-shrink-0 transition-all border-2 border-[var(--fg)]",
+                            isCompleted ? "bg-[var(--fg-muted)] border-[var(--fg-muted)] rotate-45" : "bg-[var(--fg)] group-hover:rotate-180"
+                          )} />
+                          <span className={cn(isCompleted && "text-[var(--fg-muted)]")}>{task}</span>
+                        </div>
+                      ))}
                   </div>
                 </div>
+
+                {step.resources?.length > 0 && (
+                  <div className="mt-12 pt-8 border-t-2 border-[var(--fg)] flex flex-wrap gap-4 relative z-10">
+                    {step.resources
+                      .slice(0, 2)
+                      .map((res: string, rIdx: number) => (
+                        <a
+                          key={rIdx}
+                          href={res}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-[var(--fg)] px-6 py-3 border-2 border-[var(--fg)] bg-[var(--bg)] hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-all group-hover:shadow-[4px_4px_0_0_var(--fg)]"
+                        >
+                          Resource_{rIdx + 1}
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      ))}
+                  </div>
+                )}
               </motion.div>
             );
           })}
@@ -343,18 +308,21 @@ export default function RoadmapPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: steps.length * 0.08 + 0.2 }}
-            className="p-16 border-2 border-[var(--fg)] bg-[var(--bg)] text-center relative overflow-hidden group offset-card"
+            className="p-16 border-4 border-dashed border-[var(--fg-subtle)] bg-[var(--bg-muted)] text-center relative overflow-hidden group col-span-1 md:col-span-2 flex flex-col items-center justify-center gap-8 mt-12"
           >
-            <div className="h-20 w-20 bg-[var(--bg-muted)] border-2 border-[var(--fg)] flex items-center justify-center mx-auto mb-8 relative z-10">
-              <Rocket className="h-10 w-10 text-[var(--fg)] group-hover:scale-110 transition-transform" />
+            <div className="h-24 w-24 bg-[var(--bg)] border-4 border-[var(--fg)] flex items-center justify-center mx-auto relative z-10 group-hover:scale-110 transition-transform">
+              <Rocket className="h-10 w-10 text-[var(--fg)]" />
             </div>
-            <p className="index-label text-[var(--fg)] relative z-10 font-bold">
-              [ 00 ] COMPLETE_ALL_MODULES_TO_UNLOCK_DOMINANCE
-            </p>
+            <div className="relative z-10">
+              <h4 className="magazine-heading text-4xl mb-2">Final Vector.</h4>
+              <p className="index-label text-[var(--fg)] font-bold text-lg">
+                [ 00 ] COMPLETE_ALL_MODULES_TO_UNLOCK_DOMINANCE
+              </p>
+            </div>
           </motion.div>
         </div>
       )}
     </div>
   );
 }
+

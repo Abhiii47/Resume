@@ -12,6 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { cn } from "@repo/ui";
 
 const statusConfig: Record<
   string,
@@ -88,7 +89,6 @@ export default function ApplicationsPage() {
   });
 
   const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
 
   async function fetchApplications(options?: { silent?: boolean }) {
     const silent = options?.silent ?? false;
@@ -140,7 +140,6 @@ export default function ApplicationsPage() {
   async function submitApplication() {
     setSubmitting(true);
     setError(null);
-    setFeedback(null);
 
     try {
       const res = await fetch("/api/applications", {
@@ -157,7 +156,6 @@ export default function ApplicationsPage() {
 
       setIsModalOpen(false);
       setNewApp({ role: "", company: "", location: "", url: "" });
-      setFeedback("Application added successfully.");
       await fetchApplications({ silent: true });
     } catch (e) {
       console.error("Failed to submit", e);
@@ -178,13 +176,18 @@ export default function ApplicationsPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 gap-12">
-        <div className="relative h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)]">
-          <div className="absolute inset-0 border-[var(--fg)] animate-spin border-t-4" />
+      <div className="flex flex-col gap-16 max-w-7xl mx-auto w-full animate-pulse py-24 px-8 bg-[var(--bg)]">
+        <div className="flex flex-col md:flex-row justify-between items-end border-b-4 border-[var(--border)] pb-12 gap-8">
+          <div className="space-y-6 w-full">
+            <div className="h-6 w-48 bg-[var(--bg-muted)] border-2 border-[var(--border)]" />
+            <div className="h-24 w-full max-w-2xl bg-[var(--bg-muted)] border-2 border-[var(--border)]" />
+          </div>
+          <div className="h-24 w-48 bg-[var(--bg-muted)] border-2 border-[var(--border)]" />
         </div>
-        <p className="index-label animate-pulse text-[var(--fg)]">
-          [ 00 ] SYNCING_APPLICATION_ENGINE
-        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+           {[1,2,3,4].map(i => <div key={i} className="h-40 border-4 border-[var(--border)] bg-[var(--bg-muted)]" />)}
+        </div>
+        <div className="h-96 w-full border-4 border-[var(--border)] bg-[var(--bg-muted)]" />
       </div>
     );
   }
@@ -200,162 +203,155 @@ export default function ApplicationsPage() {
   const offerCount = applications.filter((a) => a.status === "OFFER").length;
 
   return (
-    <div className="flex flex-col gap-10 max-w-6xl mx-auto w-full pb-20 px-4 pt-8">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute inset-0 bg-dot opacity-[0.05]" />
-      </div>
-
+    <div className="relative flex flex-col gap-16 max-w-7xl mx-auto w-full pb-32 pt-16 px-8 min-h-screen">
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b-2 border-[var(--fg)] pb-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col md:flex-row justify-between items-end gap-12 border-b-4 border-[var(--fg)] pb-16"
       >
-        <div>
-          <div className="flex items-center gap-6 mb-4">
-            <span className="index-label text-[var(--fg)]">[ 00 ] OUTBOUND_MATRIX</span>
-            <div className="h-px w-24 bg-[var(--fg)]" />
+        <div className="flex-1 space-y-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-6">
+              <span className="index-label bg-[var(--fg)] text-[var(--bg)] px-3 py-1 font-black">[ 00 ] OUTBOUND_MATRIX</span>
+              <div className="h-px w-32 bg-[var(--fg)]" />
+            </div>
+            <h1 className="magazine-heading text-4xl md:text-5xl text-[var(--fg)] leading-tight">
+              Tracker.
+            </h1>
           </div>
-          <h1 className="magazine-heading text-6xl md:text-8xl text-[var(--fg)] leading-none">
-            Tracker.
-          </h1>
-          <p className="text-[var(--fg-subtle)] text-lg leading-tight font-medium max-w-xl uppercase tracking-tighter mt-6">
-            Monitor and serialize your active market signals. Maintain absolute
-            visibility on outbound communication vectors.
+          <p className="text-lg text-[var(--fg)] font-bold leading-tight uppercase italic max-w-3xl border-l-4 border-[var(--fg)] pl-6">
+            Monitor and serialize your active market signals. Maintain absolute visibility on outbound communication vectors.
           </p>
         </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="flex items-center gap-8 w-full md:w-auto">
           <button
             onClick={() => fetchApplications({ silent: true })}
             disabled={refreshing}
-            className="h-[52px] w-[52px] border-2 border-[var(--fg)] bg-[var(--bg)] flex items-center justify-center hover:bg-[var(--bg-muted)] offset-card"
+            className="h-24 w-24 border-4 border-[var(--fg)] bg-[var(--bg)] flex items-center justify-center hover:bg-[var(--bg-muted)] transition-all group"
           >
             <RefreshCcw
-              className={`h-6 w-6 text-[var(--fg)] ${refreshing ? "animate-spin" : ""}`}
+              className={cn("h-10 w-10 text-[var(--fg)] group-hover:rotate-180 transition-transform duration-700", refreshing && "animate-spin")}
             />
           </button>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="btn-primary h-[52px] px-8 flex items-center gap-3 text-sm flex-1 md:flex-none justify-center"
+            className="btn-primary h-24 px-12 flex items-center gap-6 text-xl flex-1 md:flex-none justify-center group"
           >
-            <Send className="h-4 w-4" /> Initialize Target
+            INITIALIZE_TARGET <Send className="h-6 w-6 group-hover:translate-x-2 transition-transform" />
           </button>
         </div>
       </motion.div>
 
-      {error && (
-        <div className="p-4 border-2 border-red-500 bg-red-50 text-sm text-red-600 flex items-center justify-between gap-3 offset-card">
-          <span className="flex items-center gap-2 font-bold">
-            <AlertCircle className="h-4 w-4" /> {error}
-          </span>
-          <button
-            className="status-block bg-white text-red-600 border-2 border-red-500 px-4 py-1 text-xs"
-            onClick={() => fetchApplications()}
-          >
-            Retry
-          </button>
-        </div>
-      )}
-
-      {feedback && !error && (
-        <div className="p-4 border-2 border-[var(--fg)] bg-[var(--bg-muted)] index-label text-[var(--fg)] offset-card">
-          [ INFO ] {feedback}
-        </div>
-      )}
-
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-2 md:grid-cols-4 gap-6"
-      >
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
         {[
-          { label: "Total Sent", value: applications.length },
-          { label: "Processing", value: pendingCount },
-          { label: "Interviews", value: interviewCount },
-          { label: "Offers", value: offerCount },
+          { label: "TOTAL_SENT", value: applications.length },
+          { label: "PROCESSING", value: pendingCount },
+          { label: "INTERVIEWS", value: interviewCount },
+          { label: "OFFERS", value: offerCount },
         ].map((s, i) => (
           <div
             key={i}
-            className="p-8 border-2 border-[var(--fg)] bg-[var(--bg)] offset-card flex flex-col items-center justify-center text-center"
+            className="p-10 border-4 border-[var(--fg)] bg-[var(--bg)] offset-card shadow-none flex flex-col items-center justify-center text-center relative blueprint-corners group hover:bg-[var(--bg-muted)] transition-colors"
           >
-            <p className="index-label text-[var(--fg-muted)] mb-2">
+            <div className="corner-bl" />
+            <div className="corner-br" />
+            <p className="index-label text-[var(--fg-muted)] mb-4 text-xs font-black">
               {s.label}
             </p>
-            <p className="text-4xl font-black font-mono text-[var(--fg)]">{s.value}</p>
+            <p className="text-6xl font-black font-mono text-[var(--fg)] group-hover:scale-110 transition-transform">{s.value.toString().padStart(2, '0')}</p>
           </div>
         ))}
-      </motion.div>
+      </div>
+
+      {error && (
+        <div className="p-10 border-4 border-red-600 bg-red-50 flex items-center justify-between gap-10 offset-card relative blueprint-corners shadow-none">
+          <div className="corner-bl !border-red-600" />
+          <div className="corner-br !border-red-600" />
+          <div className="flex items-center gap-8">
+            <AlertCircle className="h-12 w-12 text-red-600" />
+            <div className="flex flex-col">
+              <span className="magazine-heading text-3xl text-red-600">Signal Error</span>
+              <span className="index-label text-red-900 font-black text-base">{error}</span>
+            </div>
+          </div>
+          <button onClick={() => fetchApplications()} className="btn-primary !bg-red-600 !border-red-600 !text-white px-12 py-5 text-lg">
+            RE_TRY_PROTOCOL
+          </button>
+        </div>
+      )}
 
       <motion.div
-        initial={{ opacity: 0, y: 8 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="border-2 border-[var(--fg)] bg-[var(--bg)] offset-card"
+        className="border-4 border-[var(--fg)] bg-[var(--bg)] offset-card shadow-none relative blueprint-corners"
       >
-        <div className="border-b-2 border-[var(--fg)] p-6 md:p-8 flex items-center justify-between bg-[var(--bg-muted)]">
-          <h2 className="index-label text-[var(--fg)] flex items-center gap-3 text-sm md:text-base">
-            <Send className="h-5 w-5" /> Pipeline Status
+        <div className="corner-bl" />
+        <div className="corner-br" />
+        <div className="border-b-4 border-[var(--fg)] p-10 flex items-center justify-between bg-[var(--bg-muted)]">
+          <h2 className="magazine-heading text-2xl md:text-3xl flex items-center gap-6">
+            <Send className="h-6 w-6" /> Pipeline.
           </h2>
-          <span className="status-block bg-[var(--bg)] text-[var(--fg)] border-2 border-[var(--fg)] font-mono px-4 py-1">
-            COUNT: {applications.length.toString().padStart(2, '0')}
+          <span className="status-block bg-[var(--fg)] text-[var(--bg)] border-2 border-[var(--fg)] font-black px-6 py-2 text-sm">
+            ACTIVE_VECTORS: {applications.length.toString().padStart(2, '0')}
           </span>
         </div>
 
         {applications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-6">
-            <div className="h-20 w-20 border-2 border-[var(--fg)] bg-[var(--bg-muted)] flex items-center justify-center offset-card">
-              <Briefcase className="h-8 w-8 text-[var(--fg)]" />
+          <div className="flex flex-col items-center justify-center py-48 gap-12 bg-[var(--bg)]">
+            <div className="h-32 w-32 border-4 border-[var(--fg)] bg-[var(--bg-muted)] flex items-center justify-center shadow-[16px_16px_0_0_var(--fg)]">
+              <Briefcase className="h-16 w-16 text-[var(--fg)]" />
             </div>
-            <p className="index-label text-[var(--fg-muted)]">
-              [ NO_SIGNALS_DETECTED ]
-            </p>
+            <div className="text-center">
+              <h3 className="magazine-heading text-4xl mb-4">No Signals Detected.</h3>
+              <p className="index-label font-black text-xl italic">[ 00 ] INITIALIZE_TARGET_TO_ACTIVATE_TRACKING</p>
+            </div>
           </div>
         ) : (
-          <div className="divide-y-2 divide-[var(--fg)]">
-            {applications.map((app, idx) => {
+          <div className="divide-y-4 divide-[var(--fg)]">
+            {applications.map((app) => {
               const cfg = statusConfig[app.status] ?? statusConfig.default;
               const StatusIcon = cfg.icon;
               return (
-                <motion.div
+                <div
                   key={app.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.25 + idx * 0.05 }}
-                  className="p-6 md:p-8 hover:bg-[var(--bg-muted)] transition-colors flex flex-col md:flex-row items-start md:items-center justify-between gap-6 group cursor-pointer"
+                  className="p-12 hover:bg-[var(--bg-muted)] transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-12 group cursor-pointer relative"
                 >
-                  <div className="flex items-center gap-6 flex-1 min-w-0">
-                    <div className="h-14 w-14 border-2 border-[var(--fg)] bg-[var(--bg)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--fg)] group-hover:text-[var(--bg)] transition-colors">
-                      <Briefcase className="h-6 w-6" />
+                  <div className="flex items-center gap-10 flex-1 min-w-0">
+                    <div className="h-20 w-20 border-4 border-[var(--fg)] bg-[var(--bg)] flex items-center justify-center flex-shrink-0 group-hover:bg-[var(--fg)] group-hover:text-[var(--bg)] transition-colors shadow-[8px_8px_0_0_var(--fg)] group-hover:shadow-none group-hover:translate-x-1 group-hover:translate-y-1">
+                      <Briefcase className="h-10 w-10" />
                     </div>
-                    <div className="min-w-0">
-                      <h3 className="text-xl md:text-2xl font-black italic uppercase tracking-tighter text-[var(--fg)] truncate">
+                    <div className="min-w-0 space-y-4">
+                      <h3 className="text-xl md:text-2xl font-black italic uppercase tracking-tighter text-[var(--fg)] truncate leading-tight group-hover:translate-x-2 transition-transform">
                         {app.role}
                       </h3>
-                      <div className="flex flex-wrap items-center gap-3 index-label text-[var(--fg-muted)] mt-2">
-                        <span>{app.company}</span>
-                        <div className="w-1.5 h-1.5 bg-[var(--fg)]" />
-                        <span className="flex items-center gap-1.5">
-                          <MapPin className="h-3 w-3" /> {app.location}
+                      <div className="flex flex-wrap items-center gap-6">
+                        <span className="index-label bg-[var(--fg)] text-[var(--bg)] px-3 py-1 font-black text-xs uppercase">{app.company}</span>
+                        <div className="w-2 h-2 bg-[var(--fg)] rounded-full opacity-20" />
+                        <span className="flex items-center gap-3 index-label font-black text-xs uppercase">
+                          <MapPin className="h-4 w-4" /> {app.location}
                         </span>
+                        <div className="w-2 h-2 bg-[var(--fg)] rounded-full opacity-20" />
+                        <span className="index-label font-black text-xs uppercase opacity-40">{app.date}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-6 flex-shrink-0">
+                  <div className="flex items-center gap-12 flex-shrink-0 w-full md:w-auto border-t md:border-t-0 pt-8 md:pt-0 border-[var(--fg)] border-opacity-10">
                     {app.match > 0 && (
-                      <div className="text-center hidden md:block">
-                        <p className="index-label text-[var(--fg-muted)] mb-1">SCORE</p>
-                        <p className="text-xl font-black font-mono text-[var(--fg)]">{app.match}%</p>
+                      <div className="text-center">
+                        <p className="index-label text-[10px] mb-2 font-black opacity-40">SYNC_RATING</p>
+                        <p className="text-3xl font-black font-mono text-[var(--fg)]">{app.match}%</p>
                       </div>
                     )}
 
-                    <span
-                      className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-black uppercase tracking-widest border-2 ${cfg.bg} ${cfg.text} ${cfg.border} shadow-[2px_2px_0px_0px_currentColor]`}
-                    >
-                      <StatusIcon className="h-4 w-4" /> {app.status}
-                    </span>
+                    <div className={cn(
+                      "flex items-center gap-4 px-8 py-4 border-4 font-black uppercase text-sm italic tracking-widest flex-1 md:flex-none justify-center shadow-[8px_8px_0_0_currentColor]",
+                      cfg.bg, cfg.text, cfg.border
+                    )}>
+                      <StatusIcon className="h-5 w-5" /> {app.status}
+                    </div>
                   </div>
-                </motion.div>
+                </div>
               );
             })}
           </div>
@@ -363,93 +359,81 @@ export default function ApplicationsPage() {
       </motion.div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg)]/90 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--fg)]/30 backdrop-blur-md p-6">
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-full max-w-xl bg-[var(--bg)] border-2 border-[var(--fg)] p-8 md:p-12 offset-card"
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full max-w-2xl bg-[var(--bg)] border-8 border-[var(--fg)] p-16 relative blueprint-corners offset-card shadow-none"
           >
-            <div className="flex items-center justify-between mb-8 pb-6 border-b-2 border-[var(--fg)]">
-              <h2 className="magazine-heading text-4xl text-[var(--fg)]">Initialize Target</h2>
+            <div className="corner-bl" />
+            <div className="corner-br" />
+            <div className="flex items-center justify-between mb-16 pb-8 border-b-4 border-[var(--fg)]">
+              <h2 className="magazine-heading text-6xl text-[var(--fg)]">Initialize.</h2>
               <button 
                 onClick={() => setIsModalOpen(false)}
-                className="h-10 w-10 border-2 border-[var(--fg)] flex items-center justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors"
+                className="h-16 w-16 border-4 border-[var(--fg)] flex items-center justify-center hover:bg-red-500 hover:text-white transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-8 w-8" />
               </button>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <label className="index-label text-[var(--fg)] block mb-3">
-                  Target Role
-                </label>
+            <div className="space-y-10">
+              <div className="space-y-4">
+                <label className="index-label text-base font-black uppercase block">01_TARGET_ROLE</label>
                 <input
                   type="text"
                   value={newApp.role}
-                  onChange={(e) =>
-                    setNewApp({ ...newApp, role: e.target.value })
-                  }
-                  placeholder="e.g. Senior Frontend Engineer"
-                  className="w-full bg-[var(--bg-muted)] border-2 border-[var(--fg)] px-4 py-4 text-sm font-medium text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] transition-colors placeholder:text-[var(--fg-subtle)]"
+                  onChange={(e) => setNewApp({ ...newApp, role: e.target.value })}
+                  placeholder="E.G. SENIOR_FRONTEND_ARCHITECT"
+                  className="w-full bg-[var(--bg-muted)] border-4 border-[var(--fg)] px-8 py-6 text-xl font-black italic uppercase text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] transition-all placeholder:opacity-20"
                 />
               </div>
-              <div>
-                <label className="index-label text-[var(--fg)] block mb-3">
-                  Company
-                </label>
+              <div className="space-y-4">
+                <label className="index-label text-base font-black uppercase block">02_ORGANIZATION</label>
                 <input
                   type="text"
                   value={newApp.company}
-                  onChange={(e) =>
-                    setNewApp({ ...newApp, company: e.target.value })
-                  }
-                  placeholder="e.g. Vercel"
-                  className="w-full bg-[var(--bg-muted)] border-2 border-[var(--fg)] px-4 py-4 text-sm font-medium text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] transition-colors placeholder:text-[var(--fg-subtle)]"
+                  onChange={(e) => setNewApp({ ...newApp, company: e.target.value })}
+                  placeholder="E.G. NEURAL_SYSTEMS_INC"
+                  className="w-full bg-[var(--bg-muted)] border-4 border-[var(--fg)] px-8 py-6 text-xl font-black italic uppercase text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] transition-all placeholder:opacity-20"
                 />
               </div>
-              <div>
-                <label className="index-label text-[var(--fg)] block mb-3">
-                  Location (Optional)
-                </label>
-                <input
-                  type="text"
-                  value={newApp.location}
-                  onChange={(e) =>
-                    setNewApp({ ...newApp, location: e.target.value })
-                  }
-                  placeholder="e.g. Remote"
-                  className="w-full bg-[var(--bg-muted)] border-2 border-[var(--fg)] px-4 py-4 text-sm font-medium text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] transition-colors placeholder:text-[var(--fg-subtle)]"
-                />
-              </div>
-              <div>
-                <label className="index-label text-[var(--fg)] block mb-3">
-                  Job Link (Optional)
-                </label>
-                <input
-                  type="url"
-                  value={newApp.url}
-                  onChange={(e) =>
-                    setNewApp({ ...newApp, url: e.target.value })
-                  }
-                  placeholder="https://..."
-                  className="w-full bg-[var(--bg-muted)] border-2 border-[var(--fg)] px-4 py-4 text-sm font-medium text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] transition-colors placeholder:text-[var(--fg-subtle)]"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-4">
+                  <label className="index-label text-base font-black uppercase block">03_LOCATION</label>
+                  <input
+                    type="text"
+                    value={newApp.location}
+                    onChange={(e) => setNewApp({ ...newApp, location: e.target.value })}
+                    placeholder="E.G. REMOTE_NODE"
+                    className="w-full bg-[var(--bg-muted)] border-4 border-[var(--fg)] px-6 py-5 text-lg font-black italic uppercase text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] transition-all placeholder:opacity-20"
+                  />
+                </div>
+                <div className="space-y-4">
+                  <label className="index-label text-base font-black uppercase block">04_SOURCE_URL</label>
+                  <input
+                    type="url"
+                    value={newApp.url}
+                    onChange={(e) => setNewApp({ ...newApp, url: e.target.value })}
+                    placeholder="HTTPS://VECTOR.NETWORK/..."
+                    className="w-full bg-[var(--bg-muted)] border-4 border-[var(--fg)] px-6 py-5 text-lg font-black italic uppercase text-[var(--fg)] focus:outline-none focus:bg-[var(--bg)] transition-all placeholder:opacity-20"
+                  />
+                </div>
               </div>
             </div>
-            <div className="flex gap-6 mt-10 pt-8 border-t-2 border-[var(--fg)]">
+            <div className="flex gap-10 mt-20 pt-12 border-t-4 border-[var(--fg)]">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="status-block bg-[var(--bg-muted)] text-[var(--fg)] border-2 border-[var(--fg)] flex-1 py-4 hover:bg-[var(--bg)] transition-colors"
+                className="status-block bg-[var(--bg-muted)] text-[var(--fg)] border-4 border-[var(--fg)] flex-1 py-6 hover:bg-white transition-all font-black text-lg uppercase italic"
               >
-                ABORT
+                ABORT_PROTOCOL
               </button>
               <button
                 onClick={submitApplication}
                 disabled={submitting || !newApp.role || !newApp.company}
-                className="btn-primary flex-[2] py-4 disabled:opacity-50"
+                className="btn-primary flex-[2] py-6 disabled:opacity-20 text-2xl"
               >
-                {submitting ? "PROCESSING..." : "COMMIT VECTOR"}
+                {submitting ? "PROCESSING..." : "COMMIT_VECTOR"}
               </button>
             </div>
           </motion.div>
@@ -458,3 +442,4 @@ export default function ApplicationsPage() {
     </div>
   );
 }
+

@@ -108,7 +108,7 @@ export async function GET() {
       skills: userSkills,
       summary: analysis.summary ?? "",
       careerPath: analysis.careerPath ?? "",
-      experienceLevel: "mid",
+      experienceLevel: analysis.experienceLevel ?? "mid",
     };
 
     const topSkills = userSkills.slice(0, 5).join(", ");
@@ -127,8 +127,8 @@ export async function GET() {
     const jobsForBatch = jobsToMatch.map((job, idx) => ({
       id: `live-${idx}`,
       title: job.jobTitle,
-      description: `${job.jobTitle} position at ${job.companyName} in ${job.location}`,
-      skillsRequired: userSkills.slice(0, 8),
+      description: `${job.jobTitle} position at ${job.companyName} in ${job.location}. ${job.snippet || ""}`,
+      skillsRequired: [], // Let AI infer skills from description since YepAPI snippet is limited
     }));
 
     const batchResults = await batchMatchJobsToResume(

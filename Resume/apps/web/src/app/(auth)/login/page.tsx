@@ -27,7 +27,7 @@ export default function LoginPage() {
         setError(signInError.message || "Invalid credentials");
         return;
       }
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard?onboard=true";
     } catch {
       setError("Network error. Please try again.");
     } finally {

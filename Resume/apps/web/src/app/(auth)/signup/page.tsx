@@ -29,7 +29,7 @@ export default function SignupPage() {
         setError(signUpError.message || "Unable to create account");
         return;
       }
-      window.location.href = "/dashboard";
+      window.location.href = "/dashboard?onboard=true";
     } catch {
       setError("Network error. Please try again.");
     } finally {

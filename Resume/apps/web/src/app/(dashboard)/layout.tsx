@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SWRConfig } from "swr";
 import useSWR from "swr";
@@ -14,6 +14,7 @@ import {
   Avatar,
   AvatarFallback,
   AvatarImage,
+  cn,
 } from "@repo/ui";
 import {
   Brain,
@@ -26,9 +27,12 @@ import {
   Sparkles,
   Crown,
   CreditCard,
+  Activity,
 } from "lucide-react";
 import { useSession, signOut } from "@repo/core/client";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react"; // Removed duplicate useSession import
 
 interface NavItem {
   title: string;
@@ -41,6 +45,7 @@ const navItems: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: Zap },
   { title: "Resumes", href: "/dashboard/resume", icon: FileText },
   { title: "Analysis", href: "/dashboard/analysis", icon: Brain },
+  { title: "Diagnostic", href: "/dashboard/diagnostic", icon: Activity },
   { title: "Jobs", href: "/dashboard/jobs", icon: Briefcase },
   { title: "Applications", href: "/dashboard/applications", icon: FileCheck },
   { title: "Roadmap", href: "/dashboard/roadmap", icon: Map },
@@ -88,13 +93,13 @@ function SidebarContent() {
 
   return (
     <Sidebar open={open} setOpen={setOpen} animate={false}>
-      <SidebarBody className="w-64 border-r border-[var(--border)] p-0 bg-[var(--bg-subtle)]/80 backdrop-blur-3xl">
-        <div className="p-8 border-b border-[var(--border)]">
+      <SidebarBody className="w-64 border-r border-[var(--border)] p-0 bg-[var(--bg)]/80 backdrop-blur-3xl">
+        <div className="p-8 border-b border-[var(--border)] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-6 w-6 bg-[var(--fg)] flex items-center justify-center">
-              <Zap className="h-3.5 w-3.5 text-[var(--bg)] fill-[var(--bg)]" />
+            <div className="h-10 w-10 bg-[var(--fg)] border-2 border-[var(--fg)] flex items-center justify-center shadow-[4px_4px_0_0_var(--accent)]">
+              <Zap className="h-6 w-6 text-[var(--bg)] fill-[var(--bg)]" />
             </div>
-            <span className="font-black text-lg text-[var(--fg)] tracking-tighter italic uppercase">
+            <span className="font-black text-xl text-[var(--fg)] tracking-tighter italic uppercase">
               CareerAI
             </span>
           </div>
@@ -108,60 +113,63 @@ function SidebarContent() {
               <SidebarLink
                 key={item.href}
                 link={{
-                  label: `${(idx + 1).toString().padStart(2, '0')} / ${item.title.toUpperCase()}`,
+                  label: item.title,
                   href: item.href,
-                  icon: <item.icon className="h-3.5 w-3.5" />,
+                  icon: <item.icon className={cn("h-5 w-5", isActive ? "text-[var(--bg)]" : "text-[var(--fg-muted)]")} />,
                 }}
-                className={isActive ? "text-[var(--fg)]" : "index-label hover:text-[var(--fg)] transition-colors"}
-                isActive={isActive}
+                className={cn(
+                  "flex items-center gap-4 px-6 py-4 transition-all duration-200 border-2 border-transparent",
+                  isActive 
+                    ? "bg-[var(--fg)] text-[var(--bg)] border-[var(--fg)] shadow-[6px_6px_0_0_var(--accent)]" 
+                    : "text-[var(--fg-muted)] hover:bg-[var(--bg-muted)] hover:text-[var(--fg)] hover:border-[var(--fg)]"
+                )}
               />
             );
           })}
         </nav>
 
-        {/* User Profile & Logout */}
-        <div className="p-6 border-t border-[var(--border)]">
-          <div className="p-4 bg-[var(--bg)] blueprint-border group hover:bg-[var(--bg-muted)] transition-all">
-            <div className="flex items-center gap-3 mb-4">
-              <Avatar className="h-8 w-8 rounded-none border border-[var(--border)]">
+        {/* User Profile & Footer */}
+        <div className="p-4 border-t border-[var(--border)] space-y-4">
+          <div className="p-6 bg-[var(--bg)] border-2 border-[var(--fg)] group transition-all offset-card shadow-none">
+            <div className="flex items-center gap-3">
+              <Avatar className="h-12 w-12 border-2 border-[var(--fg)] shadow-[4px_4px_0_0_var(--fg-subtle)]">
                 {session?.user?.image ? (
                   <AvatarImage src={session.user.image} className="object-cover" />
                 ) : null}
-                <AvatarFallback className="bg-[var(--bg-muted)] text-[10px] text-[var(--fg)] font-mono">
+                <AvatarFallback className="bg-[var(--fg)] text-sm text-[var(--bg)] font-black">
                   {session?.user?.name?.charAt(0) || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="index-label text-[var(--fg)] truncate leading-none mb-1">
+                <p className="font-bold text-sm text-[var(--fg)] truncate leading-none mb-1.5">
                   {session?.user?.name || "User"}
                 </p>
                 <PlanBadge plan={plan} />
               </div>
             </div>
-            <div className="flex items-center justify-between gap-3 pt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async () => {
-                  await signOut();
-                }}
-                className="h-8 w-8 p-0 text-[var(--fg-muted)] hover:text-[var(--fg)] hover:bg-[var(--border-muted)] rounded-none"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+            <div className="flex items-center justify-between gap-3 mt-4 pt-4 border-t border-[var(--border)]">
+              <div className="flex items-center gap-2">
+                <ThemeToggle />
+                <div className="h-4 w-px bg-[var(--border)]" />
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    await signOut();
+                  }}
+                  className="h-8 px-2 text-[var(--fg-muted)] hover:text-red-500 hover:bg-red-500/5 transition-colors text-[10px] font-black uppercase italic"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 16l4-4m0 0l-4-4m4 4H7"
-                  />
-                </svg>
-              </Button>
-              <ThemeToggle />
+                  Terminate
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="px-4 py-2 flex items-center justify-between">
+            <span className="text-[9px] font-mono text-[var(--fg-subtle)] uppercase">Core_v2.0.4</span>
+            <div className="flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[9px] font-mono text-emerald-500 uppercase">Operational</span>
             </div>
           </div>
         </div>
@@ -175,30 +183,55 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { data: session, isPending: sessionLoading } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!sessionLoading && !session) {
+      router.push('/login');
+    }
+  }, [session, sessionLoading, router]);
+
+  if (sessionLoading || !session) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[var(--bg)]">
+        <div className="relative h-12 w-12 border-4 border-[var(--fg)] flex items-center justify-center">
+           <div className="absolute inset-0 border-t-4 border-[var(--accent)] animate-spin" />
+           <Zap className="h-5 w-5 text-[var(--fg)]" />
+        </div>
+      </div>
+    );
+  }
+
   const pathname = usePathname();
 
   return (
     <SWRConfig value={{ fetcher }}>
-      <div className="flex min-h-screen bg-[var(--bg)] selection:bg-[var(--fg)] selection:text-[var(--bg)] font-sans">
+      <div className="flex min-h-screen bg-[var(--bg)] selection:bg-[var(--accent)] selection:text-[var(--bg)] font-sans">
         <SidebarContent />
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <main className="flex-1 overflow-auto bg-[var(--bg)] relative">
-          <div className="pointer-events-none fixed inset-y-0 right-0 w-px bg-[var(--border)]" />
-          <div className="pointer-events-none absolute inset-0 bg-dot opacity-[0.05]" />
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(var(--border-subtle)_1px,transparent_1px),linear-gradient(90deg,var(--border-subtle)_1px,transparent_1px)] bg-[size:100px_100px]" />
-
-          <div className="px-5 py-6 md:px-8 lg:px-10 max-w-7xl mx-auto min-h-full relative z-10">
+          {/* Professional Page Grain / Grid Overlay */}
+          <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.03] grayscale invert dark:invert-0 mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+          
+          <div className="px-6 py-8 md:px-12 lg:px-16 max-w-7xl mx-auto min-h-full relative z-10">
             <AnimatePresence mode="wait">
               <motion.div
                 key={pathname}
-                initial={{ opacity: 0, y: 12, filter: "blur(8px)" }}
+                initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
-                transition={{ duration: 0.34, ease: [0.16, 1, 0.3, 1] }}
+                exit={{ opacity: 0, y: -10, filter: "blur(4px)" }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                 className="page-enter"
               >
-                {children}
+                <Suspense fallback={
+                  <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="animate-spin h-8 w-8 border-4 border-[var(--fg)] border-t-[var(--accent)]" />
+                  </div>
+                }>
+                  {children}
+                </Suspense>
               </motion.div>
             </AnimatePresence>
           </div>

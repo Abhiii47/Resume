@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { cn } from "@repo/ui";
 import { useSession, PLAN_LIMITS } from "@repo/core/client";
 
 type BillingState = {
@@ -178,192 +179,235 @@ export default function BillingPage() {
   const planLimits = PLAN_LIMITS[billing?.plan ?? "FREE"];
 
   return (
-    <div className="flex flex-col gap-10 max-w-6xl mx-auto w-full pb-20 px-4 pt-8">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
-        <div className="absolute inset-0 bg-dot opacity-[0.05]" />
-      </div>
-
+    <div className="relative flex flex-col gap-16 max-w-7xl mx-auto w-full pb-32 pt-16 px-8 min-h-screen">
       <motion.div
-        initial={{ opacity: 0, y: -8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col md:flex-row justify-between items-start md:items-end gap-8 border-b-2 border-[var(--fg)] pb-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="flex flex-col md:flex-row justify-between items-end gap-12 border-b-4 border-[var(--fg)] pb-16"
       >
-        <div>
-          <div className="flex items-center gap-6 mb-4">
-            <span className="index-label text-[var(--fg)]">[ 00 ] BILLING_MATRIX</span>
-            <div className="h-px w-24 bg-[var(--fg)]" />
+        <div className="flex-1 space-y-10">
+          <div className="space-y-4">
+            <div className="flex items-center gap-6">
+              <span className="index-label bg-[var(--fg)] text-[var(--bg)] px-3 py-1 font-black">[ 00 ] BILLING_MATRIX</span>
+              <div className="h-px w-32 bg-[var(--fg)]" />
+            </div>
+            <h1 className="magazine-heading text-6xl md:text-9xl text-[var(--fg)] leading-[0.8]">
+              Usage.
+            </h1>
           </div>
-          <h1 className="magazine-heading text-6xl md:text-8xl text-[var(--fg)] leading-none">
-            Usage.
-          </h1>
-          <p className="text-[var(--fg-subtle)] text-lg leading-tight font-medium max-w-xl uppercase tracking-tighter mt-6">
-            Manage your subscription tier and monitor system usage across all features.
+          <p className="text-2xl text-[var(--fg)] font-bold leading-tight uppercase italic max-w-3xl border-l-4 border-[var(--fg)] pl-8">
+            Manage your subscription tier and monitor system usage across all features. 
+            Billing Status: <span className="text-emerald-500 font-black">ACTIVE_NODE</span>
           </p>
         </div>
-        <div className="flex items-center gap-4 w-full md:w-auto">
+        <div className="flex items-center gap-8 w-full md:w-auto">
           <button
             onClick={fetchBilling}
-            className="btn-primary h-[52px] px-8 flex items-center gap-3 text-sm flex-1 md:flex-none justify-center"
+            className="btn-primary h-24 px-12 flex items-center gap-6 text-xl flex-1 md:flex-none justify-center group"
           >
-            <Zap className="h-4 w-4" /> Refresh Status
+            REFRESH_STATUS <Zap className="h-6 w-6 group-hover:scale-125 transition-transform" />
           </button>
         </div>
       </motion.div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center py-32 gap-12">
-          <div className="relative h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)]">
-            <div className="absolute inset-0 border-[var(--fg)] animate-spin border-t-4" />
+        <div className="flex flex-col items-center justify-center py-48 gap-16">
+          <div className="relative h-32 w-32 border-8 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)] shadow-[20px_20px_0_0_var(--bg-muted)]">
+            <div className="absolute inset-0 border-t-8 border-[var(--fg)] animate-spin" />
+            <Crown className="h-12 w-12" />
           </div>
-          <p className="index-label animate-pulse text-[var(--fg)]">
-            [ 00 ] SYNCING_BILLING_ENGINE
-          </p>
+          <div className="text-center">
+             <h3 className="magazine-heading text-5xl mb-4">Syncing Credits</h3>
+             <p className="index-label text-2xl font-black animate-pulse">[ 00 ] DECODING_USAGE_VECTORS</p>
+          </div>
         </div>
       ) : error ? (
-        <div className="p-8 border-2 border-[var(--fg)] bg-red-50 text-red-600 font-bold offset-card">
-          {error}
+        <div className="p-16 border-4 border-red-600 bg-red-50 flex items-center justify-between gap-12 offset-card shadow-none relative blueprint-corners">
+          <div className="corner-bl !border-red-600" />
+          <div className="corner-br !border-red-600" />
+          <div className="flex items-center gap-10">
+            <BadgeCheck className="h-16 w-16 text-red-600" />
+            <div>
+              <h3 className="magazine-heading text-4xl text-red-600 mb-2">Sync Error</h3>
+              <p className="index-label text-xl font-black uppercase text-red-900 opacity-60 italic">{error}</p>
+            </div>
+          </div>
+          <button onClick={fetchBilling} className="btn-primary !bg-red-600 !border-red-600 !text-white px-12 py-6 text-xl">
+            RE_TRY_PROTOCOL
+          </button>
         </div>
       ) : billing ? (
         <>
           {/* Current Plan Card */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-8 border-2 border-[var(--fg)] bg-[var(--bg)] flex flex-col justify-between offset-card">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="p-12 border-4 border-[var(--fg)] bg-[var(--bg)] flex flex-col justify-between offset-card shadow-none relative blueprint-corners group hover:bg-[var(--bg-muted)] transition-colors">
+              <div className="corner-bl" />
+              <div className="corner-br" />
               <div>
-                <div className="flex items-center justify-between mb-8">
-                  <span className="index-label text-[var(--fg)]">
-                    Current Plan
+                <div className="flex items-center justify-between mb-16">
+                  <span className="index-label bg-[var(--fg)] text-[var(--bg)] px-4 py-1 font-black text-xs uppercase italic tracking-widest">
+                    ACTIVE_PLAN
                   </span>
-                  {billing.plan === "PREMIUM" ? (
-                    <Crown className="h-6 w-6 text-[var(--fg)]" />
-                  ) : billing.plan === "EARLY_BIRD" ? (
-                    <Sparkles className="h-6 w-6 text-[var(--fg)]" />
-                  ) : (
-                    <Zap className="h-6 w-6 text-[var(--fg-muted)]" />
-                  )}
+                  <div className="h-20 w-20 border-4 border-[var(--fg)] flex items-center justify-center bg-[var(--bg)] shadow-[8px_8px_0_0_var(--fg)] group-hover:shadow-none group-hover:translate-x-2 group-hover:translate-y-2 transition-all">
+                    {billing.plan === "PREMIUM" ? (
+                      <Crown className="h-10 w-10 text-[var(--fg)]" />
+                    ) : billing.plan === "EARLY_BIRD" ? (
+                      <Sparkles className="h-10 w-10 text-[var(--fg)]" />
+                    ) : (
+                      <Zap className="h-10 w-10 text-[var(--fg-muted)]" />
+                    )}
+                  </div>
                 </div>
-                <p className="magazine-heading text-5xl text-[var(--fg)] mb-2">{billing.plan}</p>
-                <p className="index-label text-[var(--fg-muted)] mt-4">
-                  STATUS:{" "}
-                  <span className="font-bold uppercase text-[var(--fg)]">{billing.status}</span>
-                </p>
+                <p className="magazine-heading text-7xl text-[var(--fg)] mb-4">{billing.plan}.</p>
+                <div className="flex items-center gap-4">
+                  <div className="h-3 w-3 bg-emerald-500 rounded-full animate-pulse" />
+                  <p className="index-label text-xl font-black uppercase italic tracking-tighter text-[var(--fg)]">
+                    STATUS: {billing.status}
+                  </p>
+                </div>
               </div>
               {billing.renewsAt && (
-                <p className="index-label text-[var(--fg)] mt-8 border-t-2 border-[var(--fg)] pt-4">
-                  RENEWS: {new Date(billing.renewsAt).toLocaleDateString()}
+                <p className="index-label text-base font-black italic uppercase border-t-4 border-[var(--fg)] pt-8 mt-16 opacity-40">
+                  RE_CALIBRATION_DATE: {new Date(billing.renewsAt).toLocaleDateString()}
                 </p>
               )}
             </div>
 
             {/* Usage bars */}
-            <div className="md:col-span-2 p-8 border-2 border-[var(--fg)] bg-[var(--bg)] flex flex-col gap-6 offset-card">
-              <p className="index-label text-[var(--fg)] mb-2">
-                [ PERIOD_USAGE ]
-              </p>
-              <UsageBar
-                label="Resume Analyses"
-                used={billing.usage.resumesAnalyzed}
-                limit={planLimits.resumesAnalyzed}
-              />
-              <UsageBar
-                label="Job Matches"
-                used={billing.usage.jobMatchesViewed}
-                limit={planLimits.jobMatches}
-              />
-              <UsageBar
-                label="Roadmap Generations"
-                used={billing.usage.roadmapGenerations}
-                limit={planLimits.roadmapGenerations}
-              />
+            <div className="lg:col-span-2 p-12 border-4 border-[var(--fg)] bg-[var(--bg)] flex flex-col gap-12 offset-card shadow-none relative blueprint-corners">
+              <div className="corner-bl" />
+              <div className="corner-br" />
+              <div className="flex items-center justify-between border-b-4 border-[var(--fg)] pb-8">
+                <p className="magazine-heading text-4xl">
+                  [ 01 ] Consumption.
+                </p>
+                <span className="index-label font-black text-xs opacity-40">CYCLE_EXPIRES_SOON</span>
+              </div>
+              <div className="space-y-10">
+                <UsageBar
+                  label="RESUME_ANALYSIS_VECTORS"
+                  used={billing.usage.resumesAnalyzed}
+                  limit={planLimits.resumesAnalyzed}
+                />
+                <UsageBar
+                  label="JOB_MATCH_SIGNALS"
+                  used={billing.usage.jobMatchesViewed}
+                  limit={planLimits.jobMatches}
+                />
+                <UsageBar
+                  label="ROADMAP_GRID_GENERATIONS"
+                  used={billing.usage.roadmapGenerations}
+                  limit={planLimits.roadmapGenerations}
+                />
+              </div>
             </div>
           </div>
 
           {/* Pricing Grid */}
-          <div className="mt-8">
-            <p className="index-label text-[var(--fg)] mb-6">
-              [ ALL_PLANS ]
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="mt-16">
+            <div className="flex items-center gap-8 mb-12">
+               <h2 className="magazine-heading text-5xl">[ 02 ] Upgrades.</h2>
+               <div className="h-px flex-1 bg-[var(--fg)] opacity-20" />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
               {PLANS.map((plan) => {
                 const isCurrent = billing.plan === plan.id;
                 const isEarlyBird = plan.id === "EARLY_BIRD";
                 return (
                   <div
                     key={plan.id}
-                    className={`relative p-8 md:p-10 border-2 flex flex-col gap-8 transition-all offset-card ${
+                    className={cn(
+                      "relative p-16 border-4 flex flex-col gap-12 transition-all offset-card shadow-none blueprint-corners group",
                       isEarlyBird
                         ? "border-[var(--fg)] bg-[var(--fg)] text-[var(--bg)]"
-                        : "border-[var(--border)] bg-[var(--bg)] text-[var(--fg)] hover:border-[var(--fg)]"
-                    }`}
+                        : "border-[var(--fg)] bg-[var(--bg)] text-[var(--fg)] hover:bg-[var(--bg-muted)]"
+                    )}
                   >
+                    <div className="corner-bl" />
+                    <div className="corner-br" />
                     {isEarlyBird && (
-                      <div className="absolute top-0 right-0 px-4 py-2 bg-[var(--bg)] text-[var(--fg)] index-label border-b-2 border-l-2 border-[var(--fg)] font-bold">
-                        POPULAR
+                      <div className="absolute top-0 right-0 px-8 py-3 bg-[var(--bg)] text-[var(--fg)] index-label border-b-4 border-l-4 border-[var(--fg)] font-black text-xs uppercase italic">
+                        PROTOCOL_RECOMMENDED
                       </div>
                     )}
 
                     <div>
-                      <p className={`magazine-heading text-3xl mb-4 ${isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]"}`}>
-                        {plan.name}
+                      <p className={cn(
+                        "magazine-heading text-4xl mb-6 italic leading-none",
+                        isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]"
+                      )}>
+                        {plan.name}.
                       </p>
-                      <div className="flex items-baseline gap-1">
-                        <span className={`text-6xl font-black ${isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]"}`}>
+                      <div className="flex items-baseline gap-3">
+                        <span className={cn(
+                          "text-7xl font-black italic tracking-tighter leading-none",
+                          isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]"
+                        )}>
                           {plan.price}
                         </span>
-                        <span className={`index-label ${isEarlyBird ? "text-[var(--bg)] opacity-80" : "text-[var(--fg-muted)]"}`}>
+                        <span className={cn(
+                          "index-label text-xl font-black italic uppercase",
+                          isEarlyBird ? "text-[var(--bg)] opacity-40" : "text-[var(--fg-muted)]"
+                        )}>
                           {plan.period}
                         </span>
                       </div>
                     </div>
 
-                    <ul className="space-y-4 flex-1">
+                    <ul className="space-y-6 flex-1 border-t-4 border-current pt-10">
                       {plan.features.map((f) => (
                         <li
                           key={f}
-                          className={`flex items-start gap-3 index-label normal-case tracking-normal ${isEarlyBird ? "text-[var(--bg)] font-medium" : "text-[var(--fg-muted)]"}`}
+                          className={cn(
+                            "flex items-start gap-4 index-label font-black text-sm italic uppercase leading-tight",
+                            isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg-muted)]"
+                          )}
                         >
-                          <CheckCircle2 className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]"}`} />
+                          <CheckCircle2 className={cn("h-5 w-5 mt-0.5 flex-shrink-0", isEarlyBird ? "text-[var(--bg)]" : "text-[var(--fg)]")} />
                           {f}
                         </li>
                       ))}
                     </ul>
 
                     {isCurrent ? (
-                      <div className={`flex items-center justify-center gap-2 index-label py-4 border-2 ${isEarlyBird ? "border-[var(--bg)] text-[var(--bg)]" : "border-[var(--fg)] text-[var(--fg)]"} bg-transparent mt-4`}>
-                        <BadgeCheck className="h-5 w-5" />
-                        CURRENT_PLAN
+                      <div className={cn(
+                        "flex items-center justify-center gap-4 index-label py-6 border-4 font-black text-xl italic uppercase bg-transparent mt-8",
+                        isEarlyBird ? "border-[var(--bg)] text-[var(--bg)]" : "border-[var(--fg)] text-[var(--fg)]"
+                      )}>
+                        <BadgeCheck className="h-8 w-8" />
+                        ACTIVE_TIER
                       </div>
                     ) : plan.cta ? (
                       <button
-                        onClick={() =>
-                          handleUpgrade(plan.id as "EARLY_BIRD" | "PREMIUM")
-                        }
+                        onClick={() => handleUpgrade(plan.id as "EARLY_BIRD" | "PREMIUM")}
                         disabled={!!upgrading}
-                        className={`w-full py-4 index-label flex items-center justify-center gap-2 border-2 transition-colors mt-4 ${
+                        className={cn(
+                          "w-full py-8 index-label flex items-center justify-center gap-4 border-4 transition-all mt-8 font-black text-2xl italic uppercase group/btn",
                           isEarlyBird 
-                            ? "bg-[var(--bg)] text-[var(--fg)] border-[var(--bg)] hover:bg-transparent hover:text-[var(--bg)] hover:border-[var(--bg)]" 
-                            : "bg-[var(--bg)] text-[var(--fg)] border-[var(--fg)] hover:bg-[var(--fg)] hover:text-[var(--bg)]"
-                        }`}
+                            ? "bg-[var(--bg)] text-[var(--fg)] border-[var(--bg)] hover:scale-[1.02]" 
+                            : "bg-[var(--fg)] text-[var(--bg)] border-[var(--fg)] hover:scale-[1.02]"
+                        )}
                       >
                         {upgrading === plan.id ? (
-                          <Loader2 className="h-5 w-5 animate-spin" />
+                          <Loader2 className="h-10 w-10 animate-spin mx-auto" />
                         ) : (
                           <>
                             {plan.cta}
-                            <ArrowUpRight className="h-4 w-4 ml-1" />
+                            <ArrowUpRight className="h-8 w-8 group-hover/btn:translate-x-2 group-hover/btn:-translate-y-2 transition-transform" />
                           </>
                         )}
                       </button>
-                    ) : (
-                      <div className="py-4 mt-4 opacity-0 hidden md:block">Spacer</div>
-                    )}
+                    ) : null}
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="p-4 border-2 border-[var(--fg)] bg-[var(--bg-muted)] index-label text-[var(--fg)] text-center offset-card mt-4">
-            [ AUTH ] Signed in as {session?.user?.email || "user"}.
+          <div className="p-8 border-4 border-[var(--fg)] bg-[var(--bg-muted)] index-label text-[var(--fg)] text-center offset-card shadow-none relative blueprint-corners mt-16 font-black uppercase italic text-xl">
+            <div className="corner-bl" />
+            <div className="corner-br" />
+            [ AUTHENTICATED_SESSION ] NODE_IDENTITY: {session?.user?.email || "UNKNOWN"}
           </div>
         </>
       ) : null}

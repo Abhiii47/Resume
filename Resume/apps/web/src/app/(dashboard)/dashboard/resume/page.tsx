@@ -12,7 +12,7 @@ import {
   CloudUpload,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@repo/core";
+import { cn } from "@repo/ui";
 
 const PIPELINE_STEPS = [
   {

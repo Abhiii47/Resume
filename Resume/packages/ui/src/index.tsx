@@ -1,4 +1,5 @@
 // Design System Exports
+export { cn } from "./lib/utils";
 import {
   Sidebar,
   SidebarBody,

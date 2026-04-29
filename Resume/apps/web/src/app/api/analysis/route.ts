@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, prisma, checkPlanLimit, checkRateLimit, checkDailyLimit } from "@repo/core";
-import { analyzeResume } from "@repo/ai";
+import { analyzeResume, diagnosticResume } from "@repo/ai";
 import { headers } from "next/headers";
 
 export async function GET(request: NextRequest) {
@@ -121,9 +121,12 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Analysis API] Re-analyzing resume: ${targetResume.fileName}`);
 
-    let analysisData;
+    let analysisData, diagnosticData;
     try {
-      analysisData = await analyzeResume(targetResume.rawText);
+      [analysisData, diagnosticData] = await Promise.all([
+        analyzeResume(targetResume.rawText),
+        diagnosticResume(targetResume.rawText)
+      ]);
     } catch (aiError) {
       console.error("[Analysis API] AI engine error:", aiError);
       const errorMessage =
@@ -160,6 +163,8 @@ export async function POST(request: NextRequest) {
           recommendations: analysisData.recommendations,
           careerPath: analysisData.careerPath,
           experienceLevel: analysisData.experienceLevel,
+          skillsMatrix: JSON.parse(JSON.stringify(analysisData.skillsMatrix)),
+          diagnostic: JSON.parse(JSON.stringify(diagnosticData)),
           brandingKit: JSON.parse(JSON.stringify(analysisData.brandingKit)),
         },
         create: {
@@ -175,6 +180,8 @@ export async function POST(request: NextRequest) {
           recommendations: analysisData.recommendations,
           careerPath: analysisData.careerPath,
           experienceLevel: analysisData.experienceLevel,
+          skillsMatrix: JSON.parse(JSON.stringify(analysisData.skillsMatrix)),
+          diagnostic: JSON.parse(JSON.stringify(diagnosticData)),
           brandingKit: JSON.parse(JSON.stringify(analysisData.brandingKit)),
         },
       }),
