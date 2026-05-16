@@ -8,8 +8,6 @@ import AuthModal from "../components/AuthModal";
 /* ─────────────────────────────────────────────────────────────
    HOOKS
 ───────────────────────────────────────────────────────────── */
-
-/** 3-D tilt on mousemove inside a card */
 function useTilt(strength = 12) {
   const ref = useRef(null);
   const onMove = useCallback((e) => {
@@ -30,7 +28,6 @@ function useTilt(strength = 12) {
   return { ref, onMouseMove: onMove, onMouseLeave: onLeave };
 }
 
-/** Magnetic pull — button drifts toward cursor */
 function useMagnetic(distance = 0.35) {
   const ref = useRef(null);
   const onMove = useCallback((e) => {
@@ -53,7 +50,6 @@ function useMagnetic(distance = 0.35) {
   return { ref, onMouseMove: onMove, onMouseLeave: onLeave };
 }
 
-/** Scroll-reveal — adds .sr-visible when element enters viewport */
 function useScrollReveal() {
   useEffect(() => {
     const els = document.querySelectorAll(".sr");
@@ -75,15 +71,11 @@ function CursorDot() {
   const pos      = useRef({ x: 0, y: 0 });
   const ring     = useRef({ x: 0, y: 0 });
   const raf      = useRef(null);
-
   useEffect(() => {
     const move = (e) => { pos.current = { x: e.clientX, y: e.clientY }; };
     window.addEventListener("mousemove", move);
     const tick = () => {
-      if (dotRef.current) {
-        dotRef.current.style.left = pos.current.x + "px";
-        dotRef.current.style.top  = pos.current.y + "px";
-      }
+      if (dotRef.current) { dotRef.current.style.left = pos.current.x + "px"; dotRef.current.style.top = pos.current.y + "px"; }
       if (ringRef.current) {
         ring.current.x += (pos.current.x - ring.current.x) * 0.14;
         ring.current.y += (pos.current.y - ring.current.y) * 0.14;
@@ -95,7 +87,6 @@ function CursorDot() {
     raf.current = requestAnimationFrame(tick);
     return () => { window.removeEventListener("mousemove", move); cancelAnimationFrame(raf.current); };
   }, []);
-
   return (
     <>
       <div ref={dotRef}  style={{ position:"fixed", pointerEvents:"none", zIndex:9999, width:8,  height:8,  borderRadius:"50%", background:"hsl(24,100%,50%)", transform:"translate(-50%,-50%)", top:0, left:0 }} />
@@ -104,9 +95,6 @@ function CursorDot() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   TILT CARD wrapper
-───────────────────────────────────────────────────────────── */
 function TiltCard({ children, className, style, strength = 10 }) {
   const tilt = useTilt(strength);
   return (
@@ -116,19 +104,10 @@ function TiltCard({ children, className, style, strength = 10 }) {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   MAGNETIC BUTTON wrapper
-───────────────────────────────────────────────────────────── */
 function MagBtn({ children, onClick, className, style, disabled }) {
   const mag = useMagnetic(0.3);
   return (
-    <button
-      {...mag}
-      onClick={onClick}
-      disabled={disabled}
-      className={className}
-      style={{ ...style, willChange: "transform" }}
-    >
+    <button {...mag} onClick={onClick} disabled={disabled} className={className} style={{ ...style, willChange: "transform" }}>
       {children}
     </button>
   );
@@ -146,44 +125,17 @@ function Navbar({ onLogin, onSignup }) {
     return () => window.removeEventListener("scroll", fn);
   }, []);
   return (
-    <header
-      className="fixed top-0 w-full z-50"
-      style={{
-        background: "hsl(40,30%,92%)",
-        borderBottom: "2px solid #000",
-        boxShadow: scrolled ? "0 4px 0 #000" : "none",
-        transition: "box-shadow 0.2s",
-      }}
-    >
+    <header className="fixed top-0 w-full z-50" style={{ background: "hsl(40,30%,92%)", borderBottom: "2px solid #000", boxShadow: scrolled ? "0 4px 0 #000" : "none", transition: "box-shadow 0.2s" }}>
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-          <div
-            className="w-9 h-9 flex items-center justify-center font-black text-white text-sm shadow-hard-sm"
-            style={{ background: "hsl(24,100%,50%)", border: "2px solid #000", transition: "transform 0.15s", }}
-            onMouseEnter={e => e.currentTarget.style.transform = "rotate(-4deg) scale(1.1)"}
-            onMouseLeave={e => e.currentTarget.style.transform = "rotate(0) scale(1)"}
-          >
-            SR
-          </div>
+          <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm shadow-hard-sm" style={{ background: "hsl(24,100%,50%)", border: "2px solid #000", transition: "transform 0.15s" }} onMouseEnter={e => e.currentTarget.style.transform = "rotate(-4deg) scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "rotate(0) scale(1)"}>SR</div>
           <span className="font-black text-lg" style={{ color: "#111", letterSpacing: "-0.03em" }}>SmartResume</span>
         </div>
         <div className="hidden lg:flex items-center gap-8 font-black text-sm uppercase tracking-widest" style={{ color: "#111" }}>
           {["Features", "Resources", "How it Works", "About"].map((label) => (
-            <a
-              key={label}
-              href={label === "Features" ? "/#features" : undefined}
-              onClick={label !== "Features" ? () => navigate(`/${label.toLowerCase().replace(/ /g, "-")}`) : undefined}
-              className="cursor-pointer relative group"
-              style={{ color: "#111", textDecoration: "none" }}
-            >
+            <a key={label} href={label === "Features" ? "/#features" : undefined} onClick={label !== "Features" ? () => navigate(`/${label.toLowerCase().replace(/ /g, "-")}`) : undefined} className="cursor-pointer relative group" style={{ color: "#111", textDecoration: "none" }}>
               {label}
-              <span style={{
-                position: "absolute", bottom: -2, left: 0, width: 0, height: 2,
-                background: "hsl(24,100%,50%)",
-                transition: "width 0.2s ease",
-              }}
-              className="group-hover:w-full"
-              />
+              <span style={{ position: "absolute", bottom: -2, left: 0, width: 0, height: 2, background: "hsl(24,100%,50%)", transition: "width 0.2s ease" }} className="group-hover:w-full" />
             </a>
           ))}
         </div>
@@ -219,9 +171,7 @@ function TickerStrip() {
           <span key={i} className="text-xs font-black text-black uppercase tracking-widest" style={{ marginLeft: "2.5rem", marginRight: "2.5rem" }}>
             {item}
             <span style={{ marginLeft: "1.5rem", opacity: 0.4 }}>
-              <svg display="inline" width="8" height="8" viewBox="0 0 8 8" fill="none" style={{ verticalAlign: "middle" }}>
-                <path d="M4 0L5 3H8L5.5 4.8L6.5 8L4 6L1.5 8L2.5 4.8L0 3H3Z" fill="#111" />
-              </svg>
+              <svg display="inline" width="8" height="8" viewBox="0 0 8 8" fill="none" style={{ verticalAlign: "middle" }}><path d="M4 0L5 3H8L5.5 4.8L6.5 8L4 6L1.5 8L2.5 4.8L0 3H3Z" fill="#111" /></svg>
             </span>
           </span>
         ))}
@@ -230,9 +180,6 @@ function TickerStrip() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   SECTION LABEL
-───────────────────────────────────────────────────────────── */
 function SectionLabel({ children, dark = false }) {
   return (
     <div className="flex items-center justify-center gap-3 mb-4">
@@ -244,27 +191,35 @@ function SectionLabel({ children, dark = false }) {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PAIN POINTS DATA
+   PAIN POINTS — Numbered list style like resumematcher.fyi
 ───────────────────────────────────────────────────────────── */
 const PAIN_POINTS = [
   {
-    color: "#2563EB", label: "The silence is loud",
-    text: "200 applications. 3 replies. That's not bad luck — that's a broken resume.",
+    num: "01",
+    color: "#2563EB",
+    label: "The Manual Edit Loop",
+    text: "Waste hours shuffling bullet points only to see the job posting expire before you hit send.",
     svg: (<svg viewBox="0 0 80 60" width="80" height="60" fill="none"><rect x="8" y="30" width="44" height="26" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" /><rect x="14" y="22" width="44" height="26" fill="white" fillOpacity="0.3" stroke="white" strokeWidth="1.5" /><rect x="20" y="14" width="44" height="26" fill="white" fillOpacity="0.4" stroke="white" strokeWidth="1.5" /><circle cx="58" cy="10" r="10" fill="#FF4444" stroke="white" strokeWidth="1.5" /><line x1="53" y1="5" x2="63" y2="15" stroke="white" strokeWidth="2.5" strokeLinecap="round" /><line x1="63" y1="5" x2="53" y2="15" stroke="white" strokeWidth="2.5" strokeLinecap="round" /></svg>),
   },
   {
-    color: "hsl(24,100%,50%)", label: "Bot says no",
-    text: "Your resume isn't ATS-optimised. A bot rejects it before any human ever sees it.",
+    num: "02",
+    color: "hsl(24,100%,50%)",
+    label: "The Silent Rejection",
+    text: "One tiny formatting glitch or missing keyword guarantees the trash pile. You'll never even know why.",
     svg: (<svg viewBox="0 0 80 60" width="80" height="60" fill="none"><rect x="18" y="10" width="44" height="36" rx="4" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" /><rect x="26" y="20" width="10" height="8" rx="1" fill="white" fillOpacity="0.8" /><rect x="44" y="20" width="10" height="8" rx="1" fill="white" fillOpacity="0.8" /><rect x="29" y="22" width="4" height="4" fill="#111" /><rect x="47" y="22" width="4" height="4" fill="#111" /><line x1="40" y1="10" x2="40" y2="2" stroke="white" strokeWidth="2" strokeLinecap="round" /><circle cx="40" cy="1" r="3" fill="white" /><line x1="28" y1="36" x2="52" y2="36" stroke="white" strokeWidth="2" strokeLinecap="round" /><text x="40" y="57" textAnchor="middle" fill="white" fontSize="6" fontFamily="monospace" fontWeight="bold" letterSpacing="1">REJECTED</text></svg>),
   },
   {
-    color: "#16A34A", label: "6 seconds. Gone.",
-    text: "Generic bullet points kill your shot. Recruiters decide in 6 seconds flat.",
+    num: "03",
+    color: "#16A34A",
+    label: "The ATS Black Hole",
+    text: "Blindly guessing keywords against an algorithm that is literally programmed to reject you.",
     svg: (<svg viewBox="0 0 80 60" width="80" height="60" fill="none"><circle cx="40" cy="34" r="22" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" /><circle cx="40" cy="34" r="2" fill="white" /><line x1="40" y1="34" x2="40" y2="16" stroke="white" strokeWidth="2.5" strokeLinecap="round" /><line x1="40" y1="34" x2="52" y2="38" stroke="white" strokeWidth="2" strokeLinecap="round" /><text x="40" y="40" textAnchor="middle" fill="white" fontSize="10" fontFamily="monospace" fontWeight="bold">6s</text></svg>),
   },
   {
-    color: "#1a1a1a", label: "Ghosted. Again.",
-    text: "No feedback. No reason. Just silence. We tell you exactly what went wrong.",
+    num: "04",
+    color: "#1a1a1a",
+    label: "Ghosted. Again.",
+    text: "No feedback. No reason. Just silence. We tell you exactly what went wrong — so it never happens again.",
     svg: (<svg viewBox="0 0 80 60" width="80" height="60" fill="none"><path d="M20 55 L20 28 C20 16 32 8 40 8 C48 8 60 16 60 28 L60 55 L52 48 L44 55 L36 48 L28 55 Z" fill="white" fillOpacity="0.12" stroke="white" strokeWidth="1.5" /><circle cx="33" cy="30" r="4" fill="white" fillOpacity="0.8" /><circle cx="47" cy="30" r="4" fill="white" fillOpacity="0.8" /><circle cx="34" cy="31" r="2" fill="#1a1a1a" /><circle cx="48" cy="31" r="2" fill="#1a1a1a" /></svg>),
   },
 ];
@@ -273,13 +228,13 @@ const PAIN_POINTS = [
    FEATURES DATA
 ───────────────────────────────────────────────────────────── */
 const FEATURES = [
-  { cls: "block-blue",   num: "01", title: "ATS Score",    body: "We run your resume through the same logic ATS software uses. No fluff — just a real score and exactly why you got it.",
+  { cls: "block-blue",   num: "01", title: "AI-Powered Analysis",  body: "You missed half the requirements. We didn't. We find the fine print you ignored while doomscrolling so you stop wasting everyone's time.",
     svg: (<svg viewBox="0 0 48 48" width="44" height="44" fill="none"><rect x="4" y="4" width="40" height="40" stroke="white" strokeWidth="2" fillOpacity="0" /><path d="M12 36 L12 28 L20 28 L20 36" stroke="white" strokeWidth="2" strokeLinecap="round" /><path d="M20 36 L20 20 L28 20 L28 36" stroke="white" strokeWidth="2" strokeLinecap="round" /><path d="M28 36 L28 14 L36 14 L36 36" stroke="white" strokeWidth="2" strokeLinecap="round" /><line x1="8" y1="36" x2="40" y2="36" stroke="white" strokeWidth="2" /></svg>) },
-  { cls: "block-orange", num: "02", title: "Keyword Gap", body: "Cross-reference every missing keyword from the job description. Stop guessing what recruiters want to see.",
+  { cls: "block-orange", num: "02", title: "Keyword Wizardry", body: "Stop guessing keywords. We pull the exact technical terms the algorithm wants. Feed the bot what it needs or stay at the bottom of the pile.",
     svg: (<svg viewBox="0 0 48 48" width="44" height="44" fill="none"><circle cx="20" cy="20" r="12" stroke="#111" strokeWidth="2" /><line x1="29" y1="29" x2="42" y2="42" stroke="#111" strokeWidth="3" strokeLinecap="round" /><line x1="14" y1="20" x2="26" y2="20" stroke="#111" strokeWidth="2" strokeLinecap="round" /><line x1="20" y1="14" x2="20" y2="26" stroke="#111" strokeWidth="2" strokeLinecap="round" /></svg>) },
-  { cls: "block-green",  num: "03", title: "AI Rewrites", body: "Bad bullet point? One click. Our AI rewrites it with stronger verbs and actual impact metrics that get noticed.",
+  { cls: "block-green",  num: "03", title: "Score Everything", body: "Your friends lie to be nice. Our scoring engine doesn't. If your match rate is low, your resume is bad. Fix it before you hit send.",
     svg: (<svg viewBox="0 0 48 48" width="44" height="44" fill="none"><rect x="6" y="8" width="28" height="36" stroke="white" strokeWidth="2" /><line x1="12" y1="18" x2="28" y2="18" stroke="white" strokeWidth="1.5" strokeOpacity="0.5" /><line x1="12" y1="24" x2="24" y2="24" stroke="white" strokeWidth="1.5" strokeOpacity="0.5" /><path d="M30 28 L36 22 L42 28 L36 34 Z" fill="white" stroke="white" strokeWidth="1" /><line x1="36" y1="22" x2="36" y2="14" stroke="white" strokeWidth="2" strokeLinecap="round" /></svg>) },
-  { cls: "block-dark",   num: "04", title: "Job Matcher", body: "Paste a job URL. Get your match %, what's missing, what to change. Then apply with confidence.",
+  { cls: "block-dark",   num: "04", title: "Open Source, Baby", body: "Free as in freedom. Free as in beer. Free as in 'why would you pay for this?' — running on vibes and good intentions.",
     svg: (<svg viewBox="0 0 48 48" width="44" height="44" fill="none"><circle cx="16" cy="24" r="10" stroke="hsl(24,100%,50%)" strokeWidth="2" /><circle cx="32" cy="24" r="10" stroke="hsl(24,100%,50%)" strokeWidth="2" /><path d="M22 18 C26 20 26 28 22 30" fill="hsl(24,100%,50%)" fillOpacity="0.25" stroke="hsl(24,100%,50%)" strokeWidth="1" /></svg>) },
 ];
 
@@ -348,9 +303,9 @@ export default function LandingPage() {
         onCheckScoreClick={() => scrollTo("guest-analyzer")}
       />
 
-      {/* ── PAIN POINTS ──────────────────────────────────────── */}
+      {/* ── PAIN POINTS — numbered layout like resumematcher.fyi ── */}
       <section
-        className="py-20 px-6"
+        className="py-24 px-6"
         style={{
           background: "hsl(40,28%,88%)",
           borderTop: "2px solid #000", borderBottom: "2px solid #000",
@@ -359,47 +314,80 @@ export default function LandingPage() {
         }}
       >
         <div className="max-w-7xl mx-auto">
-          <div className="sr" style={{ transitionDelay: "0ms" }}>
+          <div className="sr">
             <SectionLabel>okay, be honest with yourself</SectionLabel>
-            <h2 className="font-display-serif text-4xl md:text-5xl text-center mb-12" style={{ color: "#111", letterSpacing: "-0.03em" }}>
+            <h2 className="font-display-serif text-4xl md:text-5xl text-center mb-16" style={{ color: "#111", letterSpacing: "-0.03em" }}>
               The{" "}<span style={{ textDecoration: "line-through", opacity: 0.35 }}>joy</span>{" "}
               <span className="inline-block px-2 shadow-hard" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}>pain</span>
-              {" "}of job hunting.
+              {" "}of manually editing resumes.
             </h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+
+          {/* Stacked numbered pain point rows */}
+          <div className="flex flex-col gap-0">
             {PAIN_POINTS.map((p, i) => (
-              <TiltCard
+              <div
                 key={i}
-                strength={8}
-                className="sr p-6 shadow-hard flex flex-col gap-3"
-                style={{ background: p.color, border: "2px solid #000", transitionDelay: `${i * 80}ms` }}
+                className="sr flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 py-8 px-6"
+                style={{
+                  borderTop: i === 0 ? "2px solid #000" : "1px solid rgba(0,0,0,0.15)",
+                  borderBottom: i === PAIN_POINTS.length - 1 ? "2px solid #000" : "none",
+                  background: i % 2 === 0 ? "transparent" : "rgba(0,0,0,0.03)",
+                  transitionDelay: `${i * 80}ms`,
+                }}
               >
-                <div>{p.svg}</div>
-                <div className="text-xs font-mono uppercase tracking-widest text-white" style={{ opacity: 0.6 }}>{p.label}</div>
-                <p className="text-base font-semibold leading-snug text-white">{p.text}</p>
-              </TiltCard>
+                {/* Number */}
+                <div
+                  className="font-black text-5xl md:text-6xl shrink-0"
+                  style={{ color: p.color, fontFamily: "Playfair Display, serif", lineHeight: 1, minWidth: "3.5rem", opacity: 0.85 }}
+                >
+                  {p.num}
+                </div>
+
+                {/* SVG icon */}
+                <div
+                  className="shrink-0 flex items-center justify-center w-14 h-14 md:w-16 md:h-16"
+                  style={{ background: p.color, border: "2px solid #000", boxShadow: "3px 3px 0 #000" }}
+                >
+                  {p.svg}
+                </div>
+
+                {/* Text */}
+                <div className="flex-1">
+                  <h3 className="font-black text-xl md:text-2xl mb-1" style={{ color: "#111", letterSpacing: "-0.02em" }}>{p.label}</h3>
+                  <p className="text-base leading-relaxed" style={{ color: "#555", maxWidth: "52ch" }}>{p.text}</p>
+                </div>
+
+                {/* Tag */}
+                <div
+                  className="shrink-0 px-3 py-1.5 text-xs font-black uppercase tracking-widest hidden md:block"
+                  style={{ background: p.color, color: p.color === "hsl(24,100%,50%)" ? "#111" : "#fff", border: "2px solid #000", boxShadow: "2px 2px 0 #000", transform: "rotate(-1deg)" }}
+                >
+                  {i === 0 ? "Time wasted" : i === 1 ? "You'll never know" : i === 2 ? "Bot says no" : "Ghosted"}
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── INTRO TRANSITION ─────────────────────────────────── */}
-      <section className="py-20 px-6 text-center sr" style={{ background: "#fff", borderBottom: "2px solid #000" }}>
-        <SectionLabel>introducing</SectionLabel>
+      {/* ── INTRO TRANSITION ── */}
+      <section className="py-24 px-6 text-center sr" style={{ background: "#fff", borderBottom: "2px solid #000" }}>
+        <SectionLabel>the fix</SectionLabel>
         <h2 className="font-display-serif text-5xl md:text-7xl mb-6" style={{ color: "#111", letterSpacing: "-0.03em" }}>
           <span style={{ textDecoration: "line-through", opacity: 0.25, fontStyle: "italic" }}>Manually Editing</span>
           <br />
-          <span className="inline-block px-4 py-1 shadow-hard" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}>AI Automation!!</span>
+          <span className="inline-block px-4 py-1 shadow-hard" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}>Automation!!</span>
         </h2>
-        <p className="text-lg max-w-xl mx-auto" style={{ color: "#666" }}>
+        <p className="text-lg max-w-xl mx-auto mb-8" style={{ color: "#666" }}>
           Introducing{" "}
           <span className="inline-block px-3 py-0.5 font-black shadow-hard-sm" style={{ background: "#111", color: "#fff", border: "2px solid #000" }}>SmartResume</span>
-          {" "}— your AI career co-pilot that does the grind for you.
+          {" "}— an open-source tool that analyzes job descriptions to beat the ATS.
         </p>
+        <p className="text-base" style={{ color: "#999" }}>Stop guessing what recruiters want. Tailor every application in seconds and get the interview.</p>
       </section>
 
-      {/* ── ANALYZER ────────────────────────────────────────── */}
+      {/* ── ANALYZER ── */}
       <section
         id="guest-analyzer"
         className="py-20 px-6"
@@ -418,7 +406,6 @@ export default function LandingPage() {
                 Drop your resume.{" "}<span style={{ color: "hsl(24,100%,50%)" }}>We&apos;ll be honest.</span>
               </h2>
               <p className="text-sm mb-8" style={{ color: "#888" }}>Your friends tell you it looks great. We won&apos;t.</p>
-
               <div className="mb-6">
                 <label
                   className="flex flex-col items-center justify-center w-full h-36 cursor-pointer"
@@ -426,17 +413,12 @@ export default function LandingPage() {
                   onMouseEnter={e => { e.currentTarget.style.background = "hsl(40,30%,94%)"; e.currentTarget.style.borderColor = "hsl(24,100%,50%)"; }}
                   onMouseLeave={e => { e.currentTarget.style.background = "#fafafa"; e.currentTarget.style.borderColor = "#000"; }}
                 >
-                  <svg className="w-8 h-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: "#888" }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <p className="font-bold text-sm" style={{ color: file ? "hsl(24,100%,50%)" : "#555" }}>
-                    {file ? file.name : "Click to upload your resume (PDF)"}
-                  </p>
+                  <svg className="w-8 h-8 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" style={{ color: "#888" }}><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" /></svg>
+                  <p className="font-bold text-sm" style={{ color: file ? "hsl(24,100%,50%)" : "#555" }}>{file ? file.name : "Click to upload your resume (PDF)"}</p>
                   <p className="text-xs mt-1" style={{ color: "#aaa" }}>Max 10MB</p>
                   <input id="resume-upload" type="file" className="hidden" accept="application/pdf" onChange={e => setFile(e.target.files?.[0] || null)} />
                 </label>
               </div>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#555" }}>Paste Job Description (optional)</label>
@@ -447,9 +429,7 @@ export default function LandingPage() {
                   <input type="number" min="0" className="cream-input" placeholder="e.g. 2" value={years} onChange={e => setYears(e.target.value)} />
                 </div>
               </div>
-
               {error && <div className="mb-4 px-4 py-3 text-sm font-semibold" style={{ background: "#FEE2E2", border: "2px solid #FECACA", color: "#991B1B" }}>{error}</div>}
-
               <MagBtn
                 onClick={handleGuestAnalyze}
                 disabled={loading || !file}
@@ -458,7 +438,6 @@ export default function LandingPage() {
               >
                 {loading ? "Analyzing..." : "Check My Score →"}
               </MagBtn>
-
               {result && (
                 <div className="mt-8 pt-6" style={{ borderTop: "2px solid #e5e7eb" }}>
                   <div className="flex items-center gap-6">
@@ -479,7 +458,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ─────────────────────────────────────── */}
+      {/* ── HOW IT WORKS ── */}
       <section className="py-24 px-6" style={{ background: "#fff", borderBottom: "2px solid #000" }}>
         <div className="max-w-5xl mx-auto">
           <div className="sr">
@@ -489,12 +468,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
             <div className="hidden md:block absolute top-10 left-0 w-full h-0.5" style={{ background: "#e5e7eb" }} />
             {STEPS.map((s, i) => (
-              <TiltCard
-                key={s.n}
-                strength={6}
-                className="sr cream-card-block p-8 text-center relative z-10"
-                style={{ transitionDelay: `${i * 100}ms` }}
-              >
+              <TiltCard key={s.n} strength={6} className="sr cream-card-block p-8 text-center relative z-10" style={{ transitionDelay: `${i * 100}ms` }}>
                 <div className="flex justify-center mb-4">{s.svg}</div>
                 <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4 font-black text-lg" style={{ border: "2px solid hsl(24,100%,50%)", color: "hsl(24,100%,50%)", background: "#fff" }}>{s.n}</div>
                 <h3 className="font-bold text-base mb-2 uppercase tracking-tight" style={{ color: "#111" }}>{s.title}</h3>
@@ -505,7 +479,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── FEATURES ─────────────────────────────────────────── */}
+      {/* ── FEATURES ── */}
       <section
         id="features"
         className="py-24 px-6"
@@ -518,23 +492,20 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto">
           <div className="sr">
-            <SectionLabel>what we check</SectionLabel>
+            <SectionLabel>what we actually do</SectionLabel>
             <h2 className="font-display-serif text-4xl md:text-5xl text-center mb-3" style={{ color: "#111", letterSpacing: "-0.03em" }}>
               Features <span style={{ color: "#aaa", fontSize: "0.55em", fontStyle: "italic", fontWeight: 400 }}>...of course...</span>
             </h2>
-            <p className="text-center text-sm mb-16" style={{ color: "#888" }}>Because no product is complete without a buzzword-filled feature list. Here&apos;s ours. You&apos;re welcome.</p>
+            <p className="text-center text-sm mb-16" style={{ color: "#888" }}>
+              Because no product is complete without a buzzword-filled feature list. Here&apos;s ours. You&apos;re welcome.
+            </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {FEATURES.map((f, i) => (
-              <TiltCard
-                key={f.num}
-                strength={9}
-                className={`sr ${f.cls} p-7 shadow-hard`}
-                style={{ transitionDelay: `${i * 80}ms` }}
-              >
+              <TiltCard key={f.num} strength={9} className={`sr ${f.cls} p-7 shadow-hard`} style={{ transitionDelay: `${i * 80}ms` }}>
                 <div className="mb-4">{f.svg}</div>
                 <div className="text-xs font-bold uppercase tracking-widest mb-3 opacity-50">{f.num}</div>
-                <h3 className="font-black text-2xl mb-3" style={{ letterSpacing: "-0.03em" }}>{f.title}</h3>
+                <h3 className="font-black text-xl mb-3" style={{ letterSpacing: "-0.03em" }}>{f.title}</h3>
                 <p className="text-sm leading-relaxed opacity-90">{f.body}</p>
               </TiltCard>
             ))}
@@ -545,7 +516,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── STATS STRIP ──────────────────────────────────────── */}
+      {/* ── STATS STRIP ── */}
       <section className="py-14 px-6 sr" style={{ background: "hsl(24,100%,50%)", borderBottom: "2px solid #000" }}>
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
@@ -562,38 +533,42 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CONVINCED ────────────────────────────────────────── */}
+      {/* ── CONVINCED — mirroring resumematcher.fyi tone ── */}
       <section className="py-24 px-6 sr" style={{ background: "#111" }}>
         <div className="max-w-3xl mx-auto text-center">
+          <SectionLabel dark>convinced?</SectionLabel>
           <h2 className="font-display-serif text-5xl md:text-7xl mb-6" style={{ color: "#fff", letterSpacing: "-0.03em" }}>
-            Convinced?{" "}
-            <span className="inline-block px-3 shadow-hard" style={{ background: "hsl(24,100%,50%)", color: "#111" }}>Good.</span>
+            Try SmartResume
+            <br />
+            <span className="inline-block px-3 py-1 shadow-hard" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid hsl(24,100%,50%)", fontSize: "0.7em" }}>it&apos;s free</span>
           </h2>
-          <p className="text-lg mb-4" style={{ color: "#aaa" }}>
-            Try SmartResume —{" "}
-            <span className="inline-block px-2 font-bold" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "1px solid #000" }}>it&apos;s free</span>
-          </p>
+
           <MagBtn
             onClick={openSignup}
-            className="px-12 py-5 text-lg font-bold shadow-hard mb-8"
+            className="px-12 py-5 text-lg font-bold shadow-hard mb-10"
             style={{ background: "#fff", color: "#111", border: "2px solid #fff" }}
           >
-            LET&apos;S GO →
+            Let&apos;s Go →
           </MagBtn>
-          <div style={{ borderTop: "1px solid #333" }} className="pt-8 mt-4">
-            <p style={{ color: "#666" }}>Not convinced? <em style={{ color: "#888" }}>That&apos;s cute.</em></p>
-            <p className="text-lg mt-2" style={{ color: "#ccc" }}>
-              Try it anyway →{" "}
-              <span className="strike" style={{ color: "#666" }}>hate it</span>{" "}
-              <span className="inline-block px-2" style={{ background: "hsl(24,100%,50%)", color: "#111", fontWeight: 700 }}>love it</span>
-              {" "}→ get hired
+
+          <div style={{ borderTop: "1px solid #222" }} className="pt-10">
+            <p className="text-lg" style={{ color: "#888" }}>OR</p>
+            <p className="mt-4 text-base" style={{ color: "#666" }}>
+              Not convinced? <em style={{ color: "#555" }}>That&apos;s cute.</em>
             </p>
-            <p className="text-xs mt-4" style={{ color: "#555" }}>(still free btw — we&apos;re not running a charity, we&apos;re running on vibes)</p>
+            <p className="text-xl mt-3 font-semibold" style={{ color: "#ccc" }}>
+              Try it anyway →{" "}
+              <span className="strike" style={{ color: "#555" }}>hate it</span>{" "}
+              <span className="inline-block px-2" style={{ background: "hsl(24,100%,50%)", color: "#111", fontWeight: 700 }}>love it</span>
+              {" "}→{" "}
+              <span className="inline-block px-2" style={{ background: "#16A34A", color: "#fff", fontWeight: 700 }}>get hired</span>
+            </p>
+            <p className="text-xs mt-6" style={{ color: "#444" }}>(still free btw — we&apos;re not running a charity, we&apos;re running on vibes)</p>
           </div>
         </div>
       </section>
 
-      {/* ── FOOTER ───────────────────────────────────────────── */}
+      {/* ── FOOTER ── */}
       <footer style={{ background: "#0a0a0a", borderTop: "2px solid #1a1a1a" }} className="pt-16 pb-10 px-6">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
