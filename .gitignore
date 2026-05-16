@@ -1,0 +1,71 @@
+# ========================
+# SmartResume — .gitignore
+# ========================
+
+# --- Environment Variables (NEVER commit these) ---
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# --- Python ---
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+backend/venv*/
+.venv/
+env/
+ENV/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# --- Node / Frontend ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.parcel-cache/
+frontend/.next/
+.npm
+
+# --- Logs & Debug ---
+*.log
+backend/debug_*.py
+backend/diagnose_*.py
+backend/check_*.py
+backend/verify_*.py
+backend/critical_error.log
+backend/debug_error.log
+
+# --- Data / ML artifacts ---
+data/
+backend/data/
+*.pkl
+*.joblib
+*.h5
+*.model
+
+# --- IDE / OS ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- CI / External Services ---
+.deepsource.toml
+
+# --- Keep these ---
+!backend/requirements.txt
+!runtime.txt
+!README.md

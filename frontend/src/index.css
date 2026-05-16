@@ -1,0 +1,512 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;0,800;0,900;1,700;1,800&display=swap');
+@import 'tailwindcss';
+
+@layer base {
+  :root {
+    /* ── Dark Palette (Dashboard + dark sections) ── */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 6%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary: Ember/Orange */
+    --primary: 24 100% 50%;
+    --primary-foreground: 0 0% 10%;
+
+    /* Accent: Electric Blue */
+    --accent-blue: 217 91% 60%;
+    --accent-blue-foreground: 0 0% 100%;
+
+    /* Success: Fresh Green */
+    --accent-green: 142 71% 45%;
+    --accent-green-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 24 100% 50%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 24 100% 50%;
+
+    /* ── Light/Cream Palette (Hero section) ── */
+    --cream-bg: 40 30% 92%;
+    --cream-card: 40 25% 96%;
+    --cream-border: 30 20% 75%;
+    --cream-text: 0 0% 8%;
+    --cream-muted: 0 0% 35%;
+
+    /* BRUTALIST: Sharp edges */
+    --radius: 0rem;
+    --sidebar-width: 260px;
+  }
+}
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  /* Brutalist Scrollbar */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: hsl(var(--background)); border-left: 1px solid hsl(var(--border)); }
+  ::-webkit-scrollbar-thumb { background: hsl(var(--primary)); }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--primary) / 0.8); }
+}
+
+/* ===========================
+   ANIMATION KEYFRAMES
+   =========================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInLeft {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scanline {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+
+/* ===========================
+   UTILITY CLASSES
+   =========================== */
+@layer utilities {
+  .animate-fade-in        { animation: fadeIn 0.4s ease-out both; }
+  .animate-fade-in-left   { animation: fadeInLeft 0.4s ease-out both; }
+  .animate-fade-in-up     { animation: fadeInUp 0.5s ease-out both; }
+  .animate-marquee        { animation: marquee 30s linear infinite; }
+
+  /* ── Neubrutalist Hard Shadow ──────────────────────────────── */
+  .shadow-hard {
+    box-shadow: 4px 4px 0px 0px #000;
+  }
+  .shadow-hard-sm {
+    box-shadow: 3px 3px 0px 0px #000;
+  }
+  .shadow-hard-lg {
+    box-shadow: 6px 6px 0px 0px #000;
+  }
+  .shadow-hard-orange {
+    box-shadow: 4px 4px 0px 0px hsl(var(--primary));
+  }
+  .shadow-hard-white {
+    box-shadow: 4px 4px 0px 0px #fff;
+  }
+
+  /* ── Cream / Light Section Utilities ──────────────────────── */
+  .cream-bg      { background-color: hsl(var(--cream-bg)); }
+  .cream-card    { background-color: hsl(var(--cream-card)); }
+  .cream-border  { border-color: hsl(var(--cream-border)); }
+  .cream-text    { color: hsl(var(--cream-text)); }
+  .cream-muted   { color: hsl(var(--cream-muted)); }
+
+  /* ── Feature Block Colors (Neubrutalist) ─────────────────── */
+  .block-blue   { background-color: #2563EB; color: #fff; border: 2px solid #000; }
+  .block-orange { background-color: hsl(var(--primary)); color: hsl(var(--primary-foreground)); border: 2px solid #000; }
+  .block-green  { background-color: #16A34A; color: #fff; border: 2px solid #000; }
+  .block-dark   { background-color: #111; color: #fff; border: 2px solid #000; }
+  .block-cream  { background-color: hsl(var(--cream-card)); color: #111; border: 2px solid #000; }
+
+  /* ── Brutalist Components (dark) ──────────────────────────── */
+  .brutalist-card {
+    background: hsl(var(--card));
+    border: 2px solid hsl(var(--border));
+    border-radius: 0;
+    transition: all 0.15s;
+  }
+
+  .brutalist-card:hover {
+    border-color: hsl(var(--primary));
+    box-shadow: 4px 4px 0px 0px hsl(var(--primary));
+    transform: translate(-2px, -2px);
+  }
+
+  /* ── Cream Card (for light sections) ─────────────────────── */
+  .cream-card-block {
+    background: hsl(var(--cream-card));
+    border: 2px solid #000;
+    border-radius: 0;
+    transition: all 0.15s;
+  }
+
+  .cream-card-block:hover {
+    box-shadow: 5px 5px 0px 0px #000;
+    transform: translate(-2px, -2px);
+  }
+
+  /* ── Brutalist Button (dark) ──────────────────────────────── */
+  .brutalist-btn {
+    background: transparent;
+    border: 2px solid hsl(var(--primary));
+    color: hsl(var(--primary));
+    font-family: var(--font-sans);
+    font-weight: 700;
+    border-radius: 0;
+    transition: all 0.12s;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .brutalist-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: hsl(var(--primary));
+    z-index: -1;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.18s ease;
+  }
+
+  .brutalist-btn:hover {
+    color: hsl(var(--primary-foreground));
+    box-shadow: 4px 4px 0px 0px hsl(var(--border));
+    transform: translate(-2px, -2px);
+  }
+
+  .brutalist-btn:hover::before {
+    transform: scaleX(1);
+  }
+
+  .brutalist-btn:active {
+    transform: translate(0, 0);
+    box-shadow: none;
+  }
+
+  .brutalist-btn-primary {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 2px solid hsl(var(--primary));
+  }
+
+  .brutalist-btn-primary:hover {
+    background: hsl(var(--background));
+    color: hsl(var(--primary));
+  }
+
+  .brutalist-btn-primary:hover::before {
+    transform: scaleX(0);
+  }
+
+  /* ── Neubrutalist CTA Button (cream sections) ─────────────── */
+  .neu-btn-primary {
+    background: #111;
+    color: #fff;
+    border: 2px solid #000;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    border-radius: 0;
+    transition: all 0.12s;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .neu-btn-primary:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 5px 5px 0px 0px hsl(var(--primary));
+  }
+
+  .neu-btn-primary:active {
+    transform: translate(0, 0);
+    box-shadow: none;
+  }
+
+  .neu-btn-outline {
+    background: transparent;
+    color: #111;
+    border: 2px solid #000;
+    font-family: var(--font-sans);
+    font-weight: 700;
+    border-radius: 0;
+    transition: all 0.12s;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .neu-btn-outline:hover {
+    background: #111;
+    color: #fff;
+    transform: translate(-3px, -3px);
+    box-shadow: 5px 5px 0px 0px #000;
+  }
+
+  .neu-btn-outline:active {
+    transform: translate(0, 0);
+    box-shadow: none;
+  }
+
+  /* ── Brutalist Button (used across dashboard) ─────────────── */
+  .brutalist-button {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 2px solid hsl(var(--primary));
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 0;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+  }
+
+  .brutalist-button:hover:not(:disabled) {
+    background: transparent;
+    color: hsl(var(--primary));
+    box-shadow: 4px 4px 0px 0px hsl(var(--primary) / 0.4);
+    transform: translate(-2px, -2px);
+  }
+
+  .brutalist-button:active:not(:disabled) {
+    transform: translate(0, 0);
+    box-shadow: none;
+  }
+
+  .brutalist-button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  /* ── Technical Input ──────────────────────────────────────── */
+  .tech-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: hsl(var(--background));
+    border: 1px solid hsl(var(--border));
+    border-radius: 0;
+    color: hsl(var(--foreground));
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .tech-input:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 4px 4px 0px 0px hsl(var(--primary));
+    transform: translate(-2px, -2px);
+  }
+
+  .tech-input::placeholder { color: hsl(var(--border)); }
+
+  /* ── Brutalist Input ──────────────────────────────────────── */
+  .brutalist-input {
+    width: 100%;
+    background: hsl(var(--background));
+    border: 2px solid hsl(var(--border));
+    border-radius: 0;
+    color: hsl(var(--foreground));
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    padding: 0.5rem 0.75rem;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .brutalist-input:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 3px 3px 0px 0px hsl(var(--primary) / 0.35);
+  }
+
+  .brutalist-input::placeholder {
+    color: hsl(var(--muted-foreground) / 0.6);
+  }
+
+  .brutalist-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ── Cream Input (for light sections) ─────────────────────── */
+  .cream-input {
+    width: 100%;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 0;
+    color: #111;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    padding: 0.75rem 1rem;
+    outline: none;
+    transition: all 0.12s;
+  }
+
+  .cream-input:focus {
+    box-shadow: 4px 4px 0px 0px hsl(var(--primary));
+    transform: translate(-2px, -2px);
+  }
+
+  .cream-input::placeholder {
+    color: #999;
+  }
+
+  /* ── Engineering Grid Background ──────────────────────────── */
+  .grid-bg {
+    background-image:
+      linear-gradient(to right, hsl(var(--border)) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--border)) 1px, transparent 1px);
+    background-size: 40px 40px;
+    background-position: center center;
+  }
+
+  /* ── Cream Grid Background (for light hero) ──────────────── */
+  .cream-grid-bg {
+    background-color: hsl(var(--cream-bg));
+    background-image:
+      linear-gradient(to right, hsl(var(--cream-border) / 0.5) 1px, transparent 1px),
+      linear-gradient(to bottom, hsl(var(--cream-border) / 0.5) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  /* ── Scanline overlay ─────────────────────────────────────── */
+  .scanline {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 10px;
+    background: linear-gradient(to bottom, transparent, hsl(var(--primary) / 0.2), transparent);
+    opacity: 0.5;
+    animation: scanline 8s linear infinite;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── Index / Label text ───────────────────────────────────── */
+  .index-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: hsl(var(--primary));
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .index-label-dark {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── Display Heading (serif) ──────────────────────────────── */
+  .font-display-serif {
+    font-family: var(--font-display);
+    font-weight: 900;
+    letter-spacing: -0.03em;
+  }
+
+  /* ── Rotating badge (neubrutalist) ───────────────────────── */
+  .rotate-1   { transform: rotate(1deg); }
+  .rotate-neg { transform: rotate(-1deg); }
+  .rotate-2   { transform: rotate(2deg); }
+
+  /* ── Strikethrough highlight ──────────────────────────────── */
+  .strike { text-decoration: line-through; opacity: 0.5; }
+
+  /* ── Tag badge (cream section) ─────────────────────────────── */
+  .neu-tag {
+    display: inline-block;
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 2px solid #000;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.15rem 0.6rem;
+    border-radius: 0;
+  }
+
+  /* ── Mobile overrides ─────────────────────────────────────── */
+  @media (max-width: 1023px) {
+    body {
+      overflow-x: hidden;
+    }
+    .animate-fade-in {
+      min-height: calc(100vh - 4rem);
+    }
+  }
+}
