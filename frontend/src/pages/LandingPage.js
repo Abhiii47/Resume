@@ -57,12 +57,106 @@ function Navbar({ onLogin, onSignup }) {
   );
 }
 
-/* ── Pain Points horizontal scroll ────────────────────────── */
+/* ── Orange Ticker Strip ───────────────────────────────────── */
+const TICKER_ITEMS = [
+  "🤖 ATS bots are rejecting you right now",
+  "📄 6 seconds. That's all recruiters give your resume.",
+  "🚀 12,000+ resumes improved",
+  "💀 Generic bullet points = instant reject",
+  "✨ AI rewrites that actually sound like you",
+  "🎯 Match score for every job you apply to",
+  "😤 Your resume is not fine. It's costing you interviews.",
+  "🔥 Built for SDE roles, FAANG, campus placements",
+];
+
+function TickerStrip() {
+  const doubled = [...TICKER_ITEMS, ...TICKER_ITEMS];
+  return (
+    <div
+      className="overflow-hidden py-3 border-y-2 border-black"
+      style={{ background: "hsl(24,100%,50%)" }}
+    >
+      <div className="flex animate-marquee whitespace-nowrap" style={{ width: "max-content" }}>
+        {doubled.map((item, i) => (
+          <span key={i} className="text-sm font-bold text-black uppercase tracking-widest" style={{ marginLeft: "3rem", marginRight: "3rem" }}>
+            {item} <span style={{ marginLeft: "1rem", opacity: 0.4 }}>✦</span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Pain Points ───────────────────────────────────────────── */
 const PAIN_POINTS = [
-  { color: "#2563EB", text: "You apply to 200 jobs and hear back from 3. That's not bad luck." },
-  { color: "hsl(24,100%,50%)", text: "Your resume isn't ATS-optimised. Bots reject it before humans see it." },
-  { color: "#16A34A", text: "Generic bullet points kill your chances. Recruiters skim in 6 seconds." },
-  { color: "#111", text: "You get no feedback. Just silence. We fix that." },
+  {
+    color: "#2563EB",
+    label: "The silence is loud",
+    text: "200 applications. 3 replies. That's not bad luck — that's a broken resume.",
+    svg: (
+      <svg viewBox="0 0 80 60" width="80" height="60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="30" width="44" height="26" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" />
+        <rect x="14" y="22" width="44" height="26" fill="white" fillOpacity="0.3" stroke="white" strokeWidth="1.5" />
+        <rect x="20" y="14" width="44" height="26" fill="white" fillOpacity="0.4" stroke="white" strokeWidth="1.5" />
+        <circle cx="58" cy="10" r="10" fill="#FF4444" stroke="white" strokeWidth="1.5" />
+        <line x1="53" y1="5" x2="63" y2="15" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="63" y1="5" x2="53" y2="15" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="26" y1="22" x2="52" y2="22" stroke="white" strokeWidth="1.5" strokeOpacity="0.6" />
+        <line x1="26" y1="27" x2="46" y2="27" stroke="white" strokeWidth="1.5" strokeOpacity="0.6" />
+      </svg>
+    ),
+  },
+  {
+    color: "hsl(24,100%,50%)",
+    label: "Bot says no",
+    text: "Your resume isn't ATS-optimised. A bot rejects it before any human ever sees it.",
+    svg: (
+      <svg viewBox="0 0 80 60" width="80" height="60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="18" y="10" width="44" height="36" rx="4" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" />
+        <rect x="26" y="20" width="10" height="8" rx="1" fill="white" fillOpacity="0.8" />
+        <rect x="44" y="20" width="10" height="8" rx="1" fill="white" fillOpacity="0.8" />
+        <rect x="29" y="22" width="4" height="4" fill="#111" />
+        <rect x="47" y="22" width="4" height="4" fill="#111" />
+        <line x1="40" y1="10" x2="40" y2="2" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="40" cy="1" r="3" fill="white" />
+        <line x1="28" y1="36" x2="52" y2="36" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <rect x="10" y="50" width="60" height="9" fill="white" fillOpacity="0.3" />
+        <text x="40" y="57" textAnchor="middle" fill="white" fontSize="6" fontFamily="monospace" fontWeight="bold" letterSpacing="1">REJECTED</text>
+      </svg>
+    ),
+  },
+  {
+    color: "#16A34A",
+    label: "6 seconds. Gone.",
+    text: "Generic bullet points kill your shot. Recruiters decide in 6 seconds flat.",
+    svg: (
+      <svg viewBox="0 0 80 60" width="80" height="60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="40" cy="34" r="22" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" />
+        <circle cx="40" cy="34" r="2" fill="white" />
+        <line x1="40" y1="34" x2="40" y2="16" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+        <line x1="40" y1="34" x2="52" y2="38" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <rect x="36" y="8" width="8" height="5" rx="2" fill="white" stroke="white" strokeWidth="1" />
+        <text x="40" y="40" textAnchor="middle" fill="white" fontSize="10" fontFamily="monospace" fontWeight="bold">6s</text>
+      </svg>
+    ),
+  },
+  {
+    color: "#111",
+    label: "👻 ghosted (again)",
+    text: "No feedback. No reason. Just silence. We tell you exactly what went wrong.",
+    svg: (
+      <svg viewBox="0 0 80 60" width="80" height="60" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 55 L20 28 C20 16 32 8 40 8 C48 8 60 16 60 28 L60 55 L52 48 L44 55 L36 48 L28 55 Z"
+          fill="white" fillOpacity="0.12" stroke="white" strokeWidth="1.5" />
+        <circle cx="33" cy="30" r="4" fill="white" fillOpacity="0.8" />
+        <circle cx="47" cy="30" r="4" fill="white" fillOpacity="0.8" />
+        <circle cx="34" cy="31" r="2" fill="#111" />
+        <circle cx="48" cy="31" r="2" fill="#111" />
+        <rect x="25" y="44" width="30" height="12" fill="white" fillOpacity="0.1" stroke="white" strokeWidth="1" />
+        <polyline points="25,44 40,52 55,44" stroke="white" strokeWidth="1.5" fill="none" />
+      </svg>
+    ),
+  },
 ];
 
 /* ── Feature blocks ────────────────────────────────────────── */
@@ -72,32 +166,93 @@ const FEATURES = [
     num: "01",
     title: "ATS Score",
     body: "We run your resume through the same logic ATS software uses. No fluff — just a real score and why you got it.",
+    svg: (
+      <svg viewBox="0 0 48 48" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="4" y="4" width="40" height="40" stroke="white" strokeWidth="2" fillOpacity="0" />
+        <path d="M12 36 L12 28 L20 28 L20 36" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <path d="M20 36 L20 20 L28 20 L28 36" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <path d="M28 36 L28 14 L36 14 L36 36" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <line x1="8" y1="36" x2="40" y2="36" stroke="white" strokeWidth="2" />
+      </svg>
+    ),
   },
   {
     cls: "block-orange",
     num: "02",
     title: "Keyword Gap",
     body: "Cross-reference every missing keyword from the job description. Stop guessing what recruiters want.",
+    svg: (
+      <svg viewBox="0 0 48 48" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="20" cy="20" r="12" stroke="#111" strokeWidth="2" />
+        <line x1="29" y1="29" x2="42" y2="42" stroke="#111" strokeWidth="3" strokeLinecap="round" />
+        <line x1="14" y1="20" x2="26" y2="20" stroke="#111" strokeWidth="2" strokeLinecap="round" />
+        <line x1="20" y1="14" x2="20" y2="26" stroke="#111" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    ),
   },
   {
     cls: "block-green",
     num: "03",
     title: "AI Rewrites",
     body: "Bad bullet point? Click fix. Our AI rewrites it with stronger verbs and actual impact metrics.",
+    svg: (
+      <svg viewBox="0 0 48 48" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="6" y="8" width="28" height="36" stroke="white" strokeWidth="2" />
+        <line x1="12" y1="18" x2="28" y2="18" stroke="white" strokeWidth="1.5" strokeOpacity="0.5" />
+        <line x1="12" y1="24" x2="24" y2="24" stroke="white" strokeWidth="1.5" strokeOpacity="0.5" />
+        <path d="M30 28 L36 22 L42 28 L36 34 Z" fill="white" stroke="white" strokeWidth="1" />
+        <line x1="36" y1="22" x2="36" y2="14" stroke="white" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    ),
   },
   {
     cls: "block-dark",
     num: "04",
     title: "Job Matcher",
     body: "Paste a job URL. We tell you your match %, what's missing, and what to change. Then you apply.",
+    svg: (
+      <svg viewBox="0 0 48 48" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="24" r="10" stroke="hsl(24,100%,50%)" strokeWidth="2" />
+        <circle cx="32" cy="24" r="10" stroke="hsl(24,100%,50%)" strokeWidth="2" />
+        <path d="M22 18 C26 20 26 28 22 30" fill="hsl(24,100%,50%)" fillOpacity="0.3" stroke="hsl(24,100%,50%)" strokeWidth="1" />
+        <text x="24" y="44" textAnchor="middle" fill="hsl(24,100%,50%)" fontSize="7" fontFamily="monospace" fontWeight="bold">MATCH %</text>
+      </svg>
+    ),
   },
 ];
 
 /* ── How it works steps ────────────────────────────────────── */
 const STEPS = [
-  { n: "01", title: "Upload your resume", body: "PDF only. We'll be gentle. Mostly." },
-  { n: "02", title: "Get a real score", body: "ATS score, keyword density, formatting issues — all of it." },
-  { n: "03", title: "Fix what's broken", body: "AI suggestions. One-click rewrites. Then land that interview." },
+  { n: "01", title: "Upload your resume", body: "PDF only. We'll be gentle. Mostly.",
+    svg: (
+      <svg viewBox="0 0 48 48" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="8" y="4" width="32" height="40" stroke="hsl(24,100%,50%)" strokeWidth="2" />
+        <polyline points="16,20 24,12 32,20" stroke="hsl(24,100%,50%)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <line x1="24" y1="12" x2="24" y2="32" stroke="hsl(24,100%,50%)" strokeWidth="2" strokeLinecap="round" />
+        <line x1="14" y1="36" x2="34" y2="36" stroke="hsl(24,100%,50%)" strokeWidth="2" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  { n: "02", title: "Get a real score", body: "ATS score, keyword density, formatting issues — all of it.",
+    svg: (
+      <svg viewBox="0 0 48 48" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="18" stroke="hsl(24,100%,50%)" strokeWidth="2" />
+        <path d="M24 24 L24 10" stroke="hsl(24,100%,50%)" strokeWidth="2.5" strokeLinecap="round" />
+        <path d="M24 24 L34 30" stroke="hsl(24,100%,50%)" strokeWidth="2" strokeLinecap="round" />
+        <circle cx="24" cy="24" r="2.5" fill="hsl(24,100%,50%)" />
+      </svg>
+    ),
+  },
+  { n: "03", title: "Fix what's broken", body: "AI suggestions. One-click rewrites. Then land that interview.",
+    svg: (
+      <svg viewBox="0 0 48 48" width="48" height="48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10 38 L16 32 L28 20 L34 26 L22 38 L10 38 Z" stroke="hsl(24,100%,50%)" strokeWidth="2" fill="none" strokeLinejoin="round" />
+        <path d="M28 20 L34 14 L38 18 L34 26 Z" fill="hsl(24,100%,50%)" stroke="hsl(24,100%,50%)" strokeWidth="1" />
+        <polyline points="18,30 22,34" stroke="hsl(24,100%,50%)" strokeWidth="1.5" />
+        <polyline points="20,28 24,32" stroke="hsl(24,100%,50%)" strokeWidth="1.5" />
+      </svg>
+    ),
+  },
 ];
 
 /* ── Main ──────────────────────────────────────────────────── */
@@ -148,36 +303,76 @@ export default function LandingPage() {
     <div className="min-h-screen flex flex-col" style={{ background: "hsl(0,0%,4%)" }}>
       <Navbar onLogin={openLogin} onSignup={openSignup} />
 
-      {/* HERO — cream */}
+      {/* TICKER STRIP */}
+      <div className="pt-[57px]">
+        <TickerStrip />
+      </div>
+
+      {/* HERO */}
       <HeroSection onUploadClick={() => { scrollToAnalyzer(); document.getElementById("resume-upload")?.click(); }} onCheckScoreClick={scrollToAnalyzer} />
 
-      {/* PAIN POINTS — dark bg, horizontal cards */}
+      {/* PAIN POINTS */}
       <section style={{ background: "hsl(0,0%,4%)" }} className="py-20 px-6">
         <div className="max-w-7xl mx-auto">
           <p className="text-center text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(24,100%,50%)" }}>
-            Sound familiar?
+            😬 okay be honest with yourself
           </p>
           <h2
             className="font-display-serif text-4xl md:text-5xl text-center mb-12"
             style={{ color: "#fff", letterSpacing: "-0.03em" }}
           >
-            The job search is brutal.<br />Your resume shouldn&apos;t make it worse.
+            The{" "}
+            <span style={{ textDecoration: "line-through", opacity: 0.4 }}>joy</span>{" "}
+            <span
+              className="inline-block px-2"
+              style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}
+            >
+              pain
+            </span>{" "}
+            of job hunting.
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {PAIN_POINTS.map((p, i) => (
               <div
                 key={i}
-                className="p-6 shadow-hard"
+                className="p-6 shadow-hard flex flex-col gap-3"
                 style={{ background: p.color, border: "2px solid #000", color: "#fff" }}
               >
-                <p className="text-base font-semibold leading-snug" style={{ color: "#fff" }}>{p.text}</p>
+                <div>{p.svg}</div>
+                <div className="text-xs font-mono uppercase tracking-widest opacity-60">{p.label}</div>
+                <p className="text-base font-semibold leading-snug">{p.text}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ANALYZER — dark with cream card */}
+      {/* STRIKETHROUGH TRANSITION SECTION */}
+      <section style={{ background: "hsl(40,30%,92%)" }} className="py-20 px-6 border-y-2 border-black text-center">
+        <p className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: "#999" }}>introducing</p>
+        <h2 className="font-display-serif text-5xl md:text-7xl mb-6" style={{ color: "#111", letterSpacing: "-0.03em" }}>
+          <span style={{ textDecoration: "line-through", opacity: 0.3 }}>Manually Editing</span>
+          <br />
+          <span
+            className="inline-block px-4 py-1 shadow-hard"
+            style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}
+          >
+            AI Automation!!
+          </span>
+        </h2>
+        <p className="text-lg" style={{ color: "#555" }}>
+          Introducing{" "}
+          <span
+            className="inline-block px-3 py-1 font-black shadow-hard-sm"
+            style={{ background: "#111", color: "#fff", border: "2px solid #000" }}
+          >
+            SmartResume
+          </span>
+          {" "}— your AI career co-pilot that does the grind for you.
+        </p>
+      </section>
+
+      {/* ANALYZER */}
       <section id="guest-analyzer" style={{ background: "hsl(0,0%,6%)", borderColor: "hsl(0,0%,14%)" }} className="py-20 px-6 border-t-2 border-b-2">
         <div className="max-w-3xl mx-auto">
           <div
@@ -198,7 +393,6 @@ export default function LandingPage() {
               Your friends tell you it looks great. We won&apos;t.
             </p>
 
-            {/* Upload */}
             <div className="mb-6">
               <label
                 className="flex flex-col items-center justify-center w-full h-36 cursor-pointer"
@@ -268,11 +462,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS — dark */}
+      {/* HOW IT WORKS */}
       <section style={{ background: "hsl(0,0%,4%)" }} className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <p className="text-center text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(24,100%,50%)" }}>
-            No magic. No BS.
+            ⚙️ No vibes. Just the actual process.
           </p>
           <h2
             className="font-display-serif text-4xl md:text-5xl text-center mb-16"
@@ -284,6 +478,7 @@ export default function LandingPage() {
             <div className="hidden md:block absolute top-8 left-0 w-full h-0.5" style={{ background: "hsl(0,0%,18%)" }} />
             {STEPS.map(s => (
               <div key={s.n} className="brutalist-card p-8 text-center relative z-10">
+                <div className="flex justify-center mb-4">{s.svg}</div>
                 <div
                   className="w-14 h-14 flex items-center justify-center mx-auto mb-5 font-black text-xl"
                   style={{ border: "2px solid hsl(24,100%,50%)", color: "hsl(24,100%,50%)", background: "hsl(0,0%,4%)" }}
@@ -298,25 +493,30 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FEATURES — vibrant colored blocks */}
+      {/* FEATURES */}
       <section style={{ background: "hsl(0,0%,6%)" }} className="py-24 px-6" id="features">
         <div className="max-w-7xl mx-auto">
           <p className="text-center text-xs font-bold uppercase tracking-widest mb-3" style={{ color: "hsl(24,100%,50%)" }}>
-            What we check
+            🔎 What&apos;s silently killing your chances
           </p>
           <h2
-            className="font-display-serif text-4xl md:text-5xl text-center mb-16"
+            className="font-display-serif text-4xl md:text-5xl text-center mb-4"
             style={{ color: "#fff", letterSpacing: "-0.03em" }}
           >
-            Everything recruiters<br />judge you on.
+            Features{" "}
+            <span style={{ color: "hsl(0,0%,40%)", fontSize: "0.6em", fontStyle: "italic" }}>...of course...</span>
           </h2>
+          <p className="text-center text-sm mb-16" style={{ color: "#666" }}>
+            Because no product is complete without a buzzword-filled feature list.<br />
+            Here&apos;s ours. You&apos;re welcome.
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {FEATURES.map(f => (
               <div
                 key={f.num}
                 className={`${f.cls} p-7 shadow-hard transition-transform duration-150 hover:-translate-y-1 hover:-translate-x-1`}
-                style={{ cursor: "default" }}
               >
+                <div className="mb-4">{f.svg}</div>
                 <div className="text-xs font-bold uppercase tracking-widest mb-4 opacity-60">{f.num}</div>
                 <h3 className="font-black text-2xl mb-3" style={{ letterSpacing: "-0.03em" }}>{f.title}</h3>
                 <p className="text-sm leading-relaxed opacity-90">{f.body}</p>
@@ -331,7 +531,53 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CONVINCED? — dark with orange headline */}
+      {/* STATS STRIP */}
+      <section style={{ background: "hsl(24,100%,50%)" }} className="py-16 px-6 border-y-2 border-black">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {[
+            { num: "12K+", label: "Resumes analyzed", icon: (
+              <svg viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="4" y="4" width="24" height="30" stroke="#111" strokeWidth="2" />
+                <line x1="9" y1="12" x2="23" y2="12" stroke="#111" strokeWidth="1.5" />
+                <line x1="9" y1="17" x2="23" y2="17" stroke="#111" strokeWidth="1.5" />
+                <line x1="9" y1="22" x2="18" y2="22" stroke="#111" strokeWidth="1.5" />
+              </svg>
+            )},
+            { num: "3.2x", label: "More callbacks", icon: (
+              <svg viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6 26 C8 18 14 10 26 6" stroke="#111" strokeWidth="2.5" strokeLinecap="round" />
+                <polyline points="20,6 26,6 26,12" stroke="#111" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )},
+            { num: "87%", label: "ATS pass rate after fix", icon: (
+              <svg viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="16" r="12" stroke="#111" strokeWidth="2" />
+                <polyline points="10,16 14,20 22,12" stroke="#111" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            )},
+            { num: "< 60s", label: "To your first score", icon: (
+              <svg viewBox="0 0 32 32" width="32" height="32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="16" cy="18" r="11" stroke="#111" strokeWidth="2" />
+                <line x1="16" y1="18" x2="16" y2="10" stroke="#111" strokeWidth="2" strokeLinecap="round" />
+                <line x1="16" y1="18" x2="21" y2="21" stroke="#111" strokeWidth="2" strokeLinecap="round" />
+                <rect x="12" y="4" width="8" height="3" rx="1" fill="#111" />
+              </svg>
+            )},
+          ].map((stat) => (
+            <div key={stat.label}>
+              <div className="flex justify-center mb-2">{stat.icon}</div>
+              <div className="text-4xl font-black text-black" style={{ fontFamily: "Playfair Display, serif" }}>
+                {stat.num}
+              </div>
+              <div className="text-sm font-bold text-black uppercase tracking-wide mt-1" style={{ opacity: 0.7 }}>
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CONVINCED */}
       <section style={{ background: "#111" }} className="py-24 px-6" id="convinced">
         <div className="max-w-3xl mx-auto text-center">
           <h2
@@ -346,15 +592,21 @@ export default function LandingPage() {
               Good.
             </span>
           </h2>
-          <p className="text-lg mb-10" style={{ color: "#aaa" }}>
-            Try SmartResume — it&apos;s free.
+          <p className="text-lg mb-4" style={{ color: "#aaa" }}>
+            Try SmartResume —{" "}
+            <span
+              className="inline-block px-2 font-bold"
+              style={{ background: "hsl(24,100%,50%)", color: "#111", border: "1px solid #000" }}
+            >
+              it&apos;s free
+            </span>
           </p>
           <button
             onClick={openSignup}
             className="px-12 py-5 text-lg font-bold shadow-hard mb-8"
             style={{ background: "#fff", color: "#111", border: "2px solid #fff" }}
           >
-            Let&apos;s Go →
+            LET&apos;S GO →
           </button>
           <div style={{ borderTop: "1px solid #333" }} className="pt-8 mt-4">
             <p style={{ color: "#666" }}>
@@ -375,6 +627,15 @@ export default function LandingPage() {
             <p className="text-xs mt-4" style={{ color: "#555" }}>
               (still free btw — we&apos;re not running a charity, we&apos;re running on vibes)
             </p>
+            <div className="flex justify-center gap-4 mt-6">
+              <button
+                onClick={openSignup}
+                className="px-6 py-3 text-sm font-bold shadow-hard-sm"
+                style={{ background: "transparent", color: "#fff", border: "2px solid #555" }}
+              >
+                Get Started
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -397,11 +658,8 @@ export default function LandingPage() {
                 Honest, AI-powered resume feedback. Built for students who want real feedback, not false hope.
               </p>
               <div className="flex gap-4 mt-5">
-                <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-white transition-colors" style={{ color: "#666" }}>
+                <a href="https://github.com/Abhiii47/Resume" target="_blank" rel="noopener noreferrer" aria-label="GitHub" className="hover:text-white transition-colors" style={{ color: "#666" }}>
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
-                </a>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter" className="hover:text-white transition-colors" style={{ color: "#666" }}>
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
                 </a>
               </div>
             </div>
