@@ -50,16 +50,69 @@ function useMagnetic(distance = 0.35) {
   return { ref, onMouseMove: onMove, onMouseLeave: onLeave };
 }
 
+/* Scroll reveal — adds .sr-visible when element enters viewport */
 function useScrollReveal() {
   useEffect(() => {
     const els = document.querySelectorAll(".sr");
     const io = new IntersectionObserver(
-      (entries) => entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("sr-visible"); io.unobserve(en.target); } }),
+      (entries) => entries.forEach((en) => {
+        if (en.isIntersecting) { en.target.classList.add("sr-visible"); io.unobserve(en.target); }
+      }),
       { threshold: 0.12 }
     );
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
+}
+
+/* Animated counter — counts up from 0 to end when triggered */
+function useCounter(end, triggered, duration = 1200) {
+  const [val, setVal] = useState("0");
+  const rafRef = useRef(null);
+  useEffect(() => {
+    if (!triggered) return;
+    const t0 = performance.now();
+    const isFloat = String(end).includes(".");
+    const numericEnd = parseFloat(end);
+    if (isNaN(numericEnd)) { setVal(String(end)); return; }
+    const tick = (now) => {
+      const p = Math.min((now - t0) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const current = eased * numericEnd;
+      setVal(isFloat ? current.toFixed(1) : String(Math.round(current)));
+      if (p < 1) rafRef.current = requestAnimationFrame(tick);
+      else setVal(isFloat ? String(numericEnd.toFixed(1)) : String(numericEnd));
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [triggered, end, duration]);
+  return val;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLL PROGRESS BAR
+───────────────────────────────────────────────────────────── */
+function ScrollProgressBar() {
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    const onScroll = () => {
+      const h = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(h > 0 ? (window.scrollY / h) * 100 : 0);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <div
+      style={{
+        position: "fixed", top: 0, left: 0, zIndex: 9999,
+        height: "3px", width: `${progress}%`,
+        background: "hsl(24,100%,50%)",
+        transition: "width 0.1s linear",
+        pointerEvents: "none",
+      }}
+    />
+  );
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -89,7 +142,7 @@ function CursorDot() {
   }, []);
   return (
     <>
-      <div ref={dotRef}  style={{ position:"fixed", pointerEvents:"none", zIndex:9999, width:8,  height:8,  borderRadius:"50%", background:"hsl(24,100%,50%)", transform:"translate(-50%,-50%)", top:0, left:0 }} />
+      <div ref={dotRef}  style={{ position:"fixed", pointerEvents:"none", zIndex:9999, width:8, height:8, borderRadius:"50%", background:"hsl(24,100%,50%)", transform:"translate(-50%,-50%)", top:0, left:0 }} />
       <div ref={ringRef} style={{ position:"fixed", pointerEvents:"none", zIndex:9998, width:32, height:32, borderRadius:"50%", border:"1.5px solid hsl(24,100%,50%)", transform:"translate(-50%,-50%)", top:0, left:0, opacity:0.5 }} />
     </>
   );
@@ -128,8 +181,10 @@ function Navbar({ onLogin, onSignup }) {
     <header className="fixed top-0 w-full z-50" style={{ background: "hsl(40,30%,92%)", borderBottom: "2px solid #000", boxShadow: scrolled ? "0 4px 0 #000" : "none", transition: "box-shadow 0.2s" }}>
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm shadow-hard-sm" style={{ background: "hsl(24,100%,50%)", border: "2px solid #000", transition: "transform 0.15s" }} onMouseEnter={e => e.currentTarget.style.transform = "rotate(-4deg) scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "rotate(0) scale(1)"}>SR</div>
-          <span className="font-black text-lg" style={{ color: "#111", letterSpacing: "-0.03em" }}>SmartResume</span>
+          <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm shadow-hard-sm" style={{ background: "hsl(24,100%,50%)", border: "2px solid #000", transition: "transform 0.15s" }} onMouseEnter={e => e.currentTarget.style.transform = "rotate(-4deg) scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "rotate(0) scale(1)"}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12h6M9 16h4M7 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2M7 4a2 2 0 012-2h6a2 2 0 012 2M7 4h10" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
+          </div>
+          <span className="font-black text-lg" style={{ color: "#111", letterSpacing: "-0.03em", fontFamily: "monospace" }}>SMARTRESUME</span>
         </div>
         <div className="hidden lg:flex items-center gap-8 font-black text-sm uppercase tracking-widest" style={{ color: "#111" }}>
           {["Features", "Resources", "How it Works", "About"].map((label) => (
@@ -140,8 +195,8 @@ function Navbar({ onLogin, onSignup }) {
           ))}
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={onLogin} className="text-sm font-bold px-4 py-2" style={{ color: "#555" }}>Log in</button>
-          <MagBtn onClick={onSignup} className="neu-btn-primary px-5 py-2 text-sm shadow-hard-sm">Get Started — free</MagBtn>
+          <button onClick={onLogin} className="text-sm font-bold px-4 py-2" style={{ color: "#555", fontFamily: "monospace", letterSpacing: "0.1em" }}>[ LOG_IN ]</button>
+          <MagBtn onClick={onSignup} className="neu-btn-primary px-5 py-2 text-sm shadow-hard-sm" style={{ fontFamily: "monospace", letterSpacing: "0.05em" }}>SYS.START</MagBtn>
         </div>
       </div>
     </header>
@@ -184,45 +239,95 @@ function SectionLabel({ children, dark = false }) {
   return (
     <div className="flex items-center justify-center gap-3 mb-4">
       <span style={{ display: "inline-block", width: 28, height: 2, background: dark ? "#555" : "hsl(24,100%,50%)" }} />
-      <span className="text-xs font-black uppercase tracking-widest" style={{ color: dark ? "#888" : "hsl(24,100%,50%)" }}>{children}</span>
+      <span className="text-xs font-black uppercase tracking-widest" style={{ color: dark ? "#888" : "hsl(24,100%,50%)", fontFamily: "monospace" }}>{children}</span>
       <span style={{ display: "inline-block", width: 28, height: 2, background: dark ? "#555" : "hsl(24,100%,50%)" }} />
     </div>
   );
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PAIN POINTS — Numbered list style like resumematcher.fyi
+   PAIN POINTS
 ───────────────────────────────────────────────────────────── */
 const PAIN_POINTS = [
   {
-    num: "01",
-    color: "#2563EB",
-    label: "The Manual Edit Loop",
+    num: "01", color: "#2563EB", label: "The Manual Edit Loop",
     text: "Waste hours shuffling bullet points only to see the job posting expire before you hit send.",
+    tag: "Time wasted",
     svg: (<svg viewBox="0 0 80 60" width="80" height="60" fill="none"><rect x="8" y="30" width="44" height="26" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" /><rect x="14" y="22" width="44" height="26" fill="white" fillOpacity="0.3" stroke="white" strokeWidth="1.5" /><rect x="20" y="14" width="44" height="26" fill="white" fillOpacity="0.4" stroke="white" strokeWidth="1.5" /><circle cx="58" cy="10" r="10" fill="#FF4444" stroke="white" strokeWidth="1.5" /><line x1="53" y1="5" x2="63" y2="15" stroke="white" strokeWidth="2.5" strokeLinecap="round" /><line x1="63" y1="5" x2="53" y2="15" stroke="white" strokeWidth="2.5" strokeLinecap="round" /></svg>),
   },
   {
-    num: "02",
-    color: "hsl(24,100%,50%)",
-    label: "The Silent Rejection",
+    num: "02", color: "hsl(24,100%,50%)", label: "The Silent Rejection",
     text: "One tiny formatting glitch or missing keyword guarantees the trash pile. You'll never even know why.",
+    tag: "You'll never know",
     svg: (<svg viewBox="0 0 80 60" width="80" height="60" fill="none"><rect x="18" y="10" width="44" height="36" rx="4" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" /><rect x="26" y="20" width="10" height="8" rx="1" fill="white" fillOpacity="0.8" /><rect x="44" y="20" width="10" height="8" rx="1" fill="white" fillOpacity="0.8" /><rect x="29" y="22" width="4" height="4" fill="#111" /><rect x="47" y="22" width="4" height="4" fill="#111" /><line x1="40" y1="10" x2="40" y2="2" stroke="white" strokeWidth="2" strokeLinecap="round" /><circle cx="40" cy="1" r="3" fill="white" /><line x1="28" y1="36" x2="52" y2="36" stroke="white" strokeWidth="2" strokeLinecap="round" /><text x="40" y="57" textAnchor="middle" fill="white" fontSize="6" fontFamily="monospace" fontWeight="bold" letterSpacing="1">REJECTED</text></svg>),
   },
   {
-    num: "03",
-    color: "#16A34A",
-    label: "The ATS Black Hole",
+    num: "03", color: "#16A34A", label: "The ATS Black Hole",
     text: "Blindly guessing keywords against an algorithm that is literally programmed to reject you.",
+    tag: "Bot says no",
     svg: (<svg viewBox="0 0 80 60" width="80" height="60" fill="none"><circle cx="40" cy="34" r="22" fill="white" fillOpacity="0.2" stroke="white" strokeWidth="1.5" /><circle cx="40" cy="34" r="2" fill="white" /><line x1="40" y1="34" x2="40" y2="16" stroke="white" strokeWidth="2.5" strokeLinecap="round" /><line x1="40" y1="34" x2="52" y2="38" stroke="white" strokeWidth="2" strokeLinecap="round" /><text x="40" y="40" textAnchor="middle" fill="white" fontSize="10" fontFamily="monospace" fontWeight="bold">6s</text></svg>),
   },
   {
-    num: "04",
-    color: "#1a1a1a",
-    label: "Ghosted. Again.",
+    num: "04", color: "#1a1a1a", label: "Ghosted. Again.",
     text: "No feedback. No reason. Just silence. We tell you exactly what went wrong — so it never happens again.",
+    tag: "Ghosted",
     svg: (<svg viewBox="0 0 80 60" width="80" height="60" fill="none"><path d="M20 55 L20 28 C20 16 32 8 40 8 C48 8 60 16 60 28 L60 55 L52 48 L44 55 L36 48 L28 55 Z" fill="white" fillOpacity="0.12" stroke="white" strokeWidth="1.5" /><circle cx="33" cy="30" r="4" fill="white" fillOpacity="0.8" /><circle cx="47" cy="30" r="4" fill="white" fillOpacity="0.8" /><circle cx="34" cy="31" r="2" fill="#1a1a1a" /><circle cx="48" cy="31" r="2" fill="#1a1a1a" /></svg>),
   },
 ];
+
+/* Pain point row — slides in from left on scroll */
+function PainRow({ p, index }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); io.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div
+      ref={ref}
+      className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 py-8 px-6"
+      style={{
+        borderTop: index === 0 ? "2px solid #000" : "1px solid rgba(0,0,0,0.15)",
+        borderBottom: index === PAIN_POINTS.length - 1 ? "2px solid #000" : "none",
+        background: index % 2 === 0 ? "transparent" : "rgba(0,0,0,0.03)",
+        transform: visible ? "translateX(0)" : "translateX(-48px)",
+        opacity: visible ? 1 : 0,
+        transition: `transform 0.65s cubic-bezier(0.16,1,0.3,1) ${index * 0.1}s, opacity 0.5s ease ${index * 0.1}s`,
+      }}
+    >
+      <div className="font-black text-5xl md:text-6xl shrink-0" style={{ color: p.color, fontFamily: "monospace", lineHeight: 1, minWidth: "3.5rem", opacity: 0.85 }}>
+        {p.num}
+      </div>
+      <div className="shrink-0 flex items-center justify-center w-14 h-14 md:w-16 md:h-16" style={{ background: p.color, border: "2px solid #000", boxShadow: "3px 3px 0 #000" }}>
+        {p.svg}
+      </div>
+      <div className="flex-1">
+        <h3 className="font-black text-xl md:text-2xl mb-1" style={{ color: "#111", letterSpacing: "-0.02em" }}>{p.label}</h3>
+        <p className="text-base leading-relaxed" style={{ color: "#555", maxWidth: "52ch" }}>{p.text}</p>
+      </div>
+      <div
+        className="shrink-0 px-3 py-1.5 text-xs font-black uppercase tracking-widest hidden md:block"
+        style={{
+          background: p.color,
+          color: p.color === "hsl(24,100%,50%)" || p.color === "#1a1a1a" ? (p.color === "#1a1a1a" ? "#fff" : "#111") : "#fff",
+          border: "2px solid #000", boxShadow: "2px 2px 0 #000",
+          transform: visible ? "rotate(-1deg)" : "rotate(-1deg) scale(0.8)",
+          transition: `transform 0.5s cubic-bezier(0.34,1.56,0.64,1) ${index * 0.1 + 0.3}s`,
+          fontFamily: "monospace",
+        }}
+      >
+        {p.tag}
+      </div>
+    </div>
+  );
+}
 
 /* ─────────────────────────────────────────────────────────────
    FEATURES DATA
@@ -249,6 +354,69 @@ const STEPS = [
   { n: "03", title: "Fix what's broken", body: "AI suggestions. One-click rewrites. Then land that interview.",
     svg: (<svg viewBox="0 0 48 48" width="48" height="48" fill="none"><path d="M10 38 L16 32 L28 20 L34 26 L22 38 L10 38 Z" stroke="#111" strokeWidth="2" fill="none" strokeLinejoin="round" /><path d="M28 20 L34 14 L38 18 L34 26 Z" fill="hsl(24,100%,50%)" stroke="hsl(24,100%,50%)" strokeWidth="1" /><circle cx="16" cy="32" r="2" fill="hsl(24,100%,50%)" /></svg>) },
 ];
+
+/* Steps connector — SVG line that draws on scroll */
+function StepsConnector() {
+  const ref    = useRef(null);
+  const pathRef = useRef(null);
+  useEffect(() => {
+    const path = pathRef.current;
+    if (!path) return;
+    const len = path.getTotalLength();
+    path.style.strokeDasharray  = `${len}`;
+    path.style.strokeDashoffset = `${len}`;
+    const onScroll = () => {
+      const el = ref.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const p = Math.min(1, Math.max(0, (window.innerHeight - r.top) / (r.height + 200)));
+      path.style.strokeDashoffset = `${len * (1 - p)}`;
+    };
+    window.addEventListener("scroll", onScroll, { passive: true }); onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  return (
+    <div ref={ref} className="hidden md:block absolute top-10 left-0 w-full" style={{ height: "2px", zIndex: 0 }}>
+      <svg width="100%" height="2" style={{ overflow: "visible", display: "block" }}>
+        <path
+          ref={pathRef}
+          d="M 0 1 L 50% 1 L 100% 1"
+          vectorEffect="non-scaling-stroke"
+          stroke="hsl(24,100%,50%)"
+          strokeWidth="2"
+          fill="none"
+          strokeLinecap="round"
+          style={{ transition: "stroke-dashoffset 0.05s linear" }}
+        />
+      </svg>
+    </div>
+  );
+}
+
+/* Animated stats strip */
+function StatItem({ num, suffix, label }) {
+  const ref       = useRef(null);
+  const [fired, setFired] = useState(false);
+  const numericEnd = parseFloat(num.replace(/[^0-9.]/g, ""));
+  const hasSuffix  = num.replace(/[0-9.]/g, "");
+  const count      = useCounter(numericEnd, fired);
+  useEffect(() => {
+    const io = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setFired(true); io.disconnect(); } },
+      { threshold: 0.3 }
+    );
+    if (ref.current) io.observe(ref.current);
+    return () => io.disconnect();
+  }, []);
+  return (
+    <div ref={ref} className="text-center">
+      <div className="text-4xl font-black text-black" style={{ fontFamily: "monospace" }}>
+        {fired ? `${count}${hasSuffix || suffix || ""}` : `0${hasSuffix || suffix || ""}`}
+      </div>
+      <div className="text-xs font-bold text-black uppercase tracking-wide mt-1" style={{ opacity: 0.65, fontFamily: "monospace" }}>{label}</div>
+    </div>
+  );
+}
 
 /* ─────────────────────────────────────────────────────────────
    MAIN
@@ -291,6 +459,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: "hsl(40,30%,92%)" }}>
+      <ScrollProgressBar />
       <CursorDot />
       <Navbar onLogin={openLogin} onSignup={openSignup} />
 
@@ -303,7 +472,7 @@ export default function LandingPage() {
         onCheckScoreClick={() => scrollTo("guest-analyzer")}
       />
 
-      {/* ── PAIN POINTS — numbered layout like resumematcher.fyi ── */}
+      {/* ── PAIN POINTS ── */}
       <section
         className="py-24 px-6"
         style={{
@@ -315,58 +484,15 @@ export default function LandingPage() {
       >
         <div className="max-w-7xl mx-auto">
           <div className="sr">
-            <SectionLabel>okay, be honest with yourself</SectionLabel>
+            <SectionLabel>001.SYSTEM_STATUS</SectionLabel>
             <h2 className="font-display-serif text-4xl md:text-5xl text-center mb-16" style={{ color: "#111", letterSpacing: "-0.03em" }}>
               The{" "}<span style={{ textDecoration: "line-through", opacity: 0.35 }}>joy</span>{" "}
               <span className="inline-block px-2 shadow-hard" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}>pain</span>
               {" "}of manually editing resumes.
             </h2>
           </div>
-
-          {/* Stacked numbered pain point rows */}
           <div className="flex flex-col gap-0">
-            {PAIN_POINTS.map((p, i) => (
-              <div
-                key={i}
-                className="sr flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-12 py-8 px-6"
-                style={{
-                  borderTop: i === 0 ? "2px solid #000" : "1px solid rgba(0,0,0,0.15)",
-                  borderBottom: i === PAIN_POINTS.length - 1 ? "2px solid #000" : "none",
-                  background: i % 2 === 0 ? "transparent" : "rgba(0,0,0,0.03)",
-                  transitionDelay: `${i * 80}ms`,
-                }}
-              >
-                {/* Number */}
-                <div
-                  className="font-black text-5xl md:text-6xl shrink-0"
-                  style={{ color: p.color, fontFamily: "Playfair Display, serif", lineHeight: 1, minWidth: "3.5rem", opacity: 0.85 }}
-                >
-                  {p.num}
-                </div>
-
-                {/* SVG icon */}
-                <div
-                  className="shrink-0 flex items-center justify-center w-14 h-14 md:w-16 md:h-16"
-                  style={{ background: p.color, border: "2px solid #000", boxShadow: "3px 3px 0 #000" }}
-                >
-                  {p.svg}
-                </div>
-
-                {/* Text */}
-                <div className="flex-1">
-                  <h3 className="font-black text-xl md:text-2xl mb-1" style={{ color: "#111", letterSpacing: "-0.02em" }}>{p.label}</h3>
-                  <p className="text-base leading-relaxed" style={{ color: "#555", maxWidth: "52ch" }}>{p.text}</p>
-                </div>
-
-                {/* Tag */}
-                <div
-                  className="shrink-0 px-3 py-1.5 text-xs font-black uppercase tracking-widest hidden md:block"
-                  style={{ background: p.color, color: p.color === "hsl(24,100%,50%)" ? "#111" : "#fff", border: "2px solid #000", boxShadow: "2px 2px 0 #000", transform: "rotate(-1deg)" }}
-                >
-                  {i === 0 ? "Time wasted" : i === 1 ? "You'll never know" : i === 2 ? "Bot says no" : "Ghosted"}
-                </div>
-              </div>
-            ))}
+            {PAIN_POINTS.map((p, i) => <PainRow key={i} p={p} index={i} />)}
           </div>
         </div>
       </section>
@@ -434,21 +560,21 @@ export default function LandingPage() {
                 onClick={handleGuestAnalyze}
                 disabled={loading || !file}
                 className="w-full py-4 text-base font-bold shadow-hard"
-                style={{ background: loading || !file ? "#999" : "#111", color: "#fff", border: "2px solid #000", cursor: loading || !file ? "not-allowed" : "pointer" }}
+                style={{ background: loading || !file ? "#999" : "#111", color: "#fff", border: "2px solid #000", cursor: loading || !file ? "not-allowed" : "pointer", fontFamily: "monospace", letterSpacing: "0.05em" }}
               >
-                {loading ? "Analyzing..." : "Check My Score →"}
+                {loading ? "> ANALYZING..." : "> CHECK_MY_SCORE"}
               </MagBtn>
               {result && (
                 <div className="mt-8 pt-6" style={{ borderTop: "2px solid #e5e7eb" }}>
                   <div className="flex items-center gap-6">
                     <div>
-                      <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#999" }}>Your ATS Score</div>
-                      <div className="text-6xl font-black" style={{ color: "hsl(24,100%,50%)", fontFamily: "Playfair Display, serif" }}>{Math.round(result.ats_score)}</div>
+                      <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: "#999", fontFamily: "monospace" }}>ATS_SCORE</div>
+                      <div className="text-6xl font-black" style={{ color: "hsl(24,100%,50%)", fontFamily: "monospace" }}>{Math.round(result.ats_score)}</div>
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-lg mb-1" style={{ color: "#111" }}>Scan complete.</p>
                       <p className="text-sm mb-4" style={{ color: "#888" }}>Create a free account to see the full breakdown — keyword gaps, formatting issues, and AI fix suggestions.</p>
-                      <MagBtn onClick={openSignup} className="neu-btn-primary px-6 py-2.5 text-sm shadow-hard-sm">See Full Report — free →</MagBtn>
+                      <MagBtn onClick={openSignup} className="neu-btn-primary px-6 py-2.5 text-sm shadow-hard-sm" style={{ fontFamily: "monospace" }}>See Full Report — free →</MagBtn>
                     </div>
                   </div>
                 </div>
@@ -466,11 +592,11 @@ export default function LandingPage() {
             <h2 className="font-display-serif text-4xl md:text-5xl text-center mb-16" style={{ color: "#111", letterSpacing: "-0.03em" }}>How it works</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-            <div className="hidden md:block absolute top-10 left-0 w-full h-0.5" style={{ background: "#e5e7eb" }} />
+            <StepsConnector />
             {STEPS.map((s, i) => (
-              <TiltCard key={s.n} strength={6} className="sr cream-card-block p-8 text-center relative z-10" style={{ transitionDelay: `${i * 100}ms` }}>
+              <TiltCard key={s.n} strength={6} className={`sr cream-card-block p-8 text-center relative z-10`} style={{ transitionDelay: `${i * 100}ms` }}>
                 <div className="flex justify-center mb-4">{s.svg}</div>
-                <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4 font-black text-lg" style={{ border: "2px solid hsl(24,100%,50%)", color: "hsl(24,100%,50%)", background: "#fff" }}>{s.n}</div>
+                <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4 font-black text-lg" style={{ border: "2px solid hsl(24,100%,50%)", color: "hsl(24,100%,50%)", background: "#fff", fontFamily: "monospace" }}>{s.n}</div>
                 <h3 className="font-bold text-base mb-2 uppercase tracking-tight" style={{ color: "#111" }}>{s.title}</h3>
                 <p className="text-sm" style={{ color: "#777" }}>{s.body}</p>
               </TiltCard>
@@ -504,36 +630,29 @@ export default function LandingPage() {
             {FEATURES.map((f, i) => (
               <TiltCard key={f.num} strength={9} className={`sr ${f.cls} p-7 shadow-hard`} style={{ transitionDelay: `${i * 80}ms` }}>
                 <div className="mb-4">{f.svg}</div>
-                <div className="text-xs font-bold uppercase tracking-widest mb-3 opacity-50">{f.num}</div>
+                <div className="text-xs font-bold uppercase tracking-widest mb-3 opacity-50" style={{ fontFamily: "monospace" }}>{f.num}</div>
                 <h3 className="font-black text-xl mb-3" style={{ letterSpacing: "-0.03em" }}>{f.title}</h3>
                 <p className="text-sm leading-relaxed opacity-90">{f.body}</p>
               </TiltCard>
             ))}
           </div>
           <div className="text-center mt-10">
-            <MagBtn onClick={openSignup} className="neu-btn-primary px-10 py-4 text-base shadow-hard">Get Full Access — Free →</MagBtn>
+            <MagBtn onClick={openSignup} className="neu-btn-primary px-10 py-4 text-base shadow-hard" style={{ fontFamily: "monospace", letterSpacing: "0.05em" }}>GET_FULL_ACCESS →</MagBtn>
           </div>
         </div>
       </section>
 
-      {/* ── STATS STRIP ── */}
-      <section className="py-14 px-6 sr" style={{ background: "hsl(24,100%,50%)", borderBottom: "2px solid #000" }}>
+      {/* ── STATS STRIP — animated counters ── */}
+      <section className="py-14 px-6" style={{ background: "hsl(24,100%,50%)", borderBottom: "2px solid #000" }}>
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {[
-            { num: "12K+", label: "Resumes analyzed" },
-            { num: "3.2x", label: "More callbacks" },
-            { num: "87%",  label: "ATS pass rate after fix" },
-            { num: "< 60s", label: "To your first score" },
-          ].map((stat, i) => (
-            <div key={stat.label} className="sr" style={{ transitionDelay: `${i * 60}ms` }}>
-              <div className="text-4xl font-black text-black" style={{ fontFamily: "Playfair Display, serif" }}>{stat.num}</div>
-              <div className="text-xs font-bold text-black uppercase tracking-wide mt-1" style={{ opacity: 0.65 }}>{stat.label}</div>
-            </div>
-          ))}
+          <StatItem num="12000" suffix="+" label="Resumes analyzed" />
+          <StatItem num="3.2" suffix="x" label="More callbacks" />
+          <StatItem num="87" suffix="%" label="ATS pass rate after fix" />
+          <StatItem num="60" suffix="s" label="To your first score" />
         </div>
       </section>
 
-      {/* ── CONVINCED — mirroring resumematcher.fyi tone ── */}
+      {/* ── CONVINCED ── */}
       <section className="py-24 px-6 sr" style={{ background: "#111" }}>
         <div className="max-w-3xl mx-auto text-center">
           <SectionLabel dark>convinced?</SectionLabel>
@@ -542,20 +661,16 @@ export default function LandingPage() {
             <br />
             <span className="inline-block px-3 py-1 shadow-hard" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid hsl(24,100%,50%)", fontSize: "0.7em" }}>it&apos;s free</span>
           </h2>
-
           <MagBtn
             onClick={openSignup}
             className="px-12 py-5 text-lg font-bold shadow-hard mb-10"
-            style={{ background: "#fff", color: "#111", border: "2px solid #fff" }}
+            style={{ background: "#fff", color: "#111", border: "2px solid #fff", fontFamily: "monospace", letterSpacing: "0.05em" }}
           >
-            Let&apos;s Go →
+            SYS.START →
           </MagBtn>
-
           <div style={{ borderTop: "1px solid #222" }} className="pt-10">
             <p className="text-lg" style={{ color: "#888" }}>OR</p>
-            <p className="mt-4 text-base" style={{ color: "#666" }}>
-              Not convinced? <em style={{ color: "#555" }}>That&apos;s cute.</em>
-            </p>
+            <p className="mt-4 text-base" style={{ color: "#666" }}>Not convinced? <em style={{ color: "#555" }}>That&apos;s cute.</em></p>
             <p className="text-xl mt-3 font-semibold" style={{ color: "#ccc" }}>
               Try it anyway →{" "}
               <span className="strike" style={{ color: "#555" }}>hate it</span>{" "}
@@ -575,7 +690,7 @@ export default function LandingPage() {
             <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: "hsl(24,100%,50%)", border: "2px solid #333" }}>SR</div>
-                <span className="font-black text-lg text-white" style={{ letterSpacing: "-0.03em" }}>SmartResume</span>
+                <span className="font-black text-lg text-white" style={{ letterSpacing: "-0.03em", fontFamily: "monospace" }}>SMARTRESUME</span>
               </div>
               <p className="text-sm max-w-xs" style={{ color: "#666", lineHeight: 1.7 }}>Honest, AI-powered resume feedback. Built for students who want real feedback, not false hope.</p>
               <div className="flex gap-4 mt-5">
@@ -585,7 +700,7 @@ export default function LandingPage() {
               </div>
             </div>
             <div>
-              <h4 className="text-sm font-black uppercase tracking-widest mb-4 text-white">Platform</h4>
+              <h4 className="text-sm font-black uppercase tracking-widest mb-4 text-white" style={{ fontFamily: "monospace" }}>Platform</h4>
               <ul className="space-y-3 text-sm" style={{ color: "#555" }}>
                 <li onClick={() => navigate('/how-it-works')} className="hover:text-white cursor-pointer transition-colors">How It Works</li>
                 <li onClick={() => navigate('/templates')} className="hover:text-white cursor-pointer transition-colors">Resume Templates</li>
@@ -594,7 +709,7 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-black uppercase tracking-widest mb-4 text-white">Legal</h4>
+              <h4 className="text-sm font-black uppercase tracking-widest mb-4 text-white" style={{ fontFamily: "monospace" }}>Legal</h4>
               <ul className="space-y-3 text-sm" style={{ color: "#555" }}>
                 <li className="hover:text-white cursor-pointer transition-colors">Privacy Policy</li>
                 <li className="hover:text-white cursor-pointer transition-colors">Terms of Service</li>
