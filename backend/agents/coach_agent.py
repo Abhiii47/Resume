@@ -90,6 +90,9 @@ class CoachAgent(BaseAgent):
             "and connects the dots between resume data, GitHub activity, DSA progress, "
             "and job market needs. Pushes users to be proactive and consistent. "
             "Ends every response with clear, specific next steps."
+            "\n\nCRITICAL: When generating a roadmap, you MUST read any available [CONTEXT FROM OTHER AGENTS]. "
+            "If another agent (like Scout) has already found a target job/company, or if Maya has found skill gaps, "
+            "you must use those specific details to inform the target role and company parameters for the roadmap."
         )
 
         self.tools = [
@@ -174,6 +177,20 @@ class CoachAgent(BaseAgent):
         context: AgentContext = kwargs["context"]
         role = kwargs.get("role", "Software Engineer")
         company = kwargs.get("company", "Top Tech Company")
+
+        # Override with context from previous agents if available
+        if context.shared_context and "previous_results" in context.shared_context:
+            for res in context.shared_context["previous_results"]:
+                if res.get("agent") == "Scout":
+                    response_text = str(res.get("response", ""))
+                    import re
+                    # Simple heuristic to find a company and role from Scout's output
+                    company_match = re.search(r'company:\s*([a-zA-Z0-9\s]+)', response_text, re.IGNORECASE)
+                    if company_match:
+                        company = company_match.group(1).strip()
+                    role_match = re.search(r'title:\s*([a-zA-Z0-9\s]+)', response_text, re.IGNORECASE)
+                    if role_match:
+                        role = role_match.group(1).strip()
 
         resume_text = _get_resume_text(context)
         if not resume_text:

@@ -43,6 +43,14 @@ WORKFLOW_TEMPLATES = {
             {"agent": "max", "task": "Rewrite and fix the identified flaws"},
         ],
     },
+    "end_to_end_journey": {
+        "description": "Complete career journey: analyze resume, find jobs, find gaps, and generate learning roadmap",
+        "steps": [
+            {"agent": "maya", "task": "Analyze the resume to extract current skills and identify areas of improvement"},
+            {"agent": "scout", "task": "Search for top matching jobs based on the user's skills and compare the resume against the best job"},
+            {"agent": "maaya", "task": "Generate a personalized learning roadmap to bridge the skill gap between the resume and the target job found"},
+        ],
+    },
 }
 
 
@@ -102,6 +110,7 @@ PREDEFINED WORKFLOWS (use if the message clearly matches):
   - "job_hunt": Search for jobs + match resume + generate cover letter
   - "interview_prep": Identify gaps + generate interview questions
   - "quick_fix": Find top flaws + rewrite them
+  - "end_to_end_journey": Complete career journey: analyze resume, find jobs, find gaps, and generate learning roadmap
 
 USER MESSAGE: "{message}"
 
@@ -111,7 +120,7 @@ USER HAS JOB DESCRIPTION: {"Yes" if context.job_description else "No"}
 Return JSON:
 {{
   "intent": "brief description of what the user wants",
-  "workflow": "full_review|job_hunt|interview_prep|quick_fix|null",
+  "workflow": "full_review|job_hunt|interview_prep|quick_fix|end_to_end_journey|null",
   "agents": ["agent_key1", "agent_key2"],
   "tasks": {{"agent_key": "specific task to give this agent"}},
   "direct_response": "If this is a simple greeting or question Nova can answer directly without delegating, put the response here. Otherwise null."
@@ -146,6 +155,8 @@ Rules:
         tasks = {}
 
         # Check for workflow triggers
+        if any(k in ml for k in ["end to end", "full journey", "overall", "find job and learn", "find job and roadmap"]):
+            return {"intent": "end to end journey", "workflow": "end_to_end_journey", "agents": [], "tasks": {}, "direct_response": None}
         if any(k in ml for k in ["full review", "review my resume", "check everything", "analyze everything"]):
             return {"intent": "full review", "workflow": "full_review", "agents": [], "tasks": {}, "direct_response": None}
         if any(k in ml for k in ["find job", "search job", "job hunt", "looking for", "open positions"]):
