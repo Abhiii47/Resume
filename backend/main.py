@@ -358,7 +358,9 @@ async def health_check():
 # ==================== AUTH ENDPOINTS ====================
 
 @app.post("/signup", summary="Create User Account", description="Registers a new user with a unique email and username. Returns account details on success.")
+@limiter.limit("5/minute")
 async def signup(
+    request: Request,
     email: str = Form(...),
     username: str = Form(...),
     password: str = Form(...),
@@ -408,7 +410,9 @@ async def signup(
         raise HTTPException(status_code=500, detail=f"Failed to create user: {str(e)}")
 
 @app.post("/login", summary="User Authentication", description="Authenticates a user and returns a JWT access token for subsequent requests.")
+@limiter.limit("5/minute")
 async def login(
+    request: Request,
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
@@ -579,7 +583,9 @@ async def guest_analyze_resume(
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
 
 @app.post("/generate-cover-letter", summary="Generate AI Cover Letter", description="Generates a professional, tailored cover letter based on the user's latest resume analysis.")
+@limiter.limit("5/minute")
 async def api_generate_cover_letter(
+    request: Request,
     jd: str = Form(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -594,7 +600,9 @@ async def api_generate_cover_letter(
     return {"cover_letter": cover_letter}
 
 @app.post("/generate-interview-prep", summary="Generate Interview Questions", description="Generates tailored interview questions and winning tips based on the user's resume and a target job description.")
+@limiter.limit("5/minute")
 async def api_generate_interview_prep(
+    request: Request,
     jd: str = Form(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -608,7 +616,9 @@ async def api_generate_interview_prep(
     return {"interview_prep": questions}
 
 @app.post("/analyze/rewrite", summary="Rewrite Resume Bullet", description="Generates a fixed, ATS-optimized bullet point based on a detected flaw.")
+@limiter.limit("10/minute")
 async def api_rewrite_bullet(
+    request: Request,
     flaw: str = Form(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -818,7 +828,9 @@ async def get_github_profile(
 
 
 @app.post("/github/compare")
+@limiter.limit("5/minute")
 async def compare_github_with_resume(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -968,7 +980,9 @@ async def update_roadmap_progress(
 
 
 @app.post("/roadmap/ai-generate", summary="Generate Personalized AI Roadmap", description="Generates a dynamic 8-week roadmap tailored to the user's resume gaps, target role, and target company.")
+@limiter.limit("5/minute")
 async def generate_ai_roadmap(
+    request: Request,
     target_role: str = Form(...),
     target_company: str = Form(...),
     current_user: User = Depends(get_current_user),
@@ -1130,7 +1144,9 @@ async def delete_application(
 # ==================== COMMUNICATION TOOLS ====================
 
 @app.post("/comms/language-audit")
+@limiter.limit("10/minute")
 async def language_audit(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -1142,7 +1158,9 @@ async def language_audit(
 
 
 @app.post("/comms/elevator-pitch")
+@limiter.limit("10/minute")
 async def elevator_pitch(
+    request: Request,
     target_role: str = Form(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -1155,7 +1173,9 @@ async def elevator_pitch(
 
 
 @app.post("/comms/linkedin-headline")
+@limiter.limit("10/minute")
 async def linkedin_headline(
+    request: Request,
     target_role: str = Form(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -1168,7 +1188,9 @@ async def linkedin_headline(
 
 
 @app.post("/comms/cold-email")
+@limiter.limit("10/minute")
 async def cold_email(
+    request: Request,
     company: str = Form(...),
     role: str = Form(...),
     current_user: User = Depends(get_current_user),
@@ -1184,7 +1206,9 @@ async def cold_email(
 # ==================== RESUME INTELLIGENCE ====================
 
 @app.post("/resume/rewrite-bullet")
+@limiter.limit("10/minute")
 async def rewrite_bullet(
+    request: Request,
     bullet: str = Form(...),
     role: str = Form(""),
     current_user: User = Depends(get_current_user)
@@ -1194,7 +1218,9 @@ async def rewrite_bullet(
 
 
 @app.post("/resume/keyword-heatmap")
+@limiter.limit("10/minute")
 async def keyword_heatmap(
+    request: Request,
     jd: str = Form(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
@@ -1207,7 +1233,9 @@ async def keyword_heatmap(
 
 
 @app.post("/resume/parse-pdf")
+@limiter.limit("10/minute")
 async def parse_pdf_to_builder(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user)
 ):
@@ -1373,6 +1401,7 @@ async def save_resume_profile(
 
 
 @app.post("/resume/analyze-builder")
+@limiter.limit("10/minute")
 async def analyze_builder_resume(
     request: Request,
     current_user: User = Depends(get_current_user),
