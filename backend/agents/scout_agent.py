@@ -67,6 +67,9 @@ class ScoutAgent(BaseAgent):
             "what the company wants AND what the candidate needs. "
             "Knows job markets, salary ranges, and hiring trends. "
             "Never recommends a shotgun approach; every application should be strategic."
+            "\n\nCRITICAL: When searching for jobs, you MUST read any available [CONTEXT FROM OTHER AGENTS] "
+            "and extract the specific skills, keywords, or missing areas found by your team members (e.g. Maya) "
+            "to formulate a highly targeted, specific search query instead of using default generic queries."
         )
 
         self.tools = [
@@ -122,7 +125,23 @@ class ScoutAgent(BaseAgent):
     def _handle_search_jobs(self, **kwargs) -> Any:
         """Search jobs via Adzuna API."""
         context: AgentContext = kwargs["context"]
+
+        # If query is generically "software engineer", see if we have skills in previous_results
         query = kwargs.get("query", "software engineer")
+
+        # Try to refine query based on previous agent context if available
+        if context.shared_context and "previous_results" in context.shared_context:
+            for res in context.shared_context["previous_results"]:
+                if "skills" in str(res).lower() and query == "software engineer":
+                    # Simple heuristic: try to extract a key skill to append to query
+                    response_text = str(res.get("response", ""))
+                    import re
+                    skills_match = re.search(r'skills:\s*([a-zA-Z0-9,\s]+)', response_text, re.IGNORECASE)
+                    if skills_match:
+                        first_skill = skills_match.group(1).split(',')[0].strip()
+                        if first_skill:
+                            query = f"{first_skill} {query}"
+
         location = kwargs.get("location", "us").strip().lower()
 
         try:
