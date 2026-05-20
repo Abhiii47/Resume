@@ -8,7 +8,7 @@ const TEAM = [
   { name: "Maya",  role: "Resume Analyst", emoji: "🔍", color: "#3b82f6" },
   { name: "Max",   role: "Content Writer", emoji: "✍️",  color: "#8b5cf6" },
   { name: "Scout", role: "Job Scout",      emoji: "🎯", color: "#22c55e" },
-  { name: "Maaya", role: "Career Coach",   emoji: "🧭", color: "#f59e0b" },
+  { name: "Alex",  role: "Career Coach",   emoji: "🧭", color: "#f59e0b" },
 ];
 
 const QUICK_ACTIONS = [

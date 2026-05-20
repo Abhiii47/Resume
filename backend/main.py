@@ -1770,7 +1770,7 @@ AGENT_INFO = {
     "maya":  {"name": "Maya",  "role": "Resume Analyst", "emoji": "🔍", "color": "#3b82f6", "description": "ATS scoring, keyword analysis, flaw detection"},
     "max":   {"name": "Max",   "role": "Content Writer", "emoji": "✍️",  "color": "#8b5cf6", "description": "Rewrites bullets, cover letters, outreach copy"},
     "scout": {"name": "Scout", "role": "Job Scout",      "emoji": "🎯", "color": "#22c55e", "description": "Finds matching jobs, tracks applications"},
-    "maaya": {"name": "Maaya", "role": "Career Coach",   "emoji": "🧭", "color": "#f59e0b", "description": "Roadmaps, interview prep, career strategy"},
+    "alex": {"name": "Alex", "role": "Career Coach",   "emoji": "🧭", "color": "#f59e0b", "description": "Roadmaps, interview prep, career strategy"},
 }
 
 

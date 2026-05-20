@@ -8,9 +8,10 @@ import re
 import logging
 import time
 from typing import Any, Dict, List, Optional, Tuple
+import hashlib
 import google.generativeai as genai
 from config import settings
-from database import LLMCallLog, SessionLocal
+from database import LLMCallLog, SessionLocal, LLMCache
 
 # Configure Logger
 logger = logging.getLogger(__name__)
@@ -299,6 +300,20 @@ def _call_llm_json(
 ) -> dict:
     """LLM JSON caller with schema checks, fallback routing, and telemetry."""
     required = required_keys or []
+    
+    # 1. Check semantic cache
+    prompt_hash = hashlib.sha256(f"{task}:{system}:{prompt}".encode('utf-8')).hexdigest()
+    try:
+        db = SessionLocal()
+        cached = db.query(LLMCache).filter(LLMCache.prompt_hash == prompt_hash).first()
+        if cached:
+            db.close()
+            logger.info(f"LLM Cache hit for task: {task}")
+            return cached.response_payload
+        db.close()
+    except Exception as e:
+        logger.warning(f"Cache read failed: {e}")
+
     for provider, models in _get_route(task).items():
         for model_name in models:
             start = time.perf_counter()
@@ -322,6 +337,16 @@ def _call_llm_json(
                     raise ValueError(f"Missing required keys: {required}")
 
                 _log_llm_call(task, provider, model_name, True, int((time.perf_counter() - start) * 1000), user_id=user_id)
+                
+                # 2. Write to cache
+                try:
+                    db = SessionLocal()
+                    db.add(LLMCache(prompt_hash=prompt_hash, response_payload=payload))
+                    db.commit()
+                    db.close()
+                except Exception as e:
+                    logger.warning(f"Cache write failed: {e}")
+                    
                 return payload
             except Exception as e:
                 _log_llm_call(task, provider, model_name, False, int((time.perf_counter() - start) * 1000), error=str(e), user_id=user_id)
@@ -330,18 +355,62 @@ def _call_llm_json(
     return {}
 
 
+# ── Resume Text Chunking ───────────────────────────────────────────────────────
+
+def _extract_section(resume_text: str, section_name: str) -> str:
+    """Uses regex to quickly extract a specific section from the resume without LLM."""
+    text_lower = resume_text.lower()
+    
+    sections = {
+        "experience": [r'work\s+experience', r'professional\s+experience', r'\bexperience\b', r'employment\s+history'],
+        "education": [r'\beducation\b', r'academic\s+background'],
+        "skills": [r'\bskills\b', r'technical\s+skills', r'core\s+competencies']
+    }
+    
+    patterns = sections.get(section_name, [rf'\b{section_name}\b'])
+    
+    best_start = -1
+    for p in patterns:
+        match = re.search(p, text_lower)
+        if match:
+            best_start = match.start()
+            break
+            
+    if best_start == -1:
+        return resume_text[:1000] # Fallback to first 1000 chars
+        
+    # Find next section header to determine end
+    all_headers = [p for h_list in sections.values() for p in h_list]
+    end_idx = len(resume_text)
+    
+    # Search for next header after the current one
+    search_area = text_lower[best_start + 20:]
+    for h in all_headers:
+        match = re.search(h, search_area)
+        if match:
+            end_idx = min(end_idx, best_start + 20 + match.start())
+            
+    # Return the chunk
+    chunk = resume_text[best_start:end_idx].strip()
+    return chunk if len(chunk) > 50 else resume_text[:1000]
+
+
 # ── Original Features ─────────────────────────────────────────────────────────
 
 def generate_cover_letter(resume_text: str, jd_text: str) -> str:
+    # A cover letter needs experience and skills
+    exp = _extract_section(resume_text, "experience")
     return _call_llm(
-        f"Write a professional, concise cover letter.\nRESUME:\n{resume_text[:2000]}\nJOB:\n{jd_text[:1000]}",
+        f"Write a professional, concise cover letter.\nRELEVANT EXPERIENCE:\n{exp[:1500]}\nJOB:\n{jd_text[:1000]}",
         system="You are an expert cover letter writer.",
         task="quick_copy",
     )
 
 def generate_interview_questions(resume_text: str, jd_text: str) -> str:
+    # Interviews mainly rely on experience
+    exp = _extract_section(resume_text, "experience")
     return _call_llm(
-        f"Generate 5 targeted interview questions with winning answer tips.\nRESUME:\n{resume_text[:2000]}\nJOB:\n{jd_text[:1000]}",
+        f"Generate 5 targeted interview questions with winning answer tips.\nRELEVANT EXPERIENCE:\n{exp[:2000]}\nJOB:\n{jd_text[:1000]}",
         system="You are an expert technical interviewer.",
         task="analysis_quality",
     )
@@ -364,10 +433,14 @@ def compare_github_resume(resume_text: str, top_languages: dict, pinned_repos: l
     commits_summary = "\n".join(
         f"- [{c.get('repo')}] {c.get('message','')}" for c in recent_commits[:8]
     )
+    
+    # We only need skills and projects to compare with GitHub
+    rel_text = _extract_section(resume_text, "skills") + "\n" + _extract_section(resume_text, "projects")
+    
     prompt = f"""Compare this resume with the candidate's real GitHub activity.
 
-RESUME (excerpt):
-{resume_text[:1500]}
+RESUME SKILLS/PROJECTS:
+{rel_text[:1500]}
 
 TOP GITHUB LANGUAGES (by repo count %):
 {json.dumps(top_languages)}

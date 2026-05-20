@@ -28,7 +28,7 @@ class AgentTeam:
         self.maya = AnalystAgent()
         self.max = WriterAgent()
         self.scout = ScoutAgent()
-        self.maaya = CoachAgent()
+        self.alex = CoachAgent()
         self.nova = OrchestratorAgent()
 
         # Register agents in the orchestrator's registry
@@ -37,7 +37,7 @@ class AgentTeam:
             "maya": self.maya,
             "max": self.max,
             "scout": self.scout,
-            "maaya": self.maaya,
+            "alex": self.alex,
         }
 
         # Give orchestrator access to the full team

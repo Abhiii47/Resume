@@ -67,25 +67,25 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
   return (
     <aside
       className="flex flex-col h-full z-20 w-full"
-      style={{ background: '#111', borderRight: '2px solid #1f1f1f' }}
+      style={{ background: 'hsl(40,30%,92%)', borderRight: '3px solid #000' }}
     >
       {/* Logo */}
       <div
         className="flex items-center gap-3 px-5 py-5 cursor-pointer group"
-        style={{ borderBottom: '1px solid #1f1f1f' }}
+        style={{ borderBottom: '2px solid #000' }}
         onClick={() => { setActiveTab('overview'); onClose?.(); }}
       >
         <div
           className="w-9 h-9 flex items-center justify-center shrink-0 font-black text-sm text-white"
-          style={{ background: 'hsl(24,100%,50%)', border: '2px solid #333' }}
+          style={{ background: 'hsl(24,100%,50%)', border: '2px solid #000' }}
         >
           SR
         </div>
         <div>
-          <span className="text-base font-black text-white block leading-tight" style={{ letterSpacing: '-0.03em' }}>
+          <span className="text-base font-black text-[#111] block leading-tight" style={{ letterSpacing: '-0.03em', fontFamily: 'var(--font-display)' }}>
             SmartResume
           </span>
-          <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: '#444' }}>
+          <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: '#888' }}>
             Career Hub
           </span>
         </div>
@@ -98,7 +98,7 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
 
       {/* Nav */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto" style={{ paddingTop: '1rem' }}>
-        <p className="text-[9px] font-black uppercase tracking-[0.18em] px-3 pb-2" style={{ color: '#333' }}>
+        <p className="text-[9px] font-black uppercase tracking-[0.18em] px-3 pb-2" style={{ color: '#888' }}>
           Navigation
         </p>
         {menuItems.map(item => {
@@ -113,20 +113,20 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
               }}
               className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold transition-all relative"
               style={{
-                background: active ? 'rgba(255,102,0,0.08)' : 'transparent',
-                color: active ? 'hsl(24,100%,50%)' : '#777',
+                background: active ? 'rgba(255,102,0,0.12)' : 'transparent',
+                color: active ? 'hsl(24,100%,50%)' : '#444',
                 borderLeft: active ? '3px solid hsl(24,100%,50%)' : '3px solid transparent',
                 borderRadius: 0,
               }}
-              onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#ccc'; e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; } }}
-              onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#777'; e.currentTarget.style.background = 'transparent'; } }}
+              onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#111'; e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; } }}
+              onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#444'; e.currentTarget.style.background = 'transparent'; } }}
             >
               <item.icon className="w-4 h-4 shrink-0" />
               <div className="text-left">
                 <span className="block leading-tight text-[13px]">{item.label}</span>
                 <span
                   className="text-[10px] block"
-                  style={{ color: active ? 'hsl(24,100%,50%,0.7)' : '#444' }}
+                  style={{ color: active ? 'hsl(24,100%,60%)' : '#888' }}
                 >
                   {item.desc}
                 </span>
@@ -137,12 +137,12 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
       </nav>
 
       {/* Footer */}
-      <div className="p-3" style={{ borderTop: '1px solid #1f1f1f' }}>
+      <div className="p-3" style={{ borderTop: '2px solid #000' }}>
         <button
           onClick={onLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold transition-all"
           style={{ color: '#555', background: 'transparent' }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.05)'; }}
+          onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
           onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.background = 'transparent'; }}
         >
           <LogoutIcon className="w-4 h-4 shrink-0" />
@@ -161,7 +161,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout }) {
       <button
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 flex items-center justify-center"
-        style={{ background: '#111', border: '2px solid #222', color: '#fff' }}
+        style={{ background: 'hsl(40,30%,92%)', border: '2px solid #000', color: '#111' }}
         aria-label="Open menu"
       >
         <MenuIcon className="w-5 h-5" />

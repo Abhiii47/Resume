@@ -155,6 +155,17 @@ class WriterAgent(BaseAgent):
                 },
                 handler=self._handle_generate_cold_email,
             ),
+            AgentTool(
+                name="draft_missing_projects",
+                description=(
+                    "Fetch a user's top GitHub repositories and draft resume bullet points "
+                    "for projects they might have forgotten to add to their resume."
+                ),
+                parameters={
+                    "github_username": "The user's GitHub username",
+                },
+                handler=self._handle_draft_missing_projects,
+            ),
         ]
 
     # ── Tool Handlers ─────────────────────────────────────────────────────
@@ -278,3 +289,49 @@ class WriterAgent(BaseAgent):
         except Exception as exc:
             logger.error("generate_cold_email failed: %s", exc)
             return {"error": f"Cold email generation failed: {exc}"}
+
+    def _handle_draft_missing_projects(self, **kwargs) -> Any:
+        """Fetch GitHub repos and draft project bullets."""
+        github_username = kwargs.get("github_username", "")
+        if not github_username:
+            return {"error": "Please provide a GitHub username."}
+
+        try:
+            from services.github_service import fetch_user_repos
+            repos = fetch_user_repos(github_username)
+            if not repos:
+                return {"message": f"No public repositories found for {github_username}."}
+            
+            # Use LLM to draft bullet points for the top 3 repos
+            drafts = []
+            for repo in repos[:3]:
+                # Call LLM to draft bullets based on repo data
+                prompt = f"""Draft a 3-bullet project section for a resume based on this GitHub repository. Use STAR format.
+                Repo Name: {repo['name']}
+                Description: {repo['description']}
+                Primary Language: {repo['language']}
+                Stars: {repo['stars']}
+                """
+                
+                # Use existing _call_llm utility
+                bullets = self._llm._call_llm(
+                    prompt, 
+                    system="You are an expert resume writer. Return only the bullet points, starting with a strong action verb.",
+                    task="quick_copy"
+                )
+                
+                drafts.append({
+                    "project_name": repo['name'],
+                    "language": repo['language'],
+                    "url": repo['url'],
+                    "drafted_bullets": bullets.strip()
+                })
+                
+            return {
+                "github_username": github_username,
+                "suggested_projects": drafts
+            }
+        except Exception as exc:
+            logger.error("draft_missing_projects failed: %s", exc)
+            return {"error": f"Failed to draft projects: {exc}"}
+

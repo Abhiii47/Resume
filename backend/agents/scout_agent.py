@@ -115,6 +115,17 @@ class ScoutAgent(BaseAgent):
                 },
                 handler=self._handle_add_application,
             ),
+            AgentTool(
+                name="read_url",
+                description=(
+                    "Scrape a job posting URL to extract the Company, Role, and Job Description. "
+                    "Use this when a user pastes a link to a job."
+                ),
+                parameters={
+                    "url": "The URL of the job posting (LinkedIn, Indeed, etc.)",
+                },
+                handler=self._handle_read_url,
+            ),
         ]
 
     # ── Tool Handlers ─────────────────────────────────────────────────────
@@ -339,3 +350,60 @@ Return JSON:
             logger.error("add_application failed: %s", exc)
             context.db.rollback()
             return {"error": f"Failed to add application: {exc}"}
+
+    def _handle_read_url(self, **kwargs) -> Any:
+        """Scrape a job URL via Jina, extract metadata via LLM, and auto-add to Kanban."""
+        context: AgentContext = kwargs["context"]
+        url = kwargs.get("url", "")
+
+        if not url:
+            return {"error": "Please provide a valid URL."}
+
+        try:
+            # 1. Scrape the URL cleanly using Jina Reader (free, no auth needed for basic use)
+            jina_url = f"https://r.jina.ai/{url}"
+            resp = requests.get(jina_url, timeout=15)
+            resp.raise_for_status()
+            scraped_text = resp.text
+
+            # 2. Extract Company and Role using LLM
+            prompt = f"""Extract the Company Name and Job Role from the following job posting text.
+If you cannot find them, return "Unknown" for both.
+Return valid JSON only.
+Keys must be: "company", "role"
+
+JOB POSTING TEXT:
+{scraped_text[:4000]}
+"""
+            extraction = self._llm._call_llm_json(
+                prompt,
+                system="You are an expert data extractor. Respond in valid JSON.",
+                task="quick_copy",
+                required_keys=["company", "role"]
+            )
+            
+            company = extraction.get("company", "Unknown")
+            role = extraction.get("role", "Unknown")
+
+            # 3. Auto-add to Kanban Tracker
+            tracker_result = self._handle_add_application(
+                context=context,
+                company=company,
+                role=role,
+                stage="wishlist",
+                url=url
+            )
+
+            return {
+                "success": True,
+                "scraped_company": company,
+                "scraped_role": role,
+                "url": url,
+                "tracker_update": tracker_result,
+                "job_description_snippet": scraped_text[:1000] # Return a snippet for context
+            }
+
+        except Exception as exc:
+            logger.error("read_url failed: %s", exc)
+            return {"error": f"Failed to scrape URL or extract data: {exc}"}
+

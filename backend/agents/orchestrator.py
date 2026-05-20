@@ -18,7 +18,7 @@ WORKFLOW_TEMPLATES = {
         "steps": [
             {"agent": "maya", "task": "Score and analyze the resume for flaws"},
             {"agent": "max", "task": "Rewrite the top 3 weakest bullet points"},
-            {"agent": "maaya", "task": "Provide strategic career advice based on the analysis"},
+            {"agent": "alex", "task": "Provide strategic career advice based on the analysis"},
         ],
     },
     "job_hunt": {
@@ -33,7 +33,7 @@ WORKFLOW_TEMPLATES = {
         "description": "Prepare for interviews",
         "steps": [
             {"agent": "maya", "task": "Identify skill gaps and weak areas in the resume"},
-            {"agent": "maaya", "task": "Generate interview questions and preparation tips"},
+            {"agent": "alex", "task": "Generate interview questions and preparation tips"},
         ],
     },
     "quick_fix": {
@@ -174,8 +174,8 @@ Rules:
 
         coach_kw = ["roadmap", "plan", "strategy", "career", "skill", "growth", "advice", "mentor", "study", "prepare"]
         if any(k in ml for k in coach_kw):
-            agents.append("maaya")
-            tasks["maaya"] = message
+            agents.append("alex")
+            tasks["alex"] = message
 
         # Greetings → direct response
         greet_kw = ["hi", "hello", "hey", "what can you do", "help", "who are you"]
@@ -191,7 +191,7 @@ Rules:
                     "🔍 **Maya** — Resume Analyst (scores, finds flaws)\n"
                     "✍️ **Max** — Content Writer (rewrites, cover letters)\n"
                     "🎯 **Scout** — Job Scout (finds matching jobs)\n"
-                    "🧭 **Maaya** — Career Coach (roadmaps, interview prep)\n\n"
+                    "🧭 **Alex** — Career Coach (roadmaps, interview prep)\n\n"
                     "**Try these:**\n"
                     "- \"Review my resume\" — full team analysis\n"
                     "- \"Find React developer jobs\" — job search\n"
@@ -200,10 +200,10 @@ Rules:
                 ),
             }
 
-        # Default: send to Maaya (career coach) as the general advisor
+        # Default: send to Alex (career coach) as the general advisor
         if not agents:
-            agents.append("maaya")
-            tasks["maaya"] = message
+            agents.append("alex")
+            tasks["alex"] = message
 
         return {
             "intent": "user request",
@@ -267,9 +267,9 @@ Rules:
         tasks = classification.get("tasks", {})
 
         if not agent_keys:
-            # Fallback: Maaya handles general questions
-            agent_keys = ["maaya"]
-            tasks = {"maaya": context.user_message}
+            # Fallback: Alex handles general questions
+            agent_keys = ["alex"]
+            tasks = {"alex": context.user_message}
 
         agents_used = []
         all_results = []

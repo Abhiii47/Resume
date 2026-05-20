@@ -160,6 +160,7 @@ export default function ResumeBuilder() {
         atsScore: res.data.ats_score,
         scoreDiff: res.data.score_diff,
         suggestions: res.data.suggestions || [],
+        topFixes: res.data.full_report?.top_fixes || [],
         verdict: res.data.full_report?.overall_verdict || ''
       });
       setSaveStatus('saved');
@@ -400,6 +401,49 @@ export default function ResumeBuilder() {
     }
   };
 
+  const applyMaxRewrite = (fixItem) => {
+    if (!fixItem.original) {
+      alert("This fix doesn't have an original text to replace. Please apply it manually.");
+      return;
+    }
+    
+    let applied = false;
+    setResumeData(prev => {
+      const next = { ...prev };
+      
+      // search in experience
+      if (next.experience) {
+        next.experience = next.experience.map(exp => {
+          if (exp.description && exp.description.includes(fixItem.original)) {
+            applied = true;
+            return { ...exp, description: exp.description.replace(fixItem.original, fixItem.fix) };
+          }
+          return exp;
+        });
+      }
+      
+      // search in projects
+      if (!applied && next.projects) {
+        next.projects = next.projects.map(proj => {
+          if (proj.description && proj.description.includes(fixItem.original)) {
+            applied = true;
+            return { ...proj, description: proj.description.replace(fixItem.original, fixItem.fix) };
+          }
+          return proj;
+        });
+      }
+      
+      return next;
+    });
+    
+    if (applied) {
+      setSaveStatus('dirty');
+      alert("Max's rewrite applied successfully!");
+    } else {
+      alert("Could not find the exact original text in your resume. It may have already been modified.");
+    }
+  };
+
   const completionScore = (() => {
     const checks = [
       resumeData.personal.name,
@@ -481,13 +525,58 @@ export default function ResumeBuilder() {
               placeholder="Optional target job description for builder analysis"
             />
             {builderAnalysis && (
-              <div className="p-3 border border-primary bg-background text-xs font-mono">
-                <div className="flex flex-wrap gap-3 items-center">
-                  <span>ATS: <strong>{builderAnalysis.atsScore}</strong></span>
-                  <span>Delta: <strong>{builderAnalysis.scoreDiff > 0 ? `+${builderAnalysis.scoreDiff}` : builderAnalysis.scoreDiff}</strong></span>
+              <div className="p-4 border-2 border-primary bg-[#fff] text-xs font-mono w-full col-span-1 lg:col-span-2 mt-4">
+                <div className="flex justify-between items-center mb-3 pb-2 border-b border-border">
+                  <h3 className="text-sm font-black text-primary uppercase">🔍 Maya's Analysis & Max's Rewrites</h3>
+                  <div className="flex gap-4">
+                    <span className="text-muted-foreground">ATS SCORE: <strong className="text-foreground text-base">{builderAnalysis.atsScore}/100</strong></span>
+                    <span className="text-muted-foreground">DELTA: <strong className={builderAnalysis.scoreDiff > 0 ? "text-green-500" : builderAnalysis.scoreDiff < 0 ? "text-destructive" : "text-foreground"}>
+                      {builderAnalysis.scoreDiff > 0 ? `+${builderAnalysis.scoreDiff}` : builderAnalysis.scoreDiff}
+                    </strong></span>
+                  </div>
                 </div>
-                {builderAnalysis.verdict && <p className="mt-1 text-muted-foreground">{builderAnalysis.verdict}</p>}
-                {builderAnalysis.suggestions?.[0] && <p className="mt-1">Top fix: {builderAnalysis.suggestions[0]}</p>}
+                
+                {builderAnalysis.verdict && <p className="mb-4 text-sm text-foreground">{builderAnalysis.verdict}</p>}
+                
+                {builderAnalysis.topFixes && builderAnalysis.topFixes.length > 0 ? (
+                  <div className="space-y-3">
+                    <h4 className="font-bold text-muted-foreground uppercase text-[10px]">Top Suggested Fixes</h4>
+                    {builderAnalysis.topFixes.map((fix, idx) => (
+                      <div key={idx} className="p-3 border border-border bg-background flex flex-col gap-2">
+                        <div className="flex justify-between">
+                          <span className="uppercase text-[10px] bg-muted px-1 py-0.5 font-bold">{fix.category.replace('_', ' ')}</span>
+                          <span className="text-[10px] text-muted-foreground">Priority {fix.priority}</span>
+                        </div>
+                        {fix.original && (
+                          <div className="flex gap-2">
+                            <span className="text-destructive font-black text-xs min-w-[20px]">-</span>
+                            <span className="text-muted-foreground line-through decoration-destructive/50">{fix.original}</span>
+                          </div>
+                        )}
+                        <div className="flex gap-2 items-start">
+                          <span className="text-green-500 font-black text-xs min-w-[20px]">+</span>
+                          <span className="text-foreground font-bold">{fix.fix}</span>
+                        </div>
+                        
+                        {/* 1-Click Apply Button */}
+                        {fix.original && (
+                          <button 
+                            onClick={() => applyMaxRewrite(fix)}
+                            className="self-end mt-1 text-[10px] uppercase font-black bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground px-3 py-1 border border-primary transition-colors"
+                          >
+                            1-Click Apply ⚡
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    {builderAnalysis.suggestions.map((sug, idx) => (
+                      <p key={idx} className="text-muted-foreground">- {sug}</p>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

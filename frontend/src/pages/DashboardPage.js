@@ -43,6 +43,14 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
   const statCards = [
     { label: 'Top ATS Score', value: latestScore, suffix: '/ 100', bg: 'hsl(24,100%,50%)', shadow: '6px 6px 0 #b34500', color: '#111' },
     { label: 'Resumes Analyzed', value: analysisCount, suffix: 'iterations', bg: '#2563EB', shadow: '6px 6px 0 #1a3a8f', color: '#fff' },
+  const latestScore = history && history.length > 0
+    ? (history[0].score_breakdown?.total_score || history[0].ats_score || 0)
+    : 0;
+  const analysisCount = history ? history.length : 0;
+
+  const statCards = [
+    { label: 'Top ATS Score', value: latestScore, suffix: '/ 100', bg: 'hsl(24,100%,50%)', shadow: '6px 6px 0 #b34500', color: '#111' },
+    { label: 'Resumes Analyzed', value: analysisCount, suffix: 'iterations', bg: '#2563EB', shadow: '6px 6px 0 #1a3a8f', color: '#fff' },
     { label: 'Active Tracker', value: 6, suffix: 'categories', bg: '#16A34A', shadow: '6px 6px 0 #0d5c2a', color: '#fff' },
   ];
 
@@ -56,12 +64,12 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
   return (
     <div
       className="p-6 md:p-10 flex flex-col min-h-full"
-      style={{ background: '#0d0d0d', backgroundImage: 'linear-gradient(to right,rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.02) 1px,transparent 1px)', backgroundSize: '40px 40px' }}
+      style={{ background: '#fdfbf7' }}
     >
       {/* Header */}
       <div className="mb-10">
         <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'hsl(24,100%,50%)' }}>Agentic Career Hub</p>
-        <h2 className="text-5xl font-black uppercase text-white" style={{ letterSpacing: '-0.03em' }}>Command Center</h2>
+        <h2 className="text-5xl font-black uppercase" style={{ color: '#111' }}>Command Center</h2>
       </div>
 
       {/* Stat Cards */}
@@ -82,16 +90,16 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
       </div>
 
       {/* Quick Actions */}
-      <h3 className="text-sm font-black uppercase tracking-widest mb-5 text-white" style={{ color: '#555' }}>Quick Actions</h3>
+      <h3 className="text-sm font-black uppercase tracking-widest mb-5" style={{ color: '#555' }}>Quick Actions</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
         {actionCards.map((card, i) => (
           <div
             key={i}
             onClick={card.onClick}
             className="p-5 flex flex-col gap-4 cursor-pointer transition-all hover:-translate-y-1"
-            style={{ background: '#161616', border: '2px solid #222', boxShadow: '4px 4px 0 #000' }}
+            style={{ background: '#fff', border: '2px solid #000', boxShadow: '4px 4px 0 #000' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = card.accent; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#222'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#000'; }}
           >
             <div
               className="w-12 h-12 flex items-center justify-center shrink-0"
@@ -100,7 +108,7 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
               <card.icon className="w-6 h-6" />
             </div>
             <div className="flex-1">
-              <h4 className="font-black text-base uppercase text-white" style={{ letterSpacing: '-0.01em' }}>{card.label}</h4>
+              <h4 className="font-black text-base uppercase" style={{ color: '#111' }}>{card.label}</h4>
               <p className="text-xs mt-0.5" style={{ color: '#666' }}>{card.desc}</p>
             </div>
             <div className="text-right text-xs font-black" style={{ color: card.accent }}>Open →</div>
@@ -112,7 +120,7 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
       <>
       {/* LLM Reliability */}
       <h3 className="text-sm font-black uppercase tracking-widest mb-5" style={{ color: '#555' }}>AI Reliability</h3>
-      <div className="p-6" style={{ background: '#161616', border: '2px solid #222' }}>
+      <div className="p-6" style={{ background: '#fff', border: '2px solid #000', boxShadow: '4px 4px 0 #000' }}>
         {llmMetricsLoading ? (
           <p className="text-sm font-bold animate-pulse" style={{ color: 'hsl(24,100%,50%)' }}>Loading metrics...</p>
         ) : !llmMetrics ? (
@@ -121,26 +129,26 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
               {[
-                { label: 'Total Calls', value: llmMetrics.total_calls || 0, color: '#fff' },
-                { label: 'Success Rate', value: `${llmMetrics.success_rate_pct || 0}%`, color: '#22c55e' },
+                { label: 'Total Calls', value: llmMetrics.total_calls || 0, color: '#111' },
+                { label: 'Success Rate', value: `${llmMetrics.success_rate_pct || 0}%`, color: '#16A34A' },
                 { label: 'Avg Latency', value: `${llmMetrics.avg_latency_ms || 0}ms`, color: 'hsl(24,100%,50%)' },
               ].map((m, i) => (
-                <div key={i} className="p-4" style={{ background: '#0d0d0d', border: '1px solid #222' }}>
+                <div key={i} className="p-4" style={{ background: '#fdfbf7', border: '2px solid #000' }}>
                   <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#555' }}>{m.label}</p>
-                  <p className="text-4xl font-black" style={{ color: m.color, fontFamily: 'Playfair Display, serif' }}>{m.value}</p>
+                  <p className="text-4xl font-black" style={{ color: m.color, fontFamily: 'var(--font-display)' }}>{m.value}</p>
                 </div>
               ))}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {[{ title: 'By Task', data: llmMetrics.by_task }, { title: 'By Provider', data: llmMetrics.by_provider }].map((section, i) => (
-                <div key={i} className="p-4" style={{ background: '#0d0d0d', border: '1px solid #222' }}>
-                  <p className="text-xs font-black uppercase tracking-widest mb-4 pb-2" style={{ color: '#555', borderBottom: '1px solid #1f1f1f' }}>{section.title}</p>
+                <div key={i} className="p-4" style={{ background: '#fdfbf7', border: '2px solid #000' }}>
+                  <p className="text-xs font-black uppercase tracking-widest mb-4 pb-2" style={{ color: '#555', borderBottom: '2px solid #000' }}>{section.title}</p>
                   <div className="space-y-3 max-h-44 overflow-y-auto">
                     {Object.keys(section.data || {}).length === 0 ? (
                       <p className="text-xs" style={{ color: '#444' }}>No data yet</p>
                     ) : Object.entries(section.data).map(([key, data]) => (
-                      <div key={key} className="flex justify-between text-xs font-bold" style={{ color: '#aaa', borderBottom: '1px solid #1a1a1a', paddingBottom: 6 }}>
-                        <span className="truncate text-white">{key}</span>
+                      <div key={key} className="flex justify-between text-xs font-bold" style={{ color: '#111', borderBottom: '1px solid #ccc', paddingBottom: 6 }}>
+                        <span className="truncate">{key}</span>
                         <span className="shrink-0 ml-4" style={{ color: '#666' }}>{data.success_rate_pct}% · {data.avg_latency_ms}ms</span>
                       </div>
                     ))}
@@ -221,25 +229,25 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
   ] : [];
 
   return (
-    <div className="flex flex-col lg:flex-row h-full" style={{ background: '#0d0d0d' }}>
+    <div className="flex flex-col lg:flex-row h-full" style={{ background: '#fdfbf7' }}>
       {/* Left: Upload & Preview */}
       <div
         className="w-full lg:w-1/2 p-6 lg:p-8 flex flex-col"
         style={{ borderRight: '2px solid #1f1f1f', background: '#111' }}
       >
-        <h2 className="text-3xl font-black uppercase text-white mb-6" style={{ letterSpacing: '-0.02em' }}>Resume Lab</h2>
+        <h2 className="text-3xl font-black uppercase text-[#111] mb-6" style={{ letterSpacing: '-0.02em' }}>Resume Lab</h2>
 
         {/* Upload zone */}
         <div
           className="p-6 mb-5 shrink-0"
-          style={{ background: '#0d0d0d', border: '2px solid #222' }}
+          style={{ background: '#fff', border: '2px solid #000' }}
         >
           <form onSubmit={handleUpload} className="flex flex-col sm:flex-row gap-3">
             <label
               className="flex-1 cursor-pointer p-4 flex items-center justify-center gap-3 text-sm font-bold transition-all"
               style={{
                 border: dragging ? '2px solid hsl(24,100%,50%)' : '2px dashed #333',
-                background: dragging ? 'rgba(255,102,0,0.05)' : '#0a0a0a',
+                background: dragging ? 'rgba(255,102,0,0.1)' : '#fdfbf7',
                 color: '#666',
               }}
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
@@ -264,7 +272,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
         {history && history.length > 0 && (
           <div
             className="mb-5 flex items-center justify-between p-3 shrink-0"
-            style={{ background: '#0d0d0d', border: '1px solid #222' }}
+            style={{ background: '#fdfbf7', border: '2px solid #000' }}
           >
             <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(24,100%,50%)' }}>Evolution Timeline</span>
             <select
@@ -285,7 +293,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
         {/* PDF Viewer */}
         <div
           className="flex-1 overflow-hidden relative"
-          style={{ minHeight: 200, border: '2px solid #1f1f1f', background: '#0a0a0a' }}
+          style={{ minHeight: 200, border: '2px solid #000', background: '#fdfbf7' }}
         >
           {pdfUrl ? (
             <object data={pdfUrl} type="application/pdf" className="w-full h-full" style={{ minHeight: 300 }}>
@@ -310,7 +318,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
       {/* Right: Diagnostic */}
       <div
         className="w-full lg:w-1/2 p-6 lg:p-8 overflow-y-auto"
-        style={{ background: '#0d0d0d' }}
+        style={{ background: '#fff' }}
       >
         <h2 className="text-3xl font-black uppercase mb-6" style={{ letterSpacing: '-0.02em', color: 'hsl(24,100%,50%)' }}>Diagnostics & Fixes</h2>
 
@@ -348,7 +356,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
                 {selectedAnalysis.gemini_suggestions && selectedAnalysis.gemini_suggestions.length > 0 ? (
                   <div className="space-y-4">
                     {selectedAnalysis.gemini_suggestions.map((s, i) => (
-                      <div key={i} className="p-4 text-sm" style={{ background: '#0d0d0d', border: '1px solid #222' }}>
+                      <div key={i} className="p-4 text-sm" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>
                         <div className="flex items-start gap-3 mb-3">
                           <span
                             className="text-xs font-black shrink-0 px-1.5 py-0.5"
@@ -468,19 +476,19 @@ function JobTracker() {
     } catch {}
   };
 
-  const inputStyle = { background: '#0a0a0a', border: '2px solid #2a2a2a', color: '#fff', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
+  const inputStyle = { background: '#fff', border: '2px solid #000', color: '#111', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
 
   return (
     <div
       className="p-6 md:p-8 h-full flex flex-col"
-      style={{ background: '#0d0d0d', backgroundImage: 'linear-gradient(to right,rgba(255,255,255,0.015) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.015) 1px,transparent 1px)', backgroundSize: '40px 40px' }}
+      style={{ background: 'transparent' }}
     >
       {/* Header */}
       <div
         className="flex justify-between items-center mb-6 p-4 shrink-0"
         style={{ background: '#111', border: '2px solid #1f1f1f' }}
       >
-        <h2 className="text-2xl font-black uppercase text-white" style={{ letterSpacing: '-0.02em' }}>Job Tracker</h2>
+        <h2 className="text-2xl font-black uppercase text-[#111]" style={{ letterSpacing: '-0.02em' }}>Job Tracker</h2>
         <div className="flex gap-3">
           {['discover', 'kanban'].map(view => (
             <button
@@ -559,7 +567,7 @@ function JobTracker() {
                 >
                   <div>
                     <div className="flex justify-between items-start gap-2">
-                      <h4 className="font-black text-base leading-tight text-white">{job.title}</h4>
+                      <h4 className="font-black text-base leading-tight text-[#111]">{job.title}</h4>
                       {job.posted && <span className="text-[10px] font-bold shrink-0 px-2 py-0.5" style={{ border: '1px solid #333', color: '#666' }}>{job.posted}</span>}
                     </div>
                     <p className="text-sm font-bold mt-1" style={{ color: '#3b82f6' }}>{job.company}</p>
@@ -590,7 +598,7 @@ function JobTracker() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
           >
             <div className="flex justify-between items-start">
-              <h4 className="font-black text-sm text-white">Career Comms Lab</h4>
+              <h4 className="font-black text-sm text-[#111]">Career Comms Lab</h4>
               <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
             </div>
             <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
@@ -604,7 +612,7 @@ function JobTracker() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
           >
             <div className="flex justify-between items-start">
-              <h4 className="font-black text-sm text-white">Career Comms Lab</h4>
+              <h4 className="font-black text-sm text-[#111]">Career Comms Lab</h4>
               <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
             </div>
             <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
@@ -641,13 +649,13 @@ function JobTracker() {
                         className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center text-xs font-black opacity-0 group-hover:opacity-100 transition-opacity"
                         style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid #ef4444' }}
                       >✕</button>
-                      <p className="font-black text-base leading-tight pr-6 text-white">{app.company}</p>
+                      <p className="font-black text-base leading-tight pr-6 text-[#111]">{app.company}</p>
                       <p className="text-xs font-bold mb-3" style={{ color: '#666' }}>{app.role}</p>
                       <select
                         value={app.stage}
                         onChange={e => handleStageChange(app.id, e.target.value)}
                         className="w-full text-xs font-bold uppercase outline-none"
-                        style={{ background: '#0a0a0a', border: '1px solid #2a2a2a', color: '#aaa', padding: '6px 8px', cursor: 'pointer' }}
+                        style={{ background: '#fff', border: '2px solid #000', color: '#111', padding: '6px 8px', cursor: 'pointer' }}
                       >
                         {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
@@ -669,7 +677,7 @@ function JobTracker() {
           <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6" style={{ background: '#111', border: '2px solid #222', boxShadow: '8px 8px 0 hsl(24,100%,50%)' }}>
             <div className="flex justify-between items-start mb-5" style={{ borderBottom: '1px solid #1f1f1f', paddingBottom: '1rem' }}>
               <div>
-                <h3 className="text-lg font-black uppercase text-white">{matchModal.title}</h3>
+                <h3 className="text-lg font-black uppercase text-[#111]">{matchModal.title}</h3>
                 <p className="text-sm font-bold mt-0.5" style={{ color: '#3b82f6' }}>{matchModal.company}</p>
               </div>
               <button onClick={() => { setMatchModal(null); setMatchResult(null); }} className="text-xs font-black uppercase px-3 py-1.5" style={{ color: '#555', border: '1px solid #2a2a2a' }}>✕ Close</button>
@@ -681,7 +689,7 @@ function JobTracker() {
               <div className="space-y-5">
                 <div
                   className="flex items-center gap-5 p-4"
-                  style={{ background: '#0d0d0d', border: '2px solid #222' }}
+                  style={{ background: '#fff', border: '2px solid #000' }}
                 >
                   <div
                     className="text-5xl font-black"
@@ -690,7 +698,7 @@ function JobTracker() {
                     {matchResult.match_score}%
                   </div>
                   <div>
-                    <p className="font-black uppercase text-white">{matchResult.verdict}</p>
+                    <p className="font-black uppercase text-[#111]">{matchResult.verdict}</p>
                     <p className="text-sm mt-0.5" style={{ color: '#777' }}>{matchResult.one_liner}</p>
                   </div>
                 </div>
@@ -709,7 +717,7 @@ function JobTracker() {
                     <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'hsl(24,100%,50%)' }}>Resume Fixes</p>
                     <div className="space-y-2">
                       {matchResult.resume_tweaks.map((t, i) => (
-                        <div key={i} className="p-3 text-sm" style={{ background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#aaa' }}>
+                        <div key={i} className="p-3 text-sm" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>
                           <span className="text-xs font-black uppercase" style={{ color: 'hsl(24,100%,50%)' }}>{t.section}: </span>{t.action}
                         </div>
                       ))}
@@ -753,7 +761,7 @@ function CareerCommsLab({ onClose }) {
   const [loadingKey, setLoadingKey] = useState('');
   const [outputs, setOutputs] = useState({});
 
-  const inputStyle = { background: '#0a0a0a', border: '2px solid #2a2a2a', color: '#fff', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
+  const inputStyle = { background: '#fff', border: '2px solid #000', color: '#111', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
   const authHeaders = { Authorization: `Bearer ${getAuthToken()}` };
 
   const setToolOutput = (key, payload) => {
@@ -798,13 +806,13 @@ function CareerCommsLab({ onClose }) {
     }
     const value = output.value;
     if (typeof value === 'string') {
-      return <div className="mt-3 p-3 text-sm whitespace-pre-wrap" style={{ background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#ccc' }}>{value}</div>;
+      return <div className="mt-3 p-3 text-sm whitespace-pre-wrap" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>{value}</div>;
     }
     if (Array.isArray(value)) {
       return (
         <div className="mt-3 space-y-2">
           {value.map((item, idx) => (
-            <div key={`${key}-${idx}`} className="p-3 text-sm" style={{ background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#ccc' }}>
+            <div key={`${key}-${idx}`} className="p-3 text-sm" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>
               {typeof item === 'string' ? item : JSON.stringify(item)}
             </div>
           ))}
@@ -812,7 +820,7 @@ function CareerCommsLab({ onClose }) {
       );
     }
     return (
-      <div className="mt-3 p-3 text-sm" style={{ background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#ccc' }}>
+      <div className="mt-3 p-3 text-sm" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>
         {value?.overall_feedback && <p className="mb-3">{value.overall_feedback}</p>}
         {value?.overall_score !== undefined && <p className="mb-3"><strong>Overall Score:</strong> {value.overall_score}</p>}
         {value?.overall_match_pct !== undefined && <p className="mb-3"><strong>Match:</strong> {value.overall_match_pct}%</p>}
@@ -886,7 +894,7 @@ function CareerCommsLab({ onClose }) {
             const disabled = loadingKey === card.key || (card.requiresJd && !jd.trim()) || (card.requiresCompany && !company.trim());
             return (
               <div key={card.key} className="p-5 flex flex-col" style={{ background: '#111', border: '2px solid #1f1f1f' }}>
-                <h4 className="font-black text-sm uppercase text-white">{card.title}</h4>
+                <h4 className="font-black text-sm uppercase text-[#111]">{card.title}</h4>
                 <p className="text-xs mt-2 flex-1" style={{ color: '#666' }}>{card.description}</p>
                 <button
                   onClick={card.action}
@@ -986,13 +994,13 @@ function ResourceHub() {
   };
 
   const cat = CATEGORIES.find(c => c.id === activeCategory);
-  const inputStyle = { background: '#0a0a0a', border: '2px solid #2a2a2a', color: '#fff', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
+  const inputStyle = { background: '#fff', border: '2px solid #000', color: '#111', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
 
   return (
-    <div className="p-6 flex flex-col relative" style={{ minHeight: '100%', background: '#0d0d0d' }}>
+    <div className="p-6 flex flex-col relative" style={{ minHeight: '100%', background: 'transparent' }}>
       {/* Header */}
       <div className="flex justify-between items-center mb-6 shrink-0">
-        <h2 className="text-3xl font-black uppercase text-white" style={{ letterSpacing: '-0.02em' }}>Learning Hub</h2>
+        <h2 className="text-3xl font-black uppercase text-[#111]" style={{ letterSpacing: '-0.02em' }}>Learning Hub</h2>
         <div className="flex gap-2">
           <button
             onClick={() => setShowDsaTracker(true)}
@@ -1061,7 +1069,7 @@ function ResourceHub() {
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#1f1f1f'; }}
             >
               <div className="flex justify-between items-start">
-                <h4 className="font-black text-sm text-white">{r.name}</h4>
+                <h4 className="font-black text-sm text-[#111]">{r.name}</h4>
                 <span className="text-[10px] font-black px-2 py-0.5 shrink-0 ml-2" style={{ background: cat.color + '22', color: cat.color, border: `1px solid ${cat.color}44` }}>{r.tag}</span>
               </div>
               <p className="text-xs flex-1" style={{ color: '#666' }}>{r.desc}</p>
@@ -1077,7 +1085,7 @@ function ResourceHub() {
               style={{ background: '#111', border: `2px solid hsl(24,100%,50%)` }}
             >
               <div className="flex justify-between items-start">
-                <h4 className="font-black text-sm text-white">Holistic Daily Tracker</h4>
+                <h4 className="font-black text-sm text-[#111]">Holistic Daily Tracker</h4>
                 <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(255,102,0,0.15)', color: 'hsl(24,100%,50%)', border: '1px solid rgba(255,102,0,0.3)' }}>Built-in</span>
               </div>
               <p className="text-xs flex-1" style={{ color: '#666' }}>Track daily progress across 6 categories: DSA, System Design, Projects, CS Core, Behavioral, and Apps.</p>
@@ -1092,7 +1100,7 @@ function ResourceHub() {
               style={{ background: '#111', border: '2px solid #3b82f6' }}
             >
               <div className="flex justify-between items-start">
-                <h4 className="font-black text-sm text-white">DSA Problem Tracker</h4>
+                <h4 className="font-black text-sm text-[#111]">DSA Problem Tracker</h4>
                 <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}>Live</span>
               </div>
               <p className="text-xs flex-1" style={{ color: '#666' }}>Track individual NeetCode and Striver problems with streaks, contribution history, and roadmap alignment.</p>
@@ -1125,7 +1133,7 @@ function ResourceHub() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
           >
             <div className="flex justify-between items-start">
-              <h4 className="font-black text-sm text-white">Career Comms Lab</h4>
+              <h4 className="font-black text-sm text-[#111]">Career Comms Lab</h4>
               <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
             </div>
             <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
@@ -1216,7 +1224,7 @@ function ResourceHub() {
                   </div>
                   <div className="flex-1 mb-6 p-5 hover:-translate-y-0.5 transition-transform" style={{ background: '#111', border: '2px solid #1f1f1f' }}>
                     <div className="flex justify-between items-start mb-1">
-                      <h4 className="font-black text-lg uppercase text-white">{phase.title}</h4>
+                      <h4 className="font-black text-lg uppercase text-[#111]">{phase.title}</h4>
                       <span className="text-[10px] font-black px-2 py-0.5 ml-2 shrink-0" style={{ background: 'rgba(255,102,0,0.15)', color: 'hsl(24,100%,50%)' }}>{phase.resource_type}</span>
                     </div>
                     <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'hsl(24,100%,50%)' }}>Focus: {phase.focus}</p>
@@ -1295,7 +1303,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex" style={{ background: '#0a0a0a' }}>
+      <div className="min-h-screen flex" style={{ background: '#fdfbf7' }}>
         <div className="hidden lg:flex" style={{ width: 240, minWidth: 240, background: '#111', borderRight: '2px solid #1f1f1f' }} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -1335,7 +1343,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <div className="flex h-screen overflow-hidden" style={{ background: '#0a0a0a' }}>
+      <div className="flex h-screen overflow-hidden" style={{ background: '#fdfbf7' }}>
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
         <main className="flex-1 overflow-y-auto relative pt-16 lg:pt-0">
           {isAnalyzing && (

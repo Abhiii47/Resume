@@ -299,6 +299,17 @@ class LLMCallLog(Base):
             f"model='{self.model}', success={self.success})>"
         )
 
+class LLMCache(Base):
+    __tablename__ = "llm_cache"
+
+    id = Column(Integer, primary_key=True, index=True)
+    prompt_hash = Column(String, unique=True, index=True, nullable=False)
+    response_payload = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<LLMCache(hash='{self.prompt_hash}')>"
+
 
 def get_db():
     db = SessionLocal()

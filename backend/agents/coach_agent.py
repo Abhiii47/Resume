@@ -1,5 +1,5 @@
 """
-Maaya — Career Coach Agent
+Alex — Career Coach Agent
 Encouraging but honest, strategic thinker focused on long-term career growth.
 Replaces the old 'Alex' mentor with a warmer, more data-driven approach.
 """
@@ -71,11 +71,11 @@ def _get_jd_text(context: AgentContext) -> str:
 
 
 class CoachAgent(BaseAgent):
-    """Maaya — the encouraging but honest Career Coach."""
+    """Alex — the encouraging but honest Career Coach."""
 
     def __init__(self):
         super().__init__()
-        self.name = "Maaya"
+        self.name = "Alex"
         self.role = "Career Coach"
         self.emoji = "🧭"
         self.color = "#ec4899"

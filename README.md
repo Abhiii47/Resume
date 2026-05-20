@@ -13,7 +13,7 @@ It features a collaborative **Multi-Agent Orchestration Team** that simulates a 
     *   **Maya (Resume Analyst)**: Scans for ATS formatting issues, keyword density gaps, structure flaws, and matches resumes against targeted jobs.
     *   **Max (Content Writer)**: Generates one-click bullet point rewrites, custom cover letters, and tailored professional summaries.
     *   **Scout (Job Hunter)**: Matches your profile with real-time job openings and handles application tracking pipelines.
-    *   **Maaya (Career Coach)**: Creates step-by-step career path roadmaps, custom DSA checklists, and interactive mock interview prep.
+    *   **Alex (Career Coach)**: Creates step-by-step career path roadmaps, custom DSA checklists, and interactive mock interview prep.
 *   **⚡ Real-Time SSE Stream & Trace Log**: Fully transparent Server-Sent Events (SSE) stream showing the real-time collaboration trace of the agent team as they invoke tools and execute tasks.
 *   **🎨 Neo-Brutalist Aesthetic**: Handcrafted dark/cream design system using CSS grid backgrounds, zero-radius borders, hard drop shadows, Playfair Display typography, and interactive micro-animations matching the landing page.
 *   **🛠️ Robust Career Dashboard**:
@@ -31,7 +31,7 @@ graph TD
     User((User)) -->|Interact| UI[Frontend - React/Parcel]
     UI -->|SSE stream| FastAPI[Backend - FastAPI]
     FastAPI -->|Orchestrate| Nova[🧠 Nova Orchestrator]
-    Nova -->|Handoff / Delegate| Specialists[Agent Team: Maya, Max, Scout, Maaya]
+    Nova -->|Handoff / Delegate| Specialists[Agent Team: Maya, Max, Scout, Alex]
     Specialists -->|ReAct Tool Use| Tools[Checklists, ATS Parser, DB, LLM]
     FastAPI -->|SSE Events| TraceViewer[Trace Log UI]
     FastAPI -->|Persist State| DB[(SQLite/Postgres)]
