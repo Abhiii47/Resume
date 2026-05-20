@@ -176,7 +176,7 @@ export default function AgentChat() {
     <div
       className="flex flex-col h-full"
       style={{
-        background: "#0d0d0d",
+        backgroundColor: "#fff",
         backgroundImage: "linear-gradient(to right,rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.02) 1px,transparent 1px)",
         backgroundSize: "40px 40px",
       }}
@@ -192,7 +192,7 @@ export default function AgentChat() {
       `}</style>
 
       {/* header */}
-      <div style={{ padding: "16px 28px", borderBottom: "2px solid #1f1f1f", background: "#111", flexShrink: 0 }}>
+      <div style={{ padding: "16px 28px", borderBottom: "2px solid #000", background: "#fff", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{
@@ -203,7 +203,7 @@ export default function AgentChat() {
             }}>🧠</div>
             <div>
               <p className="text-xs font-black uppercase tracking-widest" style={{ color: "hsl(24,100%,50%)", fontFamily: "var(--font-mono)", marginBottom: 2 }}>Agent Team</p>
-              <h2 className="text-2xl font-black text-white uppercase" style={{ letterSpacing: "-0.03em", fontFamily: "var(--font-display)", lineHeight: 1 }}>
+              <h2 className="text-2xl font-black text-[#111] uppercase" style={{ letterSpacing: "-0.03em", fontFamily: "var(--font-display)", lineHeight: 1 }}>
                 Nova & Team
               </h2>
             </div>
@@ -216,7 +216,7 @@ export default function AgentChat() {
               padding: "4px 10px", border: `2px solid ${streaming ? "#f59e0b33" : "#22c55e33"}`,
             }}>● {streaming ? (liveAgent ? `${liveAgent.emoji} ${liveAgent.name}...` : "Processing...") : "Online"}</div>
             <button onClick={clearHistory} style={{
-              background: "transparent", border: "2px solid #222", color: "#555", cursor: "pointer",
+              background: "transparent", border: "2px solid #000", color: "#777", cursor: "pointer",
               padding: "6px 14px", fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700,
               textTransform: "uppercase", letterSpacing: ".06em", transition: "all .15s",
             }}
@@ -262,7 +262,7 @@ export default function AgentChat() {
               fontSize: 36, boxShadow: "6px 6px 0 #000",
             }}>🧠</div>
             <div style={{ textAlign: "center" }}>
-              <h2 className="font-black text-3xl text-white uppercase" style={{ letterSpacing: "-0.03em", fontFamily: "var(--font-display)", marginBottom: 8 }}>
+              <h2 className="font-black text-3xl text-[#111] uppercase" style={{ letterSpacing: "-0.03em", fontFamily: "var(--font-display)", marginBottom: 8 }}>
                 Meet Your Career Team
               </h2>
               <p style={{ color: "#666", fontSize: 14, lineHeight: 1.7, maxWidth: 440, margin: "0 auto" }}>
@@ -284,7 +284,7 @@ export default function AgentChat() {
               {QUICK_ACTIONS.map((w, i) => (
                 <button key={i} className="ac-action" onClick={() => send(w.msg)} style={{
                   padding: "18px 20px", textAlign: "left", fontFamily: "inherit", cursor: "pointer",
-                  background: "#161616", border: "2px solid #222", color: "#ccc",
+                  background: "#fdfbf7", border: "2px solid #000", color: "#444",
                   boxShadow: "4px 4px 0 #000",
                 }}>
                   <div style={{
@@ -304,10 +304,10 @@ export default function AgentChat() {
         {streaming && messages.length > 0 && !messages.some(m => m.event_type === "agent_thinking") && (
           <div style={{
             display: "flex", alignItems: "center", gap: 10, padding: "12px 18px", marginBottom: 16,
-            background: "#161616", border: "2px solid #222",
+            background: "#fdfbf7", border: "2px solid #000",
           }}>
             <span style={{ fontSize: 16 }}>🧠</span>
-            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#555", fontFamily: "var(--font-mono)" }}>Coordinating agents</span>
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#777", fontFamily: "var(--font-mono)" }}>Coordinating agents</span>
             <div style={{ display: "flex", gap: 4, marginLeft: 4 }}>
               {[0,1,2].map(i => <div key={i} style={{ width: 5, height: 5, borderRadius: "50%", background: "hsl(24,100%,50%)", animation: "agentPulse 1.4s ease-in-out infinite", animationDelay: `${i * .2}s` }} />)}
             </div>
@@ -320,10 +320,10 @@ export default function AgentChat() {
       {trace.length > 0 && <TraceViewer messages={trace} isOpen={traceOpen} onToggle={() => setTraceOpen(p => !p)} />}
 
       {/* input */}
-      <div style={{ padding: "16px 28px", borderTop: "2px solid #1f1f1f", background: "#111", flexShrink: 0 }}>
+      <div style={{ padding: "16px 28px", borderTop: "2px solid #1f1f1f", background: "#fff", flexShrink: 0 }}>
         <div style={{
           display: "flex", gap: 12, alignItems: "flex-end",
-          background: "#0a0a0a", border: "2px solid #222",
+          background: "#fdfbf7", border: "2px solid #000",
           padding: "12px 16px", transition: "all .15s",
         }}
           onFocusCapture={e => { e.currentTarget.style.borderColor = "hsl(24,100%,50%)"; e.currentTarget.style.boxShadow = "4px 4px 0 hsl(24,100%,50%,0.3)"; e.currentTarget.style.transform = "translate(-2px,-2px)"; }}
@@ -331,7 +331,7 @@ export default function AgentChat() {
         >
           <textarea className="ac-input" value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey}
             placeholder="Ask the team anything..." disabled={streaming} rows={1}
-            style={{ flex: 1, background: "none", border: "none", color: "#e5e5e5", fontSize: 14, fontFamily: "var(--font-sans)", lineHeight: 1.6, maxHeight: 120, overflowY: "auto" }}
+            style={{ flex: 1, background: "none", border: "none", color: "#111", fontSize: 14, fontFamily: "var(--font-sans)", lineHeight: 1.6, maxHeight: 120, overflowY: "auto" }}
           />
           <button onClick={() => send()} disabled={!input.trim() || streaming} style={{
             width: 40, height: 40,
