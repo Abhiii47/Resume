@@ -18,6 +18,7 @@ import sys
 import os
 import httpx
 import hashlib
+from urllib.parse import urlencode, urlparse
 
 # ── Simple in-memory LLM response cache ────────────────────────────────────────
 # Prevents redundant API calls for identical resume+role+company combos.
@@ -48,7 +49,8 @@ from scorer_final import score_resume, GENERAL_JD_TEXT
 from contextlib import asynccontextmanager
 from database import (
     get_db, User, Analysis, GitHubProfile,
-    CodingRoadmap, JobApplication, DSATrack, ResumeProfile, MentorConversation, LLMCallLog, init_db
+    CodingRoadmap, JobApplication, DSATrack, ResumeProfile, MentorConversation, LLMCallLog, DailyLog,
+    AgentConversation, AgentTrace, SessionLocal, init_db
 )
 from auth import (
     verify_password,
@@ -57,6 +59,7 @@ from auth import (
     get_current_user,
 )
 from config import settings
+from security_utils import create_signed_state, decode_signed_state, decrypt_resume_text, encrypt_resume_text
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +76,8 @@ def build_resume_preview(resume_text: str, limit: int = RESUME_PREVIEW_LIMIT) ->
 def get_analysis_resume_text(analysis: Optional[Analysis]) -> str:
     if not analysis:
         return ""
-    return (analysis.resume_text or analysis.resume_preview or "").strip()
+    decrypted = decrypt_resume_text(analysis.resume_text)
+    return (decrypted or analysis.resume_preview or "").strip()
 
 
 def get_analysis_resume_preview(analysis: Optional[Analysis], limit: int = RESUME_PREVIEW_LIMIT) -> str:
@@ -83,6 +87,156 @@ def get_analysis_resume_preview(analysis: Optional[Analysis], limit: int = RESUM
     if preview:
         return preview[:limit]
     return build_resume_preview(get_analysis_resume_text(analysis), limit=limit)
+
+
+def builder_content_to_resume_text(content: Optional[dict]) -> str:
+    if not isinstance(content, dict):
+        return ""
+
+    personal = content.get("personal") or {}
+    skills = content.get("skills") or {}
+    sections = []
+
+    name = (personal.get("name") or "").strip()
+    contact = [
+        (personal.get("email") or "").strip(),
+        (personal.get("phone") or "").strip(),
+        (personal.get("linkedin") or "").strip(),
+        (personal.get("github") or "").strip(),
+    ]
+    if name:
+        sections.append(name)
+    if any(contact):
+        sections.append(" | ".join([value for value in contact if value]))
+
+    summary = (content.get("summary") or "").strip()
+    if summary:
+        sections.append(f"SUMMARY\n{summary}")
+
+    experience_rows = []
+    for row in content.get("experience") or []:
+        if not isinstance(row, dict):
+            continue
+        header_parts = [
+            (row.get("company") or "").strip(),
+            (row.get("title") or "").strip(),
+            " - ".join([part for part in [(row.get("startDate") or "").strip(), (row.get("endDate") or "").strip()] if part]),
+        ]
+        bullets = "\n".join(
+            f"- {line.strip().lstrip('-* ')}"
+            for line in (row.get("description") or "").splitlines()
+            if line.strip()
+        )
+        block = "\n".join([part for part in header_parts if part])
+        if bullets:
+            block = f"{block}\n{bullets}" if block else bullets
+        if block:
+            experience_rows.append(block)
+    if experience_rows:
+        sections.append("EXPERIENCE\n" + "\n\n".join(experience_rows))
+
+    education_rows = []
+    for row in content.get("education") or []:
+        if not isinstance(row, dict):
+            continue
+        block = " | ".join(
+            [part for part in [(row.get("school") or "").strip(), (row.get("degree") or "").strip(), (row.get("year") or "").strip()] if part]
+        )
+        if block:
+            education_rows.append(block)
+    if education_rows:
+        sections.append("EDUCATION\n" + "\n".join(education_rows))
+
+    project_rows = []
+    for row in content.get("projects") or []:
+        if not isinstance(row, dict):
+            continue
+        title = " | ".join([part for part in [(row.get("name") or "").strip(), (row.get("technologies") or "").strip()] if part])
+        bullets = "\n".join(
+            f"- {line.strip().lstrip('-* ')}"
+            for line in (row.get("description") or "").splitlines()
+            if line.strip()
+        )
+        block = f"{title}\n{bullets}" if title and bullets else (title or bullets)
+        if block:
+            project_rows.append(block)
+    if project_rows:
+        sections.append("PROJECTS\n" + "\n\n".join(project_rows))
+
+    skill_parts = []
+    for label, value in [("Languages", skills.get("languages")), ("Frameworks", skills.get("frameworks")), ("Tools", skills.get("tools"))]:
+        cleaned = (value or "").strip()
+        if cleaned:
+            skill_parts.append(f"{label}: {cleaned}")
+    if skill_parts:
+        sections.append("SKILLS\n" + "\n".join(skill_parts))
+
+    return "\n\n".join(section for section in sections if section).strip()
+
+
+def log_user_activity(
+    db: Session,
+    user_id: int,
+    category: str,
+    count: int = 1,
+    note: str = "",
+    when: Optional[datetime] = None,
+) -> None:
+    if not category or count <= 0:
+        return
+
+    log_date = (when or datetime.utcnow()).date()
+    existing = db.query(DailyLog).filter(
+        DailyLog.user_id == user_id,
+        DailyLog.category == category,
+        DailyLog.log_date == log_date,
+    ).first()
+
+    if existing:
+        existing.count = (existing.count or 0) + count
+        if note:
+            existing.note = note[:500]
+    else:
+        db.add(
+            DailyLog(
+                user_id=user_id,
+                category=category,
+                count=count,
+                note=note[:500] if note else "",
+                log_date=log_date,
+            )
+        )
+
+
+def build_user_payload(user: User) -> dict:
+    return {
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
+        "is_admin": settings.is_admin_email(user.email),
+    }
+
+
+def resolve_post_oauth_redirect(redirect_to: Optional[str] = None) -> str:
+    default_relative = "/dashboard"
+    default_target = settings.FRONTEND_APP_URL or default_relative
+    candidate = (redirect_to or default_target).strip()
+    if not candidate:
+        return default_relative
+
+    parsed = urlparse(candidate)
+    if not parsed.scheme and candidate.startswith("/"):
+        return candidate
+
+    allowed_origins = set(settings.ALLOWED_ORIGINS)
+    if settings.FRONTEND_APP_URL:
+        allowed_origins.add(settings.FRONTEND_APP_URL.rstrip("/"))
+
+    origin = f"{parsed.scheme}://{parsed.netloc}" if parsed.scheme and parsed.netloc else ""
+    if origin and origin in allowed_origins:
+        return candidate
+
+    return default_target
 
 # No external storage client — using local DB only
 
@@ -95,10 +249,17 @@ async def lifespan(app: FastAPI):
         print("SUCCESS: Database initialized")
     except Exception as e:
         print(f"ERROR: Database initialization failed: {e}")
-    
-    # ML Model has been replaced by LLM + Heuristics scoring engine
 
-    
+    # Initialize multi-agent team
+    try:
+        from agents import get_team
+        import services.llm_service as llm_svc
+        team = get_team()
+        team.configure(llm_svc, SessionLocal)
+        print("SUCCESS: Agent team initialized — " + ", ".join(a["emoji"] + " " + a["name"] for a in team.all_agents_info()))
+    except Exception as e:
+        print(f"WARNING: Agent team init failed (non-fatal): {e}")
+
     yield
     
     # Shutdown logic (if any)
@@ -240,11 +401,7 @@ async def signup(
         return {
             "success": True,
             "message": "User created successfully",
-            "user": {
-                "id": new_user.id,
-                "email": new_user.email,
-                "username": new_user.username
-            }
+            "user": build_user_payload(new_user)
         }
     except Exception as e:
         db.rollback()
@@ -285,11 +442,7 @@ async def login(
         return {
             "access_token": access_token,
             "token_type": "bearer",
-            "user": {
-                "id": user.id,
-                "email": user.email,
-                "username": user.username
-            }
+            "user": build_user_payload(user)
         }
     except HTTPException:
         raise
@@ -302,16 +455,12 @@ async def login(
 @app.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)):
     """Get current user info"""
-    return {
-        "id": current_user.id,
-        "email": current_user.email,
-        "username": current_user.username
-    }
+    return build_user_payload(current_user)
 
 # ==================== RESUME ANALYSIS ENDPOINT ====================
 
-@app.post("/analyze", summary="Deep Resume Analysis", description="Uploads a PDF resume, parses it, and runs it through the XGBoost ML model and Gemini AI for comprehensive scoring.")
-@app.post("/analyze-resume/", summary="Deep Resume Analysis", description="Uploads a PDF resume, parses it, and runs it through the XGBoost ML model and Gemini AI for comprehensive scoring.")
+@app.post("/analyze", summary="Deep Resume Analysis", description="Uploads a PDF resume and runs it through the hybrid Heuristic + LLM scoring engine for comprehensive 7-dimension scoring with reasoning.")
+@app.post("/analyze-resume/", summary="Deep Resume Analysis", description="Alias for /analyze.")
 @limiter.limit("5/minute")
 async def analyze_resume(
     request: Request,
@@ -321,125 +470,39 @@ async def analyze_resume(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """
-    Analyze resume with ML model
-    """
-    
+    """Analyze resume with hybrid Heuristic + LLM engine."""
     if not file:
         raise HTTPException(status_code=400, detail="Resume PDF is required.")
-
-    # Validate file type
     if not file.filename.lower().endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     try:
-        # Extract text from PDF
         content = await read_upload_with_limit(file)
         resume_text = extract_text_from_pdfbytes(content) or "No text extracted."
-        
         if len(resume_text.strip()) < 50:
             raise HTTPException(status_code=400, detail="Could not extract meaningful text from PDF")
-        
+
         jd_text = jd.strip() or GENERAL_JD_TEXT
 
-        # PDF storage: text is saved in DB — no cloud upload needed
-        pdf_url = None
+        # Score resume — scorer handles heuristics + LLM internally
+        score_result = score_resume(resume_text, jd_text)
 
-        # Extract skills and years for the ML model to avoid "Empty Input" fallback
-        import re
-        
-        # Simple extraction logic
-        def extract_years(text):
-            matches = re.findall(r'(\d+)\+?\s*years?', text.lower())
-            if matches:
-                return float(max([int(m) for m in matches]))
-            return 0.0
+        ats_score = score_result.get("score", 0)
+        suggestions = score_result.get("gemini_suggestions", [])
 
-        extracted_years = extract_years(resume_text)
-        # Use user-provided years if available, else use extracted
-        final_years = float(years) if float(years) > 0 else extracted_years
-        
-        # Call the smarter scorer with actual data
-        score_result = score_resume(
-            resume_text,
-            jd_text,
-            skills_resume="", # The scorer now does internal extraction from text
-            skills_jd="",
-            years_resume=final_years,
-            years_jd=float(years) if float(years) > 0 else 5.0, # Default target 5 years
-            use_gemini=True 
-        )
-
-        base_score = score_result.get("score", 0)
-        
-        ats_score = base_score
-        
-        # Calculate score difference
+        # Calculate score difference from previous analysis
         prev_analysis = db.query(Analysis).filter(
             Analysis.user_id == current_user.id
         ).order_by(Analysis.created_at.desc()).first()
-        
-        score_diff = 0
-        previous_score = 0
-        if prev_analysis:
-            previous_score = prev_analysis.ats_score
-            score_diff = ats_score - previous_score
-        
-        # Get suggestions - prefer Gemini suggestions, then adaptive learning, then heuristics
-        suggestions = score_result.get("gemini_suggestions", [])
-        
-        # Debug logging
-        print(f"Score result keys: {score_result.keys()}")
-        print(f"Gemini suggestions count: {len(suggestions)}")
-        print(f"Gemini available: {score_result.get('gemini_available', False)}")
-        
-        if not suggestions:
-            print("⚠️ No Gemini suggestions found, trying fallback sources")
-        
-        adaptive_suggestions = []
-        
-        # Fallback to heuristic suggestions if no AI suggestions
-        if not suggestions:
-            details = score_result.get("details", {})
-            technical_metrics = score_result.get("technical_metrics", {})
-            
-            kw_level = technical_metrics.get("keyword_match", {}).get("level", "")
-            if kw_level == "Low":
-                suggestions.append("Your keyword match is low. Mirror exact terms and phrases from the job description in your resume to improve ATS pass-through rate.")
-            elif kw_level == "Medium":
-                suggestions.append("Moderate keyword match detected. Add more relevant technical skills, tools, and domain-specific keywords from the job description.")
-            else:
-                suggestions.append("Good keyword coverage! Make sure keywords appear in context (project descriptions, bullet points) not just a skills list.")
-            
-            sections_str = technical_metrics.get("section_completeness", "0/6")
-            try:
-                sections_found = int(sections_str.split("/")[0])
-            except:
-                sections_found = 0
-            if sections_found < 5:
-                suggestions.append("Add missing sections: a strong resume includes Summary, Experience, Education, Skills, and Projects. Each section helps ATS parsers categorize your profile correctly.")
-            
-            fmt = technical_metrics.get("formatting", {}).get("level", "")
-            if fmt in ["Needs Improvement", "Standard"]:
-                suggestions.append("Improve formatting: use consistent bullet points (•), clear section headers, and avoid tables or complex layouts that can confuse ATS parsers.")
-            else:
-                suggestions.append("Use strong action verbs (Led, Built, Optimized, Reduced) at the start of each bullet point and quantify achievements where possible (e.g. 'Improved performance by 30%').")
-            
-            resume_words = len(resume_text.split())
-            if resume_words < 200:
-                suggestions.append("Your resume appears too brief. Expand on your role responsibilities and specific achievements — aim for 400–600 words for optimal ATS scoring.")
-            elif resume_words > 900:
-                suggestions.append("Your resume may be too long. Keep it to 1 page (or 2 for senior roles) focusing on the most relevant and recent experience.")
-            
-            if not jd.strip():
-                suggestions.append("Add a specific job description when analyzing to get targeted keyword gap analysis and role-alignment scores.")
+        score_diff = (ats_score - prev_analysis.ats_score) if prev_analysis else 0
+        previous_score = prev_analysis.ats_score if prev_analysis else 0
 
         resume_preview = build_resume_preview(resume_text)
 
-        # Save analysis to database with separate full-text and preview fields.
+        # Save to database
         analysis = Analysis(
             user_id=current_user.id,
-            resume_text=resume_text,
+            resume_text=encrypt_resume_text(resume_text),
             resume_preview=resume_preview,
             jd_used=jd_text[:500] if jd.strip() else None,
             ats_score=int(ats_score),
@@ -450,23 +513,24 @@ async def analyze_resume(
             role_alignment=score_result.get("role_alignment", {}),
         )
         db.add(analysis)
+        log_user_activity(
+            db,
+            current_user.id,
+            "resume",
+            note=f"Analyzed resume{' for JD' if jd.strip() else ''}",
+        )
         db.commit()
 
         return {
             "ats_score": ats_score,
             "score_details": score_result,
+            "full_report": score_result.get("full_report", {}),
             "resume_preview": resume_preview,
             "jd_used": bool(jd.strip()),
             "score_diff": score_diff,
             "previous_score": previous_score,
             "suggestions": suggestions,
             "gemini_available": score_result.get("gemini_available", False),
-            "gemini_error": score_result.get("gemini_evaluation", {}).get("error") if not suggestions else None,
-            "debug_info": {
-                "ai_suggestions_count": len(score_result.get("gemini_suggestions", [])),
-                "adaptive_suggestions_count": len(adaptive_suggestions) if 'adaptive_suggestions' in locals() else 0,
-                "provider": settings.LLM_PROVIDER
-            }
         }
     except HTTPException:
         raise
@@ -482,70 +546,32 @@ async def guest_analyze_resume(
     jd: str = Form(""),
     years: float = Form(0.0),
 ):
-    """
-    Guest analysis endpoint without authentication or history.
-    """
-
+    """Guest analysis endpoint without authentication or history."""
     if not file:
         raise HTTPException(status_code=400, detail="Resume PDF is required.")
-
-    # Validate file type
     if not file.filename.lower().endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     try:
         content = await read_upload_with_limit(file)
         resume_text = extract_text_from_pdfbytes(content) or "No text extracted."
-
         if len(resume_text.strip()) < 50:
-            raise HTTPException(
-                status_code=400,
-                detail="Could not extract meaningful text from PDF",
-            )
+            raise HTTPException(status_code=400, detail="Could not extract meaningful text from PDF")
 
         jd_text = jd.strip() or GENERAL_JD_TEXT
+        score_result = score_resume(resume_text, jd_text)
 
-        score_result = score_resume(
-            resume_text,
-            jd_text,
-            skills_resume="",
-            skills_jd="",
-            years_resume=years,
-            years_jd=years,
-            use_gemini=True  # Enable Gemini for guest analysis too
-        )
-
-        base_score = score_result.get("score", 0)
-        ats_score = base_score
-        
-        ats_score = base_score
-
-        # Get Gemini suggestions from score result
+        ats_score = score_result.get("score", 0)
         suggestions = score_result.get("gemini_suggestions", [])
-        
-        # Debug logging
-        print(f"Score result keys: {score_result.keys()}")
-        print(f"Gemini suggestions count: {len(suggestions)}")
-        print(f"Gemini available: {score_result.get('gemini_available', False)}")
-        
-        if not suggestions:
-            print("No Gemini suggestions found, using fallback")
-            # Add fallback suggestions
-            if len(resume_text.split()) < 200:
-                suggestions.append("Resume seems too short. Elaborate more on your roles and achievements.")
-            if not jd.strip():
-                suggestions.append("Add a job description to get more targeted feedback.")
-            if not suggestions:
-                suggestions.append("Review your resume for clarity, impact, and keyword optimization.")
 
         return {
             "ats_score": ats_score,
             "score_details": score_result,
+            "full_report": score_result.get("full_report", {}),
             "resume_preview": build_resume_preview(resume_text),
             "jd_used": bool(jd.strip()),
             "suggestions": suggestions,
             "gemini_available": score_result.get("gemini_available", False),
-            "gemini_error": score_result.get("gemini_evaluation", {}).get("error") if not suggestions else None
         }
     except HTTPException:
         raise
@@ -625,26 +651,52 @@ async def get_history(
 # ==================== GITHUB OAUTH ====================
 
 @app.get("/auth/github/login")
-async def github_login():
-    """Redirect user to GitHub OAuth authorization page."""
+async def github_login(
+    current_user: User = Depends(get_current_user),
+    redirect_to: Optional[str] = None,
+    mode: str = "json",
+):
+    """Create a signed GitHub OAuth URL for the authenticated user."""
     if not settings.GITHUB_CLIENT_ID:
         raise HTTPException(status_code=501, detail="GitHub OAuth not configured")
+
+    state = create_signed_state(
+        {
+            "user_id": current_user.id,
+            "redirect_to": resolve_post_oauth_redirect(redirect_to),
+        },
+        expires_seconds=settings.GITHUB_STATE_TTL_SECONDS,
+    )
     url = (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={settings.GITHUB_CLIENT_ID}"
         f"&redirect_uri={settings.GITHUB_REDIRECT_URI}"
-        f"&scope=read:user,repo"
+        f"&scope=read:user"
+        f"&state={state}"
     )
-    return RedirectResponse(url)
+    if mode == "redirect":
+        return RedirectResponse(url)
+    return {"auth_url": url}
 
 
 @app.get("/auth/github/callback")
 async def github_callback(
     code: str,
-    current_user: User = Depends(get_current_user),
+    state: str,
     db: Session = Depends(get_db)
 ):
     """Exchange GitHub code for token, fetch profile, save to DB."""
+    try:
+        state_payload = decode_signed_state(state)
+        user_id = int(state_payload.get("user_id"))
+        redirect_to = resolve_post_oauth_redirect(state_payload.get("redirect_to"))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=400, detail="Invalid GitHub OAuth state")
+
+    current_user = db.query(User).filter(User.id == user_id).first()
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     async with httpx.AsyncClient() as client:
         # Exchange code for token
         token_resp = await client.post(
@@ -656,6 +708,8 @@ async def github_callback(
                 "code": code,
             },
         )
+        if token_resp.status_code != 200:
+            raise HTTPException(status_code=400, detail="GitHub OAuth failed")
         token_data = token_resp.json()
         access_token = token_data.get("access_token")
         if not access_token:
@@ -734,7 +788,8 @@ async def github_callback(
     profile.last_synced = datetime.utcnow()
     db.commit()
 
-    return {"success": True, "github_username": profile.github_username}
+    params = urlencode({"github": "connected", "username": profile.github_username})
+    return RedirectResponse(f"{redirect_to}{'&' if '?' in redirect_to else '?'}{params}")
 
 
 @app.get("/github/profile")
@@ -966,6 +1021,12 @@ async def generate_ai_roadmap(
         )
         db.add(existing)
 
+    log_user_activity(
+        db,
+        current_user.id,
+        "planning",
+        note=f"Generated roadmap for {target_role} @ {target_company}",
+    )
     db.commit()
     db.refresh(existing)
 
@@ -1012,6 +1073,12 @@ async def create_application(
         stage="applied", date_applied=datetime.utcnow(),
     )
     db.add(app)
+    log_user_activity(
+        db,
+        current_user.id,
+        "applications",
+        note=f"Added {role} at {company}",
+    )
     db.commit()
     db.refresh(app)
     return {"id": app.id, "company": app.company, "role": app.role, "stage": app.stage}
@@ -1146,7 +1213,9 @@ async def parse_pdf_to_builder(
 ):
     """Parses an uploaded PDF directly into the ResumeBuilder JSON format."""
     try:
-        content = await file.read()
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(status_code=400, detail="Only PDF files are supported")
+        content = await read_upload_with_limit(file)
         import PyPDF2, io
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
         text = "".join(page.extract_text() or "" for page in pdf_reader.pages)
@@ -1156,6 +1225,8 @@ async def parse_pdf_to_builder(
         from services.llm_service import parse_resume_to_builder
         parsed_data = parse_resume_to_builder(text)
         return parsed_data
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Failed to parse PDF for builder: {e}")
         raise HTTPException(status_code=500, detail="Failed to parse PDF")
@@ -1217,10 +1288,12 @@ async def update_dsa_progress(
     ).first()
     
     if track:
+        previously_done = track.status == "done"
         track.status = status
         track.platform = platform
         track.completed_at = datetime.utcnow() if status == "done" else None
     else:
+        previously_done = False
         track = DSATrack(
             user_id=current_user.id,
             problem_id=problem_id,
@@ -1229,7 +1302,15 @@ async def update_dsa_progress(
             completed_at=datetime.utcnow() if status == "done" else None,
         )
         db.add(track)
-        
+
+    if status == "done" and not previously_done:
+        log_user_activity(
+            db,
+            current_user.id,
+            "dsa",
+            note=f"Completed problem {problem_id} on {platform}",
+        )
+
     db.commit()
     return {
         "success": True,
@@ -1291,6 +1372,68 @@ async def save_resume_profile(
     return {"success": True, "id": profile.id}
 
 
+@app.post("/resume/analyze-builder")
+async def analyze_builder_resume(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Analyze the current Resume Builder content without requiring a PDF upload."""
+    data = await request.json()
+    content = data.get("content")
+    jd = (data.get("jd") or "").strip()
+
+    resume_text = builder_content_to_resume_text(content)
+    if len(resume_text.strip()) < 80:
+        raise HTTPException(status_code=400, detail="Add more resume content before analyzing from the builder.")
+
+    jd_text = jd or GENERAL_JD_TEXT
+    score_result = score_resume(resume_text, jd_text)
+    ats_score = score_result.get("score", 0)
+    suggestions = score_result.get("gemini_suggestions", [])
+
+    prev_analysis = db.query(Analysis).filter(
+        Analysis.user_id == current_user.id
+    ).order_by(Analysis.created_at.desc()).first()
+    score_diff = (ats_score - prev_analysis.ats_score) if prev_analysis else 0
+    previous_score = prev_analysis.ats_score if prev_analysis else 0
+
+    resume_preview = build_resume_preview(resume_text)
+    analysis = Analysis(
+        user_id=current_user.id,
+        resume_text=encrypt_resume_text(resume_text),
+        resume_preview=resume_preview,
+        jd_used=jd_text[:500] if jd else None,
+        ats_score=int(ats_score),
+        score_breakdown=score_result.get("breakdown", {}),
+        keyword_gaps=score_result.get("technical_metrics", {}),
+        suggestions=suggestions,
+        radar_data=score_result.get("radar_data", []),
+        role_alignment=score_result.get("role_alignment", {}),
+    )
+    db.add(analysis)
+    log_user_activity(
+        db,
+        current_user.id,
+        "resume",
+        note=f"Analyzed builder resume{' for JD' if jd else ''}",
+    )
+    db.commit()
+
+    return {
+        "ats_score": ats_score,
+        "score_details": score_result,
+        "full_report": score_result.get("full_report", {}),
+        "resume_preview": resume_preview,
+        "jd_used": bool(jd),
+        "score_diff": score_diff,
+        "previous_score": previous_score,
+        "suggestions": suggestions,
+        "gemini_available": score_result.get("gemini_available", False),
+        "source": "builder",
+    }
+
+
 # ==================== JOB DISCOVERY ====================
 
 @app.get("/jobs/discover")
@@ -1300,35 +1443,101 @@ async def discover_jobs(
     role: str = "software engineer",
     current_user: User = Depends(get_current_user),
 ):
-    """Fetch live open jobs from Remotive API."""
-    try:
-        async with httpx.AsyncClient(timeout=10) as client:
+    """Fetch real-time jobs worldwide via Adzuna API (multi-country)."""
+    import asyncio
+
+    if not settings.ADZUNA_APP_ID or not settings.ADZUNA_APP_KEY:
+        # Fallback to Remotive if Adzuna not configured
+        try:
+            async with httpx.AsyncClient(timeout=10) as client:
+                resp = await client.get(
+                    "https://remotive.com/api/remote-jobs",
+                    params={"search": role, "limit": 15},
+                    headers={"Accept": "application/json"},
+                )
+            if resp.status_code != 200:
+                return {"jobs": [], "source": "remotive", "error": "API unavailable"}
+            data = resp.json()
+            jobs = [
+                {
+                    "id": j.get("id"), "title": j.get("title", ""),
+                    "company": j.get("company_name", ""),
+                    "tags": (j.get("tags") or [])[:5],
+                    "url": j.get("url", ""),
+                    "location": j.get("candidate_required_location", "Remote"),
+                    "salary": j.get("salary", ""), "country": "Remote",
+                    "posted": (j.get("publication_date") or "")[:10],
+                    "description_snippet": (j.get("description") or "")[:400],
+                }
+                for j in data.get("jobs", [])[:15]
+            ]
+            return {"jobs": jobs, "total": len(jobs), "source": "Remotive (fallback)"}
+        except Exception as e:
+            return {"jobs": [], "source": "remotive", "error": str(e)}
+
+    # Adzuna multi-country parallel fetch
+    COUNTRY_NAMES = {
+        "us": "USA", "gb": "UK", "in": "India", "de": "Germany",
+        "fr": "France", "au": "Australia", "ca": "Canada", "nl": "Netherlands",
+        "sg": "Singapore", "br": "Brazil", "it": "Italy", "es": "Spain",
+        "pl": "Poland", "za": "South Africa", "nz": "New Zealand", "at": "Austria",
+    }
+
+    async def _fetch_country(client, country_code):
+        try:
             resp = await client.get(
-                "https://remotive.com/api/remote-jobs",
-                params={"search": role, "limit": 12},
-                headers={"Accept": "application/json"},
+                f"https://api.adzuna.com/v1/api/jobs/{country_code}/search/1",
+                params={
+                    "app_id": settings.ADZUNA_APP_ID,
+                    "app_key": settings.ADZUNA_APP_KEY,
+                    "what": role,
+                    "results_per_page": 5,
+                    "content-type": "application/json",
+                    "sort_by": "date",
+                },
             )
-        if resp.status_code != 200:
-            return {"jobs": [], "source": "remotive", "error": "API unavailable"}
-        data = resp.json()
-        jobs = [
-            {
-                "id": j.get("id"),
-                "title": j.get("title", ""),
-                "company": j.get("company_name", ""),
-                "tags": (j.get("tags") or [])[:5],
-                "url": j.get("url", ""),
-                "location": j.get("candidate_required_location", "Remote"),
-                "salary": j.get("salary", ""),
-                "posted": (j.get("publication_date") or "")[:10],
-                "description_snippet": (j.get("description") or "")[:500],
-            }
-            for j in data.get("jobs", [])[:12]
-        ]
-        return {"jobs": jobs, "total": len(jobs), "source": "Remotive"}
+            if resp.status_code != 200:
+                return []
+            data = resp.json()
+            return [
+                {
+                    "id": j.get("id", f"{country_code}_{i}"),
+                    "title": j.get("title", ""),
+                    "company": j.get("company", {}).get("display_name", ""),
+                    "tags": [t for t in (j.get("category", {}).get("tag", "") or "").split("/") if t][:3],
+                    "url": j.get("redirect_url", ""),
+                    "location": j.get("location", {}).get("display_name", ""),
+                    "salary": f"${int(j['salary_min']):,}–${int(j['salary_max']):,}" if j.get("salary_min") and j.get("salary_max") else "",
+                    "country": COUNTRY_NAMES.get(country_code, country_code.upper()),
+                    "posted": (j.get("created") or "")[:10],
+                    "description_snippet": (j.get("description") or "")[:400],
+                }
+                for i, j in enumerate(data.get("results", []))
+            ]
+        except Exception:
+            return []
+
+    try:
+        async with httpx.AsyncClient(timeout=12) as client:
+            tasks = [_fetch_country(client, cc) for cc in settings.ADZUNA_COUNTRIES[:10]]
+            results = await asyncio.gather(*tasks)
+
+        all_jobs = []
+        for batch in results:
+            all_jobs.extend(batch)
+
+        # Sort by recency
+        all_jobs.sort(key=lambda j: j.get("posted", ""), reverse=True)
+
+        return {
+            "jobs": all_jobs[:30],
+            "total": len(all_jobs),
+            "source": "Adzuna",
+            "countries_queried": len(settings.ADZUNA_COUNTRIES),
+        }
     except Exception as e:
-        logger.error(f"Job discovery error: {e}")
-        return {"jobs": [], "source": "remotive", "error": str(e)}
+        logger.error(f"Adzuna job discovery error: {e}")
+        return {"jobs": [], "source": "adzuna", "error": str(e)}
 
 
 @app.post("/jobs/match-resume")
@@ -1348,7 +1557,7 @@ async def match_resume_to_job(
     latest = db.query(Analysis).filter(Analysis.user_id == current_user.id).order_by(Analysis.created_at.desc()).first()
     if not latest:
         raise HTTPException(status_code=400, detail="Analyze your resume first in Resume Lab.")
-    resume_text = (latest.resume_text or latest.resume_preview or "")
+    resume_text = get_analysis_resume_text(latest)
     from services.llm_service import _call_llm_json
     prompt = f"""Compare this resume against the job description. Be specific and direct.
 JOB: {job_title} at {company}
@@ -1374,6 +1583,9 @@ async def get_llm_metrics(
     Lightweight telemetry endpoint for model reliability and latency.
     Requires authentication.
     """
+    if not settings.is_admin_email(current_user.email):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
     rows = db.query(LLMCallLog).order_by(LLMCallLog.created_at.desc()).limit(500).all()
     total = len(rows)
     if total == 0:
@@ -1476,7 +1688,7 @@ async def get_weekly_tracker(
         calendar[day][log.category] = calendar[day].get(log.category, 0) + log.count
         by_category[log.category] = by_category.get(log.category, 0) + log.count
     today = datetime.utcnow().date()
-    CATS = ["dsa", "system_design", "cs_fundamentals", "behavioral", "projects", "applications"]
+    CATS = ["resume", "planning", "dsa", "system_design", "cs_fundamentals", "behavioral", "projects", "applications"]
     streaks = {}
     for cat in CATS:
         streak, cursor = 0, today
@@ -1547,6 +1759,227 @@ async def mentor_clear(
     db: Session = Depends(get_db),
 ):
     db.query(MentorConversation).filter(MentorConversation.user_id == current_user.id).delete()
+    db.commit()
+    return {"success": True}
+
+
+# ==================== MULTI-AGENT SYSTEM ====================
+
+AGENT_INFO = {
+    "nova":  {"name": "Nova",  "role": "Orchestrator",   "emoji": "🧠", "color": "#f97316", "description": "Routes requests and coordinates the team"},
+    "maya":  {"name": "Maya",  "role": "Resume Analyst", "emoji": "🔍", "color": "#3b82f6", "description": "ATS scoring, keyword analysis, flaw detection"},
+    "max":   {"name": "Max",   "role": "Content Writer", "emoji": "✍️",  "color": "#8b5cf6", "description": "Rewrites bullets, cover letters, outreach copy"},
+    "scout": {"name": "Scout", "role": "Job Scout",      "emoji": "🎯", "color": "#22c55e", "description": "Finds matching jobs, tracks applications"},
+    "maaya": {"name": "Maaya", "role": "Career Coach",   "emoji": "🧭", "color": "#f59e0b", "description": "Roadmaps, interview prep, career strategy"},
+}
+
+
+@app.get("/agents/team")
+async def get_agent_team(current_user: User = Depends(get_current_user)):
+    """Return info for all 5 agents."""
+    try:
+        from agents import get_team
+        team = get_team()
+        return {"agents": team.all_agents_info()}
+    except Exception:
+        # Fallback static info if team not initialized
+        return {"agents": list(AGENT_INFO.values())}
+
+
+@app.post("/agents/chat")
+@limiter.limit("20/minute")
+async def agents_chat_sse(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Stream a multi-agent conversation via Server-Sent Events.
+    The orchestrator (Nova) classifies intent and delegates to specialists.
+    """
+    from starlette.responses import StreamingResponse
+    from agents import get_team
+    from agents.base_agent import AgentContext
+    import uuid
+
+    data = await request.json()
+    user_message = (data.get("message") or "").strip()
+    if not user_message:
+        raise HTTPException(status_code=400, detail="message required")
+
+    # Build resume context from latest analysis
+    resume_text = ""
+    latest = db.query(Analysis).filter(
+        Analysis.user_id == current_user.id
+    ).order_by(Analysis.created_at.desc()).first()
+    if latest:
+        resume_text = get_analysis_resume_text(latest)
+
+    job_description = (data.get("job_description") or "").strip()
+
+    # Build user state from various sources
+    user_state = {}
+    try:
+        from services.agent_service import build_user_context
+        user_state = build_user_context(current_user, db)
+    except Exception:
+        pass
+
+    # Load conversation history
+    history_rows = (
+        db.query(AgentConversation)
+        .filter(AgentConversation.user_id == current_user.id)
+        .order_by(AgentConversation.created_at.desc())
+        .limit(20).all()
+    )
+    conversation_history = [
+        {"role": "user" if r.role == "user" else "assistant", "content": r.content}
+        for r in reversed(history_rows)
+    ]
+
+    session_id = uuid.uuid4().hex
+
+    context = AgentContext(
+        user_id=current_user.id,
+        user_message=user_message,
+        conversation_history=conversation_history,
+        resume_text=resume_text,
+        job_description=job_description,
+        user_state=user_state,
+        session_id=session_id,
+        db=db,
+        user=current_user,
+    )
+
+    # Save user message
+    db.add(AgentConversation(
+        user_id=current_user.id,
+        session_id=session_id,
+        agent_name="user",
+        role="user",
+        content=user_message,
+        message_type="message",
+    ))
+    db.commit()
+
+    user_id = current_user.id  # eagerly capture before session closes
+
+    async def event_stream():
+        stream_db = SessionLocal()
+        team = get_team()
+        nova = team.nova
+        agents_used = []
+        final_content = ""
+
+        try:
+            async for sse_event in nova.run(context):
+                yield sse_event.format()
+
+                if sse_event.event == "agent_message":
+                    agent_name = sse_event.data.get("agent", "unknown")
+                    content = sse_event.data.get("content", "")
+                    final_content = content
+                    if agent_name not in agents_used:
+                        agents_used.append(agent_name)
+
+                    stream_db.add(AgentConversation(
+                        user_id=user_id,
+                        session_id=session_id,
+                        agent_name=agent_name,
+                        role="agent",
+                        content=content,
+                        message_type="message",
+                        metadata_json={
+                            "color": sse_event.data.get("color"),
+                            "emoji": sse_event.data.get("emoji"),
+                            "tools_used": sse_event.data.get("tools_used", []),
+                        },
+                    ))
+                    stream_db.commit()
+
+                elif sse_event.event == "done":
+                    agents_used = sse_event.data.get("agents_used", agents_used)
+
+        except Exception as e:
+            logger.error(f"Agent streaming error: {e}")
+            import json as _json
+            yield f"event: error\ndata: {_json.dumps({'error': str(e)})}\n\n"
+            yield f"event: done\ndata: {_json.dumps({'agents_used': agents_used})}\n\n"
+
+        try:
+            stream_db.add(AgentTrace(
+                user_id=user_id,
+                session_id=session_id,
+                trace_id=context.request_id,
+                user_message=user_message,
+                agents_used=agents_used,
+            ))
+            stream_db.commit()
+        except Exception:
+            pass
+        finally:
+            stream_db.close()
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.get("/agents/history")
+async def get_agent_history(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Load multi-agent conversation history."""
+    rows = (
+        db.query(AgentConversation)
+        .filter(AgentConversation.user_id == current_user.id)
+        .order_by(AgentConversation.created_at.asc())
+        .limit(60).all()
+    )
+    messages = []
+    for r in rows:
+        meta = r.metadata_json or {}
+        if r.role == "user":
+            messages.append({
+                "id": r.id,
+                "event_type": "user",
+                "agent": "you",
+                "content": r.content,
+                "timestamp": r.created_at.isoformat() if r.created_at else None,
+            })
+        else:
+            messages.append({
+                "id": r.id,
+                "event_type": "agent_message",
+                "agent": r.agent_name,
+                "emoji": meta.get("emoji", "🤖"),
+                "color": meta.get("color", "#f97316"),
+                "content": r.content,
+                "tools_used": meta.get("tools_used", []),
+                "timestamp": r.created_at.isoformat() if r.created_at else None,
+            })
+    return {"messages": messages}
+
+
+@app.delete("/agents/history")
+async def clear_agent_history(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Clear multi-agent conversation history."""
+    db.query(AgentConversation).filter(
+        AgentConversation.user_id == current_user.id
+    ).delete()
+    db.query(AgentTrace).filter(
+        AgentTrace.user_id == current_user.id
+    ).delete()
     db.commit()
     return {"success": True}
 

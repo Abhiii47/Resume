@@ -38,6 +38,8 @@ TASK_MODEL_LANES: dict[str, dict[str, list[str]]] = {
     "analysis_quality": {"groq": [settings.GROQ_MODEL], "gemini": ["gemini-1.5-pro", "gemini-1.5-flash"]},
     "structured_extract": {"groq": [settings.GROQ_MODEL], "gemini": ["gemini-1.5-pro", "gemini-1.5-flash"]},
     "mentor_planning": {"groq": [settings.GROQ_MODEL], "gemini": ["gemini-1.5-pro", "gemini-1.5-flash"]},
+    # Multi-agent system: fast/cheap lane for orchestrator intent classification
+    "agent_routing": {"groq": ["llama-3.1-8b-instant", settings.GROQ_MODEL], "gemini": ["gemini-1.5-flash"]},
 }
 
 # Initialize Clients

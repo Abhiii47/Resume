@@ -35,6 +35,9 @@ export default function ResumeBuilder() {
   const [layoutMode, setLayoutMode] = useState('classic');
   const [rewritingKey, setRewritingKey] = useState('');
   const [sectionScoreHistory, setSectionScoreHistory] = useState([]);
+  const [analysisJd, setAnalysisJd] = useState('');
+  const [analyzingBuilder, setAnalyzingBuilder] = useState(false);
+  const [builderAnalysis, setBuilderAnalysis] = useState(null);
 
   const FONTS = [
     { label: 'Classic Serif',   value: 'Georgia, serif' },
@@ -139,6 +142,32 @@ export default function ResumeBuilder() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleAnalyzeBuilder = async () => {
+    setAnalyzingBuilder(true);
+    try {
+      const res = await axios.post(`${API_BASE}/resume/analyze-builder`, {
+        content: resumeData,
+        jd: analysisJd
+      }, {
+        headers: {
+          Authorization: `Bearer ${getAuthToken()}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      setBuilderAnalysis({
+        atsScore: res.data.ats_score,
+        scoreDiff: res.data.score_diff,
+        suggestions: res.data.suggestions || [],
+        verdict: res.data.full_report?.overall_verdict || ''
+      });
+      setSaveStatus('saved');
+    } catch (err) {
+      alert(err.response?.data?.detail || 'Failed to analyze builder resume.');
+    } finally {
+      setAnalyzingBuilder(false);
+    }
   };
 
   const updatePersonal = (field, value) => {
@@ -420,6 +449,9 @@ export default function ResumeBuilder() {
             <button onClick={() => saveResume(false)} disabled={saveStatus === 'saving'} className="brutalist-button px-4 py-2 text-xs">
               {saveStatus === 'saving' ? "Saving..." : "Save"}
             </button>
+            <button onClick={handleAnalyzeBuilder} disabled={analyzingBuilder} className="brutalist-button px-4 py-2 text-xs">
+              {analyzingBuilder ? "Analyzing..." : "Analyze Builder"}
+            </button>
             <button onClick={handlePrint} className="brutalist-button bg-accent text-accent-foreground px-4 py-2 text-xs">
               Export PDF
             </button>
@@ -440,6 +472,24 @@ export default function ResumeBuilder() {
               {saveStatus === 'error' && 'Save failed'}
               {saveStatus === 'idle' && 'Ready'}
             </span>
+          </div>
+          <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3">
+            <input
+              className="brutalist-input w-full p-2 text-xs font-mono"
+              value={analysisJd}
+              onChange={e => setAnalysisJd(e.target.value)}
+              placeholder="Optional target job description for builder analysis"
+            />
+            {builderAnalysis && (
+              <div className="p-3 border border-primary bg-background text-xs font-mono">
+                <div className="flex flex-wrap gap-3 items-center">
+                  <span>ATS: <strong>{builderAnalysis.atsScore}</strong></span>
+                  <span>Delta: <strong>{builderAnalysis.scoreDiff > 0 ? `+${builderAnalysis.scoreDiff}` : builderAnalysis.scoreDiff}</strong></span>
+                </div>
+                {builderAnalysis.verdict && <p className="mt-1 text-muted-foreground">{builderAnalysis.verdict}</p>}
+                {builderAnalysis.suggestions?.[0] && <p className="mt-1">Top fix: {builderAnalysis.suggestions[0]}</p>}
+              </div>
+            )}
           </div>
         </div>
 

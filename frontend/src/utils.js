@@ -29,10 +29,10 @@ export const API_BASE = (() => {
     return `http://${window.location.hostname}:8000`;
   }
 
-  // 4. Fallback for production if env var is missing
-  // We avoid window.location.origin because the backend is on Railway
-  console.warn("WARNING: API_URL environment variable not found. Falling back to localhost:8000");
-  return "http://localhost:8000";
+  // 4. Fallback for production if env var is missing.
+  // Prefer same-origin so a backend-served SPA still works instead of silently calling localhost.
+  console.warn("WARNING: API_URL environment variable not found. Falling back to same-origin API.");
+  return window.location.origin;
 })();
 
 // Token management functions

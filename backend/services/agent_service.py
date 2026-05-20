@@ -11,6 +11,14 @@ from typing import Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 
+from security_utils import decrypt_resume_text
+
+
+def _analysis_resume_text(analysis) -> str:
+    if not analysis:
+        return ""
+    return (decrypt_resume_text(getattr(analysis, "resume_text", "")) or getattr(analysis, "resume_preview", "") or "").strip()
+
 # ── Alex's Persona ────────────────────────────────────────────────────────────
 
 ALEX_PERSONA = """You are Alex, an elite personal career mentor and senior software engineer with 10+ years helping candidates land roles at top tech companies (Google, Meta, Amazon, Microsoft, etc.).
@@ -55,7 +63,7 @@ def build_user_context(user, db) -> Dict:
             "suggestions": (analysis.suggestions or [])[:3],
             "days_ago": (datetime.utcnow() - analysis.created_at).days,
             "jd_used": bool(analysis.jd_used),
-            "resume_text_preview": (analysis.resume_text or "")[:800],
+            "resume_text_preview": _analysis_resume_text(analysis)[:800],
         }
 
     # DSA
@@ -219,7 +227,7 @@ def execute_tool(tool_name: str, args: Dict, user, db) -> str:
             a = db.query(Analysis).filter(Analysis.user_id == user.id).order_by(Analysis.created_at.desc()).first()
             if not a:
                 return "Analyze your resume first."
-            resume_text = (a.resume_text or a.resume_preview or "")
+            resume_text = _analysis_resume_text(a)
             jd = f"Role: {args.get('role', 'Software Engineer')} at {args.get('company', 'the company')}"
             return generate_cover_letter(resume_text, jd)
 
@@ -242,7 +250,7 @@ def execute_tool(tool_name: str, args: Dict, user, db) -> str:
             a = db.query(Analysis).filter(Analysis.user_id == user.id).order_by(Analysis.created_at.desc()).first()
             if not a:
                 return "Analyze your resume first."
-            resume_text = (a.resume_text or a.resume_preview or "")
+            resume_text = _analysis_resume_text(a)
             role = args.get("role", "Software Engineer")
             company = args.get("company", "Top Tech Company")
             rm = generate_dynamic_roadmap(resume_text, role, company)

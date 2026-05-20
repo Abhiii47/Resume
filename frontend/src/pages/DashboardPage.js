@@ -7,7 +7,8 @@ import AnalysisLoader from "../components/AnalysisLoader";
 import { ScoreCardSkeleton, ResumeHistorySkeleton } from "../components/ui/Skeletons";
 import { UploadCloud, FileText, CheckCircle2, BookOpen, Search, LayoutDashboard, BarChart2, Zap } from "lucide-react";
 import HolisticTracker from "../components/HolisticTracker";
-import MentorChat from "../components/MentorChat";
+import DSATracker from "../components/DSATracker";
+import AgentChat from "../components/AgentChat";
 import ResumeBuilder from "../components/ResumeBuilder";
 import { toast, confirm, ToastContainer } from "../components/ui/Toast";
 
@@ -33,7 +34,7 @@ function AnimatedScore({ value, className, style }) {
 }
 
 /* ── Overview Tab ───────────────────────────────────────────── */
-function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLoading }) {
+function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLoading, showLlmMetrics = false }) {
   const latestScore = history && history.length > 0
     ? (history[0].score_breakdown?.total_score || history[0].ats_score || 0)
     : 0;
@@ -107,6 +108,8 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
         ))}
       </div>
 
+      {showLlmMetrics && (
+      <>
       {/* LLM Reliability */}
       <h3 className="text-sm font-black uppercase tracking-widest mb-5" style={{ color: '#555' }}>AI Reliability</h3>
       <div className="p-6" style={{ background: '#161616', border: '2px solid #222' }}>
@@ -148,6 +151,8 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
           </>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 }
@@ -577,6 +582,34 @@ function JobTracker() {
               ))}
             </div>
           )}
+          <div
+            onClick={() => setShowCommsLab(true)}
+            className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1 cursor-pointer"
+            style={{ background: '#111', border: '2px dashed #2a2a2a' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.45)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
+          >
+            <div className="flex justify-between items-start">
+              <h4 className="font-black text-sm text-white">Career Comms Lab</h4>
+              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
+            </div>
+            <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
+            <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Open Writing Tools â†’</p>
+          </div>
+          <div
+            onClick={() => setShowCommsLab(true)}
+            className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1 cursor-pointer"
+            style={{ background: '#111', border: '2px dashed #2a2a2a' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.45)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
+          >
+            <div className="flex justify-between items-start">
+              <h4 className="font-black text-sm text-white">Career Comms Lab</h4>
+              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
+            </div>
+            <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
+            <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Open Writing Tools â†’</p>
+          </div>
         </div>
       )}
 
@@ -713,6 +746,166 @@ function JobTracker() {
 }
 
 /* ── Resource Hub ─────────────────────────────────────────── */
+function CareerCommsLab({ onClose }) {
+  const [jd, setJd] = useState('');
+  const [targetRole, setTargetRole] = useState('Software Engineer');
+  const [company, setCompany] = useState('');
+  const [loadingKey, setLoadingKey] = useState('');
+  const [outputs, setOutputs] = useState({});
+
+  const inputStyle = { background: '#0a0a0a', border: '2px solid #2a2a2a', color: '#fff', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
+  const authHeaders = { Authorization: `Bearer ${getAuthToken()}` };
+
+  const setToolOutput = (key, payload) => {
+    setOutputs(prev => ({ ...prev, [key]: payload }));
+  };
+
+  const postFormTool = async (key, url, fields = {}, mapResult = (data) => data) => {
+    setLoadingKey(key);
+    try {
+      const formData = new FormData();
+      Object.entries(fields).forEach(([field, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(field, value);
+        }
+      });
+      const res = await axios.post(url, formData, { headers: authHeaders });
+      setToolOutput(key, { value: mapResult(res.data), error: '' });
+    } catch (err) {
+      setToolOutput(key, { value: null, error: err.response?.data?.detail || 'Request failed.' });
+    } finally {
+      setLoadingKey('');
+    }
+  };
+
+  const runLanguageAudit = async () => {
+    setLoadingKey('language');
+    try {
+      const res = await axios.post(`${API_BASE}/comms/language-audit`, null, { headers: authHeaders });
+      setToolOutput('language', { value: res.data, error: '' });
+    } catch (err) {
+      setToolOutput('language', { value: null, error: err.response?.data?.detail || 'Request failed.' });
+    } finally {
+      setLoadingKey('');
+    }
+  };
+
+  const renderOutput = (key) => {
+    const output = outputs[key];
+    if (!output) return null;
+    if (output.error) {
+      return <div className="mt-3 p-3 text-xs font-bold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid #7f1d1d', color: '#fca5a5' }}>{output.error}</div>;
+    }
+    const value = output.value;
+    if (typeof value === 'string') {
+      return <div className="mt-3 p-3 text-sm whitespace-pre-wrap" style={{ background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#ccc' }}>{value}</div>;
+    }
+    if (Array.isArray(value)) {
+      return (
+        <div className="mt-3 space-y-2">
+          {value.map((item, idx) => (
+            <div key={`${key}-${idx}`} className="p-3 text-sm" style={{ background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#ccc' }}>
+              {typeof item === 'string' ? item : JSON.stringify(item)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    return (
+      <div className="mt-3 p-3 text-sm" style={{ background: '#0d0d0d', border: '1px solid #1f1f1f', color: '#ccc' }}>
+        {value?.overall_feedback && <p className="mb-3">{value.overall_feedback}</p>}
+        {value?.overall_score !== undefined && <p className="mb-3"><strong>Overall Score:</strong> {value.overall_score}</p>}
+        {value?.overall_match_pct !== undefined && <p className="mb-3"><strong>Match:</strong> {value.overall_match_pct}%</p>}
+        {value?.action_verb_score !== undefined && <p className="mb-2"><strong>Action Verb Score:</strong> {value.action_verb_score}</p>}
+        {value?.quantification_score !== undefined && <p className="mb-2"><strong>Quantification Score:</strong> {value.quantification_score}</p>}
+        {value?.headlines && (
+          <div className="space-y-2">
+            {value.headlines.map((headline, idx) => <div key={idx}>{headline}</div>)}
+          </div>
+        )}
+        {value?.critical_missing && (
+          <div className="space-y-2">
+            <p><strong>Critical Missing:</strong> {value.critical_missing.join(', ') || 'None'}</p>
+            <p><strong>Strong Matches:</strong> {(value.strong_matches || []).join(', ') || 'None'}</p>
+          </div>
+        )}
+        {value?.fixes && (
+          <div className="space-y-2">
+            {value.fixes.slice(0, 4).map((fix, idx) => (
+              <div key={idx}>
+                <strong>{fix.original}</strong>
+                <div>{fix.rewrite}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const cards = [
+    { key: 'cover', title: 'Cover Letter', description: 'Generate a tailored letter from your latest analyzed resume.', action: () => postFormTool('cover', `${API_BASE}/generate-cover-letter`, { jd }, data => data.cover_letter || ''), requiresJd: true },
+    { key: 'interview', title: 'Interview Prep', description: 'Create targeted questions and answer angles from the same JD.', action: () => postFormTool('interview', `${API_BASE}/generate-interview-prep`, { jd }, data => data.interview_prep || ''), requiresJd: true },
+    { key: 'language', title: 'Language Audit', description: 'Score tone, verbs, and quantification quality across your latest resume.', action: runLanguageAudit },
+    { key: 'pitch', title: 'Elevator Pitch', description: 'Generate a crisp intro for networking and interviews.', action: () => postFormTool('pitch', `${API_BASE}/comms/elevator-pitch`, { target_role: targetRole }, data => data.pitch || '') },
+    { key: 'headline', title: 'LinkedIn Headlines', description: 'Get 3 headline options tied to your target role.', action: () => postFormTool('headline', `${API_BASE}/comms/linkedin-headline`, { target_role: targetRole }, data => ({ headlines: data.headlines || [] })) },
+    { key: 'cold', title: 'Cold Email', description: 'Write a recruiter outreach email grounded in your resume.', action: () => postFormTool('cold', `${API_BASE}/comms/cold-email`, { company, role: targetRole }, data => data.email || ''), requiresCompany: true },
+    { key: 'heatmap', title: 'Keyword Heatmap', description: 'See critical missing ATS keywords for a target JD.', action: () => postFormTool('heatmap', `${API_BASE}/resume/keyword-heatmap`, { jd }, data => data), requiresJd: true },
+  ];
+
+  return (
+    <div className="absolute inset-0 z-10 p-6 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.97)', backdropFilter: 'blur(4px)' }}>
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h3 className="text-2xl font-black uppercase" style={{ color: 'hsl(24,100%,50%)' }}>Career Comms Lab</h3>
+            <p className="text-sm mt-1" style={{ color: '#666', maxWidth: 620 }}>These tools run against your latest analyzed resume, so the writing layer stays connected to your actual resume data.</p>
+          </div>
+          <button onClick={onClose} className="px-4 py-2 text-xs font-black uppercase" style={{ color: '#777', border: '1px solid #2a2a2a' }}>Close</button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2">
+            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#555' }}>Target Job Description</label>
+            <textarea value={jd} onChange={e => setJd(e.target.value)} style={{ ...inputStyle, minHeight: 120 }} placeholder="Paste a target JD here for cover letters, interview prep, and keyword heatmaps." />
+          </div>
+          <div className="space-y-4">
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#555' }}>Target Role</label>
+              <input value={targetRole} onChange={e => setTargetRole(e.target.value)} style={inputStyle} placeholder="Software Engineer" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#555' }}>Company</label>
+              <input value={company} onChange={e => setCompany(e.target.value)} style={inputStyle} placeholder="Google, Stripe, etc." />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {cards.map(card => {
+            const disabled = loadingKey === card.key || (card.requiresJd && !jd.trim()) || (card.requiresCompany && !company.trim());
+            return (
+              <div key={card.key} className="p-5 flex flex-col" style={{ background: '#111', border: '2px solid #1f1f1f' }}>
+                <h4 className="font-black text-sm uppercase text-white">{card.title}</h4>
+                <p className="text-xs mt-2 flex-1" style={{ color: '#666' }}>{card.description}</p>
+                <button
+                  onClick={card.action}
+                  disabled={disabled}
+                  className="mt-4 py-2 text-xs font-black uppercase"
+                  style={{ background: disabled ? '#222' : 'hsl(24,100%,50%)', color: disabled ? '#444' : '#111', border: '2px solid #000', cursor: disabled ? 'not-allowed' : 'pointer' }}
+                >
+                  {loadingKey === card.key ? 'Running...' : `Run ${card.title}`}
+                </button>
+                {renderOutput(card.key)}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const CATEGORIES = [
   { id: 'dsa', label: 'DSA', color: 'hsl(24,100%,50%)', resources: [
     { name: 'Striver A2Z', desc: 'The industry-standard A2Z roadmap for SDE roles', url: 'https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/', tag: '450+ problems' },
@@ -766,6 +959,8 @@ const CATEGORIES = [
 function ResourceHub() {
   const [activeCategory, setActiveCategory] = useState('dsa');
   const [showHolisticTracker, setShowHolisticTracker] = useState(false);
+  const [showDsaTracker, setShowDsaTracker] = useState(false);
+  const [showCommsLab, setShowCommsLab] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showRoadmap, setShowRoadmap] = useState(false);
   const [targetRole, setTargetRole] = useState('');
@@ -800,6 +995,15 @@ function ResourceHub() {
         <h2 className="text-3xl font-black uppercase text-white" style={{ letterSpacing: '-0.02em' }}>Learning Hub</h2>
         <div className="flex gap-2">
           <button
+            onClick={() => setShowDsaTracker(true)}
+            className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
+            style={{ background: 'transparent', color: '#777', border: '2px solid #2a2a2a' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#ccc'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#777'; }}
+          >
+            <Zap className="w-3.5 h-3.5" /> DSA Tracker
+          </button>
+          <button
             onClick={() => setShowHolisticTracker(true)}
             className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
             style={{ background: 'transparent', color: '#777', border: '2px solid #2a2a2a' }}
@@ -807,6 +1011,15 @@ function ResourceHub() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#777'; }}
           >
             <BarChart2 className="w-3.5 h-3.5" /> Holistic Tracker
+          </button>
+          <button
+            onClick={() => setShowCommsLab(true)}
+            className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
+            style={{ background: 'transparent', color: '#777', border: '2px solid #2a2a2a' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#ccc'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#777'; }}
+          >
+            <FileText className="w-3.5 h-3.5" /> Career Comms
           </button>
           <button
             onClick={() => { setShowForm(true); setShowRoadmap(false); }}
@@ -872,6 +1085,21 @@ function ResourceHub() {
             </div>
           )}
 
+          {activeCategory === 'dsa' && (
+            <div
+              onClick={() => setShowDsaTracker(true)}
+              className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1 cursor-pointer"
+              style={{ background: '#111', border: '2px solid #3b82f6' }}
+            >
+              <div className="flex justify-between items-start">
+                <h4 className="font-black text-sm text-white">DSA Problem Tracker</h4>
+                <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}>Live</span>
+              </div>
+              <p className="text-xs flex-1" style={{ color: '#666' }}>Track individual NeetCode and Striver problems with streaks, contribution history, and roadmap alignment.</p>
+              <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Open DSA Module â†’</p>
+            </div>
+          )}
+
           {/* AI Roadmap card */}
           <div
             onClick={() => { setShowForm(true); setShowRoadmap(false); }}
@@ -889,6 +1117,30 @@ function ResourceHub() {
             </p>
             <p className="text-xs font-black" style={{ color: 'hsl(24,100%,50%)' }}>{roadmap ? 'View / Regenerate →' : 'Generate My Plan →'}</p>
           </div>
+          <div
+            onClick={() => setShowCommsLab(true)}
+            className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1 cursor-pointer"
+            style={{ background: '#111', border: '2px dashed #2a2a2a' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.45)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
+          >
+            <div className="flex justify-between items-start">
+              <h4 className="font-black text-sm text-white">Career Comms Lab</h4>
+              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
+            </div>
+            <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
+            <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Open Writing Tools â†’</p>
+          </div>
+        </div>
+      )}
+
+      {/* DSA Tracker Overlay */}
+      {showDsaTracker && (
+        <div className="absolute inset-0 z-10 p-6 overflow-y-auto" style={{ background: 'rgba(0,0,0,0.97)', backdropFilter: 'blur(4px)' }}>
+          <div className="max-w-6xl mx-auto flex justify-end mb-4">
+            <button onClick={() => setShowDsaTracker(false)} className="px-4 py-2 text-xs font-black uppercase" style={{ color: '#777', border: '1px solid #2a2a2a' }}>âœ• Close DSA Tracker</button>
+          </div>
+          <DSATracker roadmap={roadmap} />
         </div>
       )}
 
@@ -991,19 +1243,35 @@ function ResourceHub() {
 /* ── Main Dashboard ─────────────────────────────────────────── */
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('copilot');
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [llmMetrics, setLlmMetrics] = useState(null);
   const [llmMetricsLoading, setLlmMetricsLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
   useEffect(() => {
     const token = getAuthToken();
     if (!token) { navigate('/login'); return; }
-    fetchHistory();
-    fetchLlmMetrics();
+    initializeDashboard();
   }, [navigate]);
+
+  const initializeDashboard = async () => {
+    try {
+      const profileRes = await axios.get(`${API_BASE}/me`, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
+      setCurrentUser(profileRes.data || null);
+      await fetchHistory();
+      if (profileRes.data?.is_admin) {
+        await fetchLlmMetrics();
+      } else {
+        setLlmMetrics(null);
+      }
+    } catch (err) {
+      if (err.response?.status === 401) { removeAuthToken(); navigate('/login'); return; }
+      setLoading(false);
+    }
+  };
 
   const fetchHistory = async () => {
     try {
@@ -1044,7 +1312,7 @@ export default function DashboardPage() {
   let Content;
   switch (activeTab) {
     case 'overview':
-      Content = <OverviewTab history={history} setActiveTab={setActiveTab} navigate={navigate} llmMetrics={llmMetrics} llmMetricsLoading={llmMetricsLoading} />;
+      Content = <OverviewTab history={history} setActiveTab={setActiveTab} navigate={navigate} llmMetrics={currentUser?.is_admin ? llmMetrics : null} llmMetricsLoading={currentUser?.is_admin ? llmMetricsLoading : false} showLlmMetrics={!!currentUser?.is_admin} />;
       break;
     case 'workspace':
       Content = <ResumeWorkspace history={history} fetchHistory={fetchHistory} isAnalyzing={isAnalyzing} setIsAnalyzing={setIsAnalyzing} />;
@@ -1056,7 +1324,7 @@ export default function DashboardPage() {
       Content = <ResourceHub />;
       break;
     case 'copilot':
-      Content = <MentorChat />;
+      Content = <AgentChat />;
       break;
     case 'builder':
       Content = <ResumeBuilder />;

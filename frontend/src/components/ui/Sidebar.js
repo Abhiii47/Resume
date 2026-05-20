@@ -53,12 +53,12 @@ const CloseIcon = ({ className }) => (
 );
 
 const menuItems = [
-  { id: 'overview',   label: 'Overview',       icon: HomeIcon,     desc: 'Command Center' },
+  { id: 'copilot',    label: 'Agent Team',      icon: SparklesIcon, desc: 'Nova & 5 AI specialists' },
+  { id: 'overview',   label: 'Overview',        icon: HomeIcon,     desc: 'Stats & Quick Actions' },
   { id: 'builder',    label: 'Resume Builder',  icon: DocumentIcon, desc: 'Create & Export PDF' },
-  { id: 'workspace',  label: 'Resume Lab',      icon: SparklesIcon, desc: 'Analyze & Fix Flaws' },
+  { id: 'workspace',  label: 'Resume Lab',      icon: ChartIcon,    desc: 'Analyze & Fix Flaws' },
   { id: 'tracker',    label: 'Job Tracker',     icon: KanbanIcon,   desc: 'Discover & Match Jobs' },
-  { id: 'resources',  label: 'Learning Hub',    icon: BookIcon,     desc: 'DSA, System Design & more' },
-  { id: 'copilot',    label: 'Mentor AI',       icon: SparklesIcon, desc: 'Alex · Your career co-pilot' },
+  { id: 'resources',  label: 'Learning Hub',    icon: BookIcon,     desc: 'DSA & System Design' },
 ];
 
 function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {

@@ -18,18 +18,28 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, sessionmaker
 
 from config import settings
+from security_utils import decrypt_resume_text, encrypt_resume_text
 
 # Engine setup
 connect_args = {}
+engine_kwargs = {"echo": False}
+
 if settings.DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 else:
+    # PostgreSQL (Neon) production settings
     connect_args = {"connect_timeout": 30}
+    engine_kwargs.update({
+        "pool_size": 5,
+        "max_overflow": 10,
+        "pool_pre_ping": True,         # Detect stale connections
+        "pool_recycle": 300,           # Recycle connections every 5 min
+    })
 
 engine = create_engine(
     settings.DATABASE_URL,
     connect_args=connect_args,
-    echo=False,
+    **engine_kwargs,
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -54,6 +64,8 @@ class User(Base):
     resume_profiles = relationship("ResumeProfile", back_populates="user", cascade="all, delete-orphan")
     mentor_conversations = relationship("MentorConversation", back_populates="user", cascade="all, delete-orphan")
     daily_logs = relationship("DailyLog", back_populates="user", cascade="all, delete-orphan")
+    agent_conversations = relationship("AgentConversation", back_populates="user", cascade="all, delete-orphan")
+    agent_traces = relationship("AgentTrace", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User(id={self.id}, email='{self.email}')>"
@@ -225,6 +237,49 @@ class DailyLog(Base):
         return f"<DailyLog(user_id={self.user_id}, cat='{self.category}', date={self.log_date})>"
 
 
+# Multi-Agent System Tables
+class AgentConversation(Base):
+    """Individual messages in multi-agent conversations."""
+    __tablename__ = "agent_conversations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    session_id = Column(String, index=True)
+    agent_name = Column(String, nullable=False)
+    role = Column(String, nullable=False)  # "user" | "agent" | "system"
+    content = Column(Text, nullable=False)
+    message_type = Column(String, default="message")  # "message" | "thinking" | "tool_call" | "handoff"
+    metadata_json = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    user = relationship("User", back_populates="agent_conversations")
+
+    def __repr__(self):
+        return f"<AgentConversation(agent='{self.agent_name}', role='{self.role}')>"
+
+
+class AgentTrace(Base):
+    """Full trace of a multi-agent collaboration."""
+    __tablename__ = "agent_traces"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    session_id = Column(String, index=True)
+    trace_id = Column(String, unique=True, index=True)
+    user_message = Column(Text)
+    agents_used = Column(JSON, default=list)
+    orchestrator_plan = Column(JSON, default=dict)
+    messages = Column(JSON, default=list)
+    total_llm_calls = Column(Integer, default=0)
+    total_latency_ms = Column(Integer, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    user = relationship("User", back_populates="agent_traces")
+
+    def __repr__(self):
+        return f"<AgentTrace(trace_id='{self.trace_id}', agents={self.agents_used})>"
+
+
 class LLMCallLog(Base):
     __tablename__ = "llm_call_logs"
 
@@ -275,12 +330,35 @@ def _ensure_schema_migrations():
               AND resume_preview IS NOT NULL
               AND resume_preview <> ''
         """))
-        connection.execute(text("""
-            UPDATE analyses
-            SET resume_preview = SUBSTR(resume_text, 1, 200)
-            WHERE resume_text IS NOT NULL
-              AND resume_text <> ''
-        """))
+        analysis_rows = connection.execute(
+            text("""
+                SELECT id, resume_text, resume_preview
+                FROM analyses
+                WHERE resume_text IS NOT NULL
+                  AND resume_text <> ''
+            """)
+        ).mappings().all()
+        for row in analysis_rows:
+            decrypted_text = decrypt_resume_text(row["resume_text"])
+            encrypted_text = encrypt_resume_text(decrypted_text)
+            updated_preview = decrypted_text[:200] if decrypted_text else (row["resume_preview"] or "")
+            if (
+                row["resume_text"] != encrypted_text
+                or (row["resume_preview"] or "") != updated_preview
+            ):
+                connection.execute(
+                    text("""
+                        UPDATE analyses
+                        SET resume_text = :resume_text,
+                            resume_preview = :resume_preview
+                        WHERE id = :analysis_id
+                    """),
+                    {
+                        "resume_text": encrypted_text,
+                        "resume_preview": updated_preview,
+                        "analysis_id": row["id"],
+                    },
+                )
 
         # Backfill completion timestamps so the DSA tracker can calculate streaks and contribution history.
         connection.execute(text("""

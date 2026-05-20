@@ -98,13 +98,6 @@ def get_password_hash(password):
     except Exception as e:
         print(f"Password hashing error: {e}")
         raise
-    except Exception as e:
-        print(f"Password hashing error: {e}")
-        if password:
-            print(f"Original password length (bytes): {len(password.encode('utf-8'))}")
-            truncated = _truncate_for_bcrypt(password)
-            print(f"Truncated password length (bytes): {len(truncated.encode('utf-8'))}")
-        raise
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):

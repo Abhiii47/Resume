@@ -12,3 +12,4 @@ pdfminer.six
 slowapi
 groq
 httpx
+PyPDF2
