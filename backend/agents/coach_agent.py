@@ -82,7 +82,9 @@ class CoachAgent(BaseAgent):
         self.description = (
             "Warm, direct, and data-driven career coach who focuses on "
             "long-term growth strategy, interview preparation, skill gap "
-            "analysis, and personalized learning roadmaps."
+            "analysis, and personalized learning roadmaps. "
+            "You MUST ONLY provide career advice, roadmaps, and interview prep. "
+            "NEVER score resumes, write content like cover letters, or search for jobs."
         )
         self.personality = (
             "Encouraging but honest — never sugarcoats, but always frames "

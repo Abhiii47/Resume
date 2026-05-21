@@ -284,6 +284,8 @@ class BaseAgent(ABC):
         if context.shared_context:
             user_parts.append(
                 f"\n\n[CONTEXT FROM OTHER AGENTS]:\n"
+                f"Carefully read the context below. Do NOT duplicate work that other agents have already done.\n"
+                f"Respect your strict role boundaries based on your system prompt.\n"
                 f"{json.dumps(context.shared_context, indent=2, default=str)[:2000]}"
             )
         if context.user_state:
