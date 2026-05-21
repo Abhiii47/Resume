@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 
 const EVT = {
   agent_message:  { bg: "rgba(249,115,22,.12)", text: "#f97316", label: "MSG" },

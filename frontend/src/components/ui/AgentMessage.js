@@ -110,7 +110,7 @@ function renderMarkdown(text) {
     // Numbered list
     if (/^\d+\.\s+/.test(line)) {
       const numItems = [];
-      let num = 1;
+
       while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
         numItems.push(lines[i].replace(/^\d+\.\s+/, ""));
         i++;
@@ -195,8 +195,9 @@ function inlineMarkdown(text) {
     }
     const linkMatch = part.match(/\[([^\]]+)\]\(([^)]+)\)/);
     if (linkMatch) {
+      const url = encodeURI(linkMatch[2]);
       return (
-        <a key={i} href={linkMatch[2]} target="_blank" rel="noopener noreferrer"
+        <a key={i} href={url} target="_blank" rel="noopener noreferrer"
           style={{ color: "hsl(24,100%,50%)", textDecoration: "underline" }}>
           {linkMatch[1]}
         </a>
