@@ -312,7 +312,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
               <div className="h-full flex flex-col items-center justify-center gap-2 p-4" style={{ color: 'var(--muted-foreground)' }}>
                 <FileText className="w-8 h-8" />
                 <p className="text-sm font-bold">PDF preview unavailable in this browser.</p>
-                <a href={pdfUrl} download className="text-xs font-black" style={{ color: 'var(--primary)' }}>Download PDF</a>
+                <a href={encodeURI(pdfUrl)} download className="text-xs font-black" style={{ color: 'var(--primary)' }}>Download PDF</a>
               </div>
             </object>
           ) : selectedAnalysis ? (
