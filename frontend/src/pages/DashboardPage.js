@@ -457,7 +457,9 @@ function JobTracker() {
     try {
       const res = await axios.get(`${API_BASE}/applications`, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
       setApps(res.data);
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleAdd = async (e) => {
@@ -479,7 +481,9 @@ function JobTracker() {
       const fd = new FormData(); fd.append('stage', newStage);
       await axios.patch(`${API_BASE}/applications/${appId}`, fd, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
       fetchApps();
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const handleDelete = async (appId) => {
@@ -488,7 +492,9 @@ function JobTracker() {
     try {
       await axios.delete(`${API_BASE}/applications/${appId}`, { headers: { Authorization: `Bearer ${getAuthToken()}` } });
       fetchApps();
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const inputStyle = { background: '#fff', border: '2px solid #000', color: '#111', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };

@@ -3,11 +3,11 @@ Maya — Resume Analyst Agent
 Meticulous, data-driven resume analysis with line-level feedback.
 """
 
-import re
 import logging
+import re
 from typing import Any
 
-from .base_agent import BaseAgent, AgentTool, AgentContext
+from .base_agent import AgentContext, AgentTool, BaseAgent
 
 logger = logging.getLogger(__name__)
 
@@ -15,35 +15,152 @@ logger = logging.getLogger(__name__)
 # ── Shared Constants ─────────────────────────────────────────────────────────
 
 TECH_SKILLS_PATTERN = [
-    "python", "java", "javascript", "typescript", "react", "angular", "vue",
-    "node", "express", "django", "flask", "fastapi", "spring", "spring boot",
-    "sql", "mysql", "postgresql", "mongodb", "redis", "cassandra", "dynamodb",
-    "aws", "azure", "gcp", "docker", "kubernetes", "jenkins", "terraform",
-    "ansible", "linux", "git", "rest api", "graphql", "microservices",
-    "machine learning", "deep learning", "nlp", "statistics", "tableau",
-    "power bi", "agile", "scrum", "project management", "system design",
-    "data structures", "algorithms", "c++", "c#", "golang", "rust", "swift",
-    "kotlin", "php", "ruby", "spark", "hadoop", "kafka", "api", "ui/ux",
-    "devops", "cloud", "frontend", "backend", "fullstack", "mobile", "ios",
-    "android", "figma", "jira", "ci/cd", "github actions", "pandas", "numpy",
-    "tensorflow", "pytorch", "scikit-learn", "nextjs", "tailwind", "sass",
-    "webpack", "vite", "firebase", "supabase", "elasticsearch", "rabbitmq",
-    "nginx", "apache", "oauth", "jwt", "websocket", "grpc",
+    "python",
+    "java",
+    "javascript",
+    "typescript",
+    "react",
+    "angular",
+    "vue",
+    "node",
+    "express",
+    "django",
+    "flask",
+    "fastapi",
+    "spring",
+    "spring boot",
+    "sql",
+    "mysql",
+    "postgresql",
+    "mongodb",
+    "redis",
+    "cassandra",
+    "dynamodb",
+    "aws",
+    "azure",
+    "gcp",
+    "docker",
+    "kubernetes",
+    "jenkins",
+    "terraform",
+    "ansible",
+    "linux",
+    "git",
+    "rest api",
+    "graphql",
+    "microservices",
+    "machine learning",
+    "deep learning",
+    "nlp",
+    "statistics",
+    "tableau",
+    "power bi",
+    "agile",
+    "scrum",
+    "project management",
+    "system design",
+    "data structures",
+    "algorithms",
+    "c++",
+    "c#",
+    "golang",
+    "rust",
+    "swift",
+    "kotlin",
+    "php",
+    "ruby",
+    "spark",
+    "hadoop",
+    "kafka",
+    "api",
+    "ui/ux",
+    "devops",
+    "cloud",
+    "frontend",
+    "backend",
+    "fullstack",
+    "mobile",
+    "ios",
+    "android",
+    "figma",
+    "jira",
+    "ci/cd",
+    "github actions",
+    "pandas",
+    "numpy",
+    "tensorflow",
+    "pytorch",
+    "scikit-learn",
+    "nextjs",
+    "tailwind",
+    "sass",
+    "webpack",
+    "vite",
+    "firebase",
+    "supabase",
+    "elasticsearch",
+    "rabbitmq",
+    "nginx",
+    "apache",
+    "oauth",
+    "jwt",
+    "websocket",
+    "grpc",
 ]
 
 STRONG_ACTION_VERBS = {
-    "led", "built", "designed", "architected", "engineered", "developed",
-    "implemented", "deployed", "optimized", "reduced", "increased", "improved",
-    "automated", "launched", "scaled", "managed", "mentored", "spearheaded",
-    "delivered", "created", "established", "transformed", "orchestrated",
-    "streamlined", "achieved", "drove", "pioneered", "integrated", "migrated",
-    "refactored", "resolved", "accelerated", "negotiated", "secured",
+    "led",
+    "built",
+    "designed",
+    "architected",
+    "engineered",
+    "developed",
+    "implemented",
+    "deployed",
+    "optimized",
+    "reduced",
+    "increased",
+    "improved",
+    "automated",
+    "launched",
+    "scaled",
+    "managed",
+    "mentored",
+    "spearheaded",
+    "delivered",
+    "created",
+    "established",
+    "transformed",
+    "orchestrated",
+    "streamlined",
+    "achieved",
+    "drove",
+    "pioneered",
+    "integrated",
+    "migrated",
+    "refactored",
+    "resolved",
+    "accelerated",
+    "negotiated",
+    "secured",
 }
 
 WEAK_VERBS = {
-    "helped", "assisted", "worked on", "was responsible for", "participated in",
-    "was involved in", "contributed to", "handled", "dealt with", "did",
-    "used", "utilized", "employed", "made", "got",
+    "helped",
+    "assisted",
+    "worked on",
+    "was responsible for",
+    "participated in",
+    "was involved in",
+    "contributed to",
+    "handled",
+    "dealt with",
+    "did",
+    "used",
+    "utilized",
+    "employed",
+    "made",
+    "got",
 }
 
 REQUIRED_SECTIONS = ["experience", "education", "skills", "summary", "projects"]
@@ -51,6 +168,7 @@ OPTIONAL_SECTIONS = ["certifications", "awards", "publications", "contact"]
 
 
 # ── Helper: get resume text from context or DB ───────────────────────────────
+
 
 def _get_resume_text(context: AgentContext) -> str:
     """Resolve resume text from context, falling back to latest DB analysis."""
@@ -161,8 +279,7 @@ class AnalystAgent(BaseAgent):
             AgentTool(
                 name="check_keywords",
                 description=(
-                    "Compare resume keywords against the job description. "
-                    "Shows matched, missing, and extra skills."
+                    "Compare resume keywords against the job description. " "Shows matched, missing, and extra skills."
                 ),
                 parameters={},
                 handler=self._handle_check_keywords,
@@ -227,10 +344,7 @@ class AnalystAgent(BaseAgent):
                     )
                     context.db.add(analysis)
                     context.db.commit()
-                    logger.info(
-                        "Maya saved agent analysis to DB: score=%s user=%s",
-                        ats_score, context.user.id
-                    )
+                    logger.info("Maya saved agent analysis to DB: score=%s user=%s", ats_score, context.user.id)
                 except Exception as db_exc:
                     logger.warning("Could not save agent analysis to DB: %s", db_exc)
             # ─────────────────────────────────────────────────────────────────
@@ -359,8 +473,7 @@ class AnalystAgent(BaseAgent):
 
         # Bullets as lines
         bullet_lines = [
-            l for l in lines if l.startswith(("•", "-", "*", "–", "►"))
-            or (20 < len(l) < 200 and not l.endswith(":"))
+            l for l in lines if l.startswith(("•", "-", "*", "–", "►")) or (20 < len(l) < 200 and not l.endswith(":"))
         ]
         total_bullets = max(len(bullet_lines), 1)
 
@@ -425,7 +538,11 @@ class AnalystAgent(BaseAgent):
                 "weak_examples": weak_found,
                 "verdict": (
                     f"{action_verb_pct}% of bullets use strong action verbs. "
-                    + ("Solid." if action_verb_pct >= 60 else "Replace weak openers with verbs like 'Architected', 'Spearheaded', 'Delivered'.")
+                    + (
+                        "Solid."
+                        if action_verb_pct >= 60
+                        else "Replace weak openers with verbs like 'Architected', 'Spearheaded', 'Delivered'."
+                    )
                 ),
             },
             "length_verdict": length_verdict,

@@ -15,12 +15,12 @@ class AgentTeam:
     _instance: Optional["AgentTeam"] = None
 
     def __init__(self):
-        from .message_bus import MessageBus
         from .analyst_agent import AnalystAgent
-        from .writer_agent import WriterAgent
-        from .scout_agent import ScoutAgent
         from .coach_agent import CoachAgent
+        from .message_bus import MessageBus
         from .orchestrator import OrchestratorAgent
+        from .scout_agent import ScoutAgent
+        from .writer_agent import WriterAgent
 
         self.bus = MessageBus()
 

@@ -69,7 +69,22 @@ git clone https://github.com/Abhiii47/Resume.git
 cd Resume
 ```
 
-### 2. Backend Setup
+### 2. Code Quality & Formatting (Optional)
+To maintain code consistency before committing, run the following formatters:
+
+```bash
+# Backend (Python)
+cd backend
+pip install black isort flake8
+isort . && black . --line-length 120
+flake8 . --select=E9,F63,F7,F82 --show-source --statistics
+
+# Frontend (React)
+cd frontend
+npm run lint # Custom eslint configuration
+```
+
+### 3. Backend Setup
 Navigate to the `backend/` directory, set up a virtual environment, and install all required libraries:
 
 ```bash
@@ -100,11 +115,11 @@ GEMINI_API_KEY=your_gemini_api_key
 
 **Launch Backend**:
 ```bash
-py main.py
+python main.py
 ```
 The server will run on `http://localhost:8000` with interactive Swagger docs at `/docs`.
 
-### 3. Frontend Setup
+### 4. Frontend Setup
 Open a new terminal, navigate to the `frontend/` directory, and start the development server:
 
 ```bash

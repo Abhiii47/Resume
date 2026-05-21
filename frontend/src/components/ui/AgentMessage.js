@@ -85,10 +85,10 @@ function renderMarkdown(text) {
     }
 
     // Bullet list (- or * or •)
-    if (/^[\-\*•]\s+/.test(line)) {
+    if (/^[-*•]\s+/.test(line)) {
       const bulletItems = [];
-      while (i < lines.length && /^[\-\*•]\s+/.test(lines[i])) {
-        bulletItems.push(lines[i].replace(/^[\-\*•]\s+/, ""));
+      while (i < lines.length && /^[-*•]\s+/.test(lines[i])) {
+        bulletItems.push(lines[i].replace(/^[-*•]\s+/, ""));
         i++;
       }
       elements.push(

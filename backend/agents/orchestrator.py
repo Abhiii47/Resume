@@ -6,10 +6,9 @@ import logging
 import time
 from typing import AsyncGenerator, Optional
 
-from .base_agent import BaseAgent, AgentContext, AgentTool, SSEEvent, AgentStatus
+from .base_agent import AgentContext, AgentStatus, AgentTool, BaseAgent, SSEEvent
 
 logger = logging.getLogger(__name__)
-
 
 
 WORKFLOW_TEMPLATES = {
@@ -47,8 +46,14 @@ WORKFLOW_TEMPLATES = {
         "description": "Complete career journey: analyze resume, find jobs, find gaps, and generate learning roadmap",
         "steps": [
             {"agent": "maya", "task": "Analyze the resume to extract current skills and identify areas of improvement"},
-            {"agent": "scout", "task": "Search for top matching jobs based on the user's skills and compare the resume against the best job"},
-            {"agent": "maaya", "task": "Generate a personalized learning roadmap to bridge the skill gap between the resume and the target job found"},
+            {
+                "agent": "scout",
+                "task": "Search for top matching jobs based on the user's skills and compare the resume against the best job",
+            },
+            {
+                "agent": "maaya",
+                "task": "Generate a personalized learning roadmap to bridge the skill gap between the resume and the target job found",
+            },
         ],
     },
 }
@@ -88,17 +93,13 @@ class OrchestratorAgent(BaseAgent):
         self._team = agents
         self._bus = bus
 
-
-
     async def _classify_intent(self, message: str, context: AgentContext) -> dict:
         """
         Use LLM to classify user intent and pick the right agent(s).
         Falls back to keyword matching if LLM fails.
         """
         agent_descriptions = "\n".join(
-            f"  - {name}: {a.name} the {a.role} — {a.description}"
-            for name, a in self._team.items()
-            if name != "nova"
+            f"  - {name}: {a.name} the {a.role} — {a.description}" for name, a in self._team.items() if name != "nova"
         )
 
         prompt = f"""You are Nova, an AI orchestrator. Classify this user message and decide which agent(s) should handle it.
@@ -156,14 +157,34 @@ Rules:
         tasks = {}
 
         # Check for workflow triggers
-        if any(k in ml for k in ["end to end", "full journey", "overall", "find job and learn", "find job and roadmap"]):
-            return {"intent": "end to end journey", "workflow": "end_to_end_journey", "agents": [], "tasks": {}, "direct_response": None}
+        if any(
+            k in ml for k in ["end to end", "full journey", "overall", "find job and learn", "find job and roadmap"]
+        ):
+            return {
+                "intent": "end to end journey",
+                "workflow": "end_to_end_journey",
+                "agents": [],
+                "tasks": {},
+                "direct_response": None,
+            }
         if any(k in ml for k in ["full review", "review my resume", "check everything", "analyze everything"]):
-            return {"intent": "full review", "workflow": "full_review", "agents": [], "tasks": {}, "direct_response": None}
+            return {
+                "intent": "full review",
+                "workflow": "full_review",
+                "agents": [],
+                "tasks": {},
+                "direct_response": None,
+            }
         if any(k in ml for k in ["find job", "search job", "job hunt", "looking for", "open positions"]):
             return {"intent": "job search", "workflow": "job_hunt", "agents": [], "tasks": {}, "direct_response": None}
         if any(k in ml for k in ["interview", "prepare for interview", "mock interview"]):
-            return {"intent": "interview prep", "workflow": "interview_prep", "agents": [], "tasks": {}, "direct_response": None}
+            return {
+                "intent": "interview prep",
+                "workflow": "interview_prep",
+                "agents": [],
+                "tasks": {},
+                "direct_response": None,
+            }
         if any(k in ml for k in ["quick fix", "fix my resume", "improve quick"]):
             return {"intent": "quick fix", "workflow": "quick_fix", "agents": [], "tasks": {}, "direct_response": None}
 
@@ -179,7 +200,7 @@ Rules:
             tasks["max"] = message
 
         job_kw = ["job", "apply", "application", "company", "position", "salary", "remote"]
-            # But not just "job" in context of other things
+        # But not just "job" in context of other things
         if any(k in ml for k in job_kw):
             agents.append("scout")
             tasks["scout"] = message
@@ -205,9 +226,9 @@ Rules:
                     "🎯 **Scout** — Job Scout (finds matching jobs)\n"
                     "🧭 **Alex** — Career Coach (roadmaps, interview prep)\n\n"
                     "**Try these:**\n"
-                    "- \"Review my resume\" — full team analysis\n"
-                    "- \"Find React developer jobs\" — job search\n"
-                    "- \"Prepare me for interviews\" — interview prep\n\n"
+                    '- "Review my resume" — full team analysis\n'
+                    '- "Find React developer jobs" — job search\n'
+                    '- "Prepare me for interviews" — interview prep\n\n'
                     "Upload your resume and a job description for the best results!"
                 ),
             }
@@ -225,8 +246,6 @@ Rules:
             "direct_response": None,
         }
 
-
-
     async def run(self, context: AgentContext) -> AsyncGenerator[SSEEvent, None]:
         """
         Nova's orchestration flow:
@@ -243,9 +262,7 @@ Rules:
         )
 
         # Classify intent
-        classification = await self._classify_intent(
-            context.user_message, context
-        )
+        classification = await self._classify_intent(context.user_message, context)
         logger.info("Nova classification: %s", classification)
 
         # Direct response for greetings / simple questions
@@ -330,10 +347,12 @@ Rules:
 
             agents_used.append(agent.name)
             if agent_response:
-                all_results.append({
-                    "agent": agent.name,
-                    "response": agent_response[:1000],
-                })
+                all_results.append(
+                    {
+                        "agent": agent.name,
+                        "response": agent_response[:1000],
+                    }
+                )
 
         # Done event
         yield SSEEvent(
@@ -345,9 +364,7 @@ Rules:
         )
         self.status = AgentStatus.STANDBY
 
-    async def _run_workflow(
-        self, workflow_name: str, context: AgentContext
-    ) -> AsyncGenerator[SSEEvent, None]:
+    async def _run_workflow(self, workflow_name: str, context: AgentContext) -> AsyncGenerator[SSEEvent, None]:
         """Execute a predefined multi-agent workflow with rich inter-agent context."""
         workflow = WORKFLOW_TEMPLATES[workflow_name]
 
@@ -385,14 +402,9 @@ Rules:
                     excerpt = prior.get("response", "")[:600]
                     tools_used = prior.get("tools_used", [])
                     tools_str = f" (used: {', '.join(tools_used)})" if tools_used else ""
-                    prior_summary_lines.append(
-                        f"[{prior['agent']}{tools_str}]:\n{excerpt}"
-                    )
+                    prior_summary_lines.append(f"[{prior['agent']}{tools_str}]:\n{excerpt}")
                 prior_block = "\n\n".join(prior_summary_lines)
-                enriched_task = (
-                    f"{step['task']}\n\n"
-                    f"Context from previous agents:\n{prior_block}"
-                )
+                enriched_task = f"{step['task']}\n\n" f"Context from previous agents:\n{prior_block}"
 
             # Handoff
             yield SSEEvent(
@@ -436,12 +448,14 @@ Rules:
 
             agents_used.append(agent.name)
             if agent_response:
-                accumulated_context.append({
-                    "agent": agent.name,
-                    "task": step["task"],
-                    "response": agent_response[:900],
-                    "tools_used": agent_tools_used,
-                })
+                accumulated_context.append(
+                    {
+                        "agent": agent.name,
+                        "task": step["task"],
+                        "response": agent_response[:900],
+                        "tools_used": agent_tools_used,
+                    }
+                )
 
         yield SSEEvent(
             event="done",

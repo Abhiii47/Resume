@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 class Settings:
     # --- Security ---
@@ -31,18 +33,13 @@ class Settings:
     ADZUNA_APP_KEY: str = os.getenv("ADZUNA_APP_KEY", "").strip()
     # Countries to query for worldwide job discovery (ISO 2-letter codes)
     ADZUNA_COUNTRIES: list[str] = [
-        c.strip() for c in
-        os.getenv("ADZUNA_COUNTRIES", "us,gb,in,de,fr,au,ca,nl,sg,br").split(",")
-        if c.strip()
+        c.strip() for c in os.getenv("ADZUNA_COUNTRIES", "us,gb,in,de,fr,au,ca,nl,sg,br").split(",") if c.strip()
     ]
 
     # --- GitHub OAuth ---
     GITHUB_CLIENT_ID: str = os.getenv("GITHUB_CLIENT_ID", "").strip()
     GITHUB_CLIENT_SECRET: str = os.getenv("GITHUB_CLIENT_SECRET", "").strip()
-    GITHUB_REDIRECT_URI: str = os.getenv(
-        "GITHUB_REDIRECT_URI",
-        "http://localhost:8000/auth/github/callback"
-    ).strip()
+    GITHUB_REDIRECT_URI: str = os.getenv("GITHUB_REDIRECT_URI", "http://localhost:8000/auth/github/callback").strip()
     GITHUB_STATE_TTL_SECONDS: int = int(os.getenv("GITHUB_STATE_TTL_SECONDS", "600"))
     FRONTEND_APP_URL: str = os.getenv("FRONTEND_APP_URL", "").strip()
 
@@ -50,19 +47,15 @@ class Settings:
     ALLOWED_ORIGINS: list[str] = [
         origin.strip()
         for origin in os.getenv(
-            "ALLOWED_ORIGINS",
-            "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://localhost:8000"
+            "ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://localhost:8000"
         ).split(",")
         if origin.strip()
     ]
     ALLOWED_ORIGIN_REGEX: str | None = os.getenv(
-        "ALLOWED_ORIGIN_REGEX",
-        r"https://.*\.vercel\.app|http://192\.168\.\d+\.\d+:\d+|http://10\.\d+\.\d+\.\d+:\d+"
+        "ALLOWED_ORIGIN_REGEX", r"https://.*\.vercel\.app|http://192\.168\.\d+\.\d+:\d+|http://10\.\d+\.\d+\.\d+:\d+"
     )
     ADMIN_EMAILS: list[str] = [
-        email.strip().lower()
-        for email in os.getenv("ADMIN_EMAILS", "").split(",")
-        if email.strip()
+        email.strip().lower() for email in os.getenv("ADMIN_EMAILS", "").split(",") if email.strip()
     ]
     RESUME_ENCRYPTION_KEY: str = os.getenv("RESUME_ENCRYPTION_KEY", "").strip()
 
@@ -76,7 +69,7 @@ class Settings:
         if self.SECRET_KEY in _insecure_defaults:
             print("=" * 60)
             print("FATAL: SECRET_KEY is not set or is a placeholder!")
-            print("Generate one: python -c \"import secrets; print(secrets.token_hex(32))\"")
+            print('Generate one: python -c "import secrets; print(secrets.token_hex(32))"')
             print("Set it in your .env file.")
             print("=" * 60)
             raise RuntimeError("SECRET_KEY must be set to a secure random value.")
@@ -117,6 +110,7 @@ class Settings:
 
         if self.ADMIN_EMAILS:
             print(f"Admin: {len(self.ADMIN_EMAILS)} admin email(s) configured")
+
 
 settings = Settings()
 settings.validate()

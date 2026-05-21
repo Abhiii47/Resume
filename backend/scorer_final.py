@@ -4,9 +4,10 @@ Hybrid Architecture: Heuristics (free) + Single Batched LLM Call (cost-efficient
 
 Produces a 7-dimension score with human-readable reasoning for each dimension.
 """
-import re
+
 import json
 import logging
+import re
 from typing import Dict, List, Set
 
 logger = logging.getLogger(__name__)
@@ -20,64 +21,195 @@ Adaptability, leadership, and a willingness to learn are essential.
 # ── Skill & Keyword Dictionaries ────────────────────────────────────────────────
 
 TECH_SKILLS = [
-    "python", "java", "javascript", "typescript", "react", "angular", "vue",
-    "node", "express", "django", "flask", "fastapi", "spring", "spring boot",
-    "sql", "mysql", "postgresql", "mongodb", "redis", "cassandra", "dynamodb",
-    "aws", "azure", "gcp", "docker", "kubernetes", "jenkins", "terraform",
-    "ansible", "linux", "git", "rest api", "graphql", "microservices",
-    "machine learning", "deep learning", "nlp", "statistics", "tableau",
-    "power bi", "agile", "scrum", "project management", "system design",
-    "data structures", "algorithms", "c++", "c#", "golang", "rust", "swift",
-    "kotlin", "php", "ruby", "spark", "hadoop", "kafka", "api", "ui/ux",
-    "devops", "cloud", "frontend", "backend", "fullstack", "mobile", "ios",
-    "android", "figma", "jira", "ci/cd", "github actions", "pandas", "numpy",
-    "tensorflow", "pytorch", "scikit-learn", "nextjs", "tailwind", "sass",
-    "webpack", "vite", "firebase", "supabase", "elasticsearch", "rabbitmq",
-    "nginx", "apache", "oauth", "jwt", "websocket", "grpc",
+    "python",
+    "java",
+    "javascript",
+    "typescript",
+    "react",
+    "angular",
+    "vue",
+    "node",
+    "express",
+    "django",
+    "flask",
+    "fastapi",
+    "spring",
+    "spring boot",
+    "sql",
+    "mysql",
+    "postgresql",
+    "mongodb",
+    "redis",
+    "cassandra",
+    "dynamodb",
+    "aws",
+    "azure",
+    "gcp",
+    "docker",
+    "kubernetes",
+    "jenkins",
+    "terraform",
+    "ansible",
+    "linux",
+    "git",
+    "rest api",
+    "graphql",
+    "microservices",
+    "machine learning",
+    "deep learning",
+    "nlp",
+    "statistics",
+    "tableau",
+    "power bi",
+    "agile",
+    "scrum",
+    "project management",
+    "system design",
+    "data structures",
+    "algorithms",
+    "c++",
+    "c#",
+    "golang",
+    "rust",
+    "swift",
+    "kotlin",
+    "php",
+    "ruby",
+    "spark",
+    "hadoop",
+    "kafka",
+    "api",
+    "ui/ux",
+    "devops",
+    "cloud",
+    "frontend",
+    "backend",
+    "fullstack",
+    "mobile",
+    "ios",
+    "android",
+    "figma",
+    "jira",
+    "ci/cd",
+    "github actions",
+    "pandas",
+    "numpy",
+    "tensorflow",
+    "pytorch",
+    "scikit-learn",
+    "nextjs",
+    "tailwind",
+    "sass",
+    "webpack",
+    "vite",
+    "firebase",
+    "supabase",
+    "elasticsearch",
+    "rabbitmq",
+    "nginx",
+    "apache",
+    "oauth",
+    "jwt",
+    "websocket",
+    "grpc",
 ]
 
 STRONG_ACTION_VERBS = {
-    "led", "built", "designed", "architected", "engineered", "developed",
-    "implemented", "deployed", "optimized", "reduced", "increased", "improved",
-    "automated", "launched", "scaled", "managed", "mentored", "spearheaded",
-    "delivered", "created", "established", "transformed", "orchestrated",
-    "streamlined", "achieved", "drove", "pioneered", "integrated", "migrated",
-    "refactored", "resolved", "accelerated", "negotiated", "secured",
+    "led",
+    "built",
+    "designed",
+    "architected",
+    "engineered",
+    "developed",
+    "implemented",
+    "deployed",
+    "optimized",
+    "reduced",
+    "increased",
+    "improved",
+    "automated",
+    "launched",
+    "scaled",
+    "managed",
+    "mentored",
+    "spearheaded",
+    "delivered",
+    "created",
+    "established",
+    "transformed",
+    "orchestrated",
+    "streamlined",
+    "achieved",
+    "drove",
+    "pioneered",
+    "integrated",
+    "migrated",
+    "refactored",
+    "resolved",
+    "accelerated",
+    "negotiated",
+    "secured",
 }
 
 WEAK_VERBS = {
-    "helped", "assisted", "worked on", "was responsible for", "participated in",
-    "was involved in", "contributed to", "handled", "dealt with", "did",
-    "used", "utilized", "employed", "made", "got",
+    "helped",
+    "assisted",
+    "worked on",
+    "was responsible for",
+    "participated in",
+    "was involved in",
+    "contributed to",
+    "handled",
+    "dealt with",
+    "did",
+    "used",
+    "utilized",
+    "employed",
+    "made",
+    "got",
 }
 
-RESUME_SECTIONS = ["experience", "education", "skills", "summary", "projects",
-                   "objective", "certification", "awards", "publications"]
+RESUME_SECTIONS = [
+    "experience",
+    "education",
+    "skills",
+    "summary",
+    "projects",
+    "objective",
+    "certification",
+    "awards",
+    "publications",
+]
 
 
 # ── Heuristic Analysis (Free — No API Cost) ─────────────────────────────────────
+
 
 def _extract_skills(text: str) -> Set[str]:
     """Extract skills from text using keyword matching."""
     text_lower = text.lower()
     found = set()
     for skill in TECH_SKILLS:
-        if re.search(rf'\b{re.escape(skill)}\b', text_lower):
+        if re.search(rf"\b{re.escape(skill)}\b", text_lower):
             found.add(skill)
     return found
 
 
 def _count_quantified_bullets(text: str) -> tuple[int, int]:
     """Count bullets with numbers/metrics vs total bullets."""
-    lines = [l.strip() for l in text.split('\n') if l.strip()]
-    bullets = [l for l in lines if l.startswith(('•', '-', '*', '–', '►'))]
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    bullets = [l for l in lines if l.startswith(("•", "-", "*", "–", "►"))]
     if not bullets:
         # Count sentences that look like bullet points (short lines under 200 chars)
-        bullets = [l for l in lines if 20 < len(l) < 200 and not l.endswith(':')]
+        bullets = [l for l in lines if 20 < len(l) < 200 and not l.endswith(":")]
 
     quantified = 0
     for b in bullets:
-        if re.search(r'\d+[%$kKmM]|\d+\s*(?:percent|%|users|customers|clients|projects|apps|days|hours|reduction|increase|improvement|savings|revenue)', b, re.IGNORECASE):
+        if re.search(
+            r"\d+[%$kKmM]|\d+\s*(?:percent|%|users|customers|clients|projects|apps|days|hours|reduction|increase|improvement|savings|revenue)",
+            b,
+            re.IGNORECASE,
+        ):
             quantified += 1
 
     return quantified, max(len(bullets), 1)
@@ -85,9 +217,10 @@ def _count_quantified_bullets(text: str) -> tuple[int, int]:
 
 def _count_action_verb_bullets(text: str) -> tuple[int, int, list, list]:
     """Count bullets starting with strong/weak action verbs."""
-    lines = [l.strip() for l in text.split('\n') if l.strip()]
-    bullets = [l for l in lines if l.startswith(('•', '-', '*', '–', '►')) or
-               (20 < len(l) < 200 and not l.endswith(':'))]
+    lines = [l.strip() for l in text.split("\n") if l.strip()]
+    bullets = [
+        l for l in lines if l.startswith(("•", "-", "*", "–", "►")) or (20 < len(l) < 200 and not l.endswith(":"))
+    ]
 
     strong_count = 0
     weak_found = []
@@ -95,8 +228,8 @@ def _count_action_verb_bullets(text: str) -> tuple[int, int, list, list]:
 
     for b in bullets:
         # Strip bullet character
-        clean = re.sub(r'^[•\-*–►]\s*', '', b).strip()
-        first_word = clean.split()[0].lower().rstrip('ed').rstrip('s') if clean.split() else ""
+        clean = re.sub(r"^[•\-*–►]\s*", "", b).strip()
+        first_word = clean.split()[0].lower().rstrip("ed").rstrip("s") if clean.split() else ""
 
         for sv in STRONG_ACTION_VERBS:
             if clean.lower().startswith(sv):
@@ -136,15 +269,16 @@ def heuristic_analysis(resume_text: str, jd_text: str) -> Dict:
     # 2. Sections
     sections_found = []
     for section in RESUME_SECTIONS:
-        if re.search(rf'\b{section}\b', res_lower):
+        if re.search(rf"\b{section}\b", res_lower):
             sections_found.append(section)
 
     # 3. Length
     word_count = len(resume_text.split())
 
     # 4. Formatting
-    bullet_count = sum(resume_text.count(c) for c in ['•', '–', '►']) + \
-                   len(re.findall(r'^\s*[-*]\s', resume_text, re.MULTILINE))
+    bullet_count = sum(resume_text.count(c) for c in ["•", "–", "►"]) + len(
+        re.findall(r"^\s*[-*]\s", resume_text, re.MULTILINE)
+    )
 
     # 5. Quantification
     quant_count, total_bullets = _count_quantified_bullets(resume_text)
@@ -155,9 +289,9 @@ def heuristic_analysis(resume_text: str, jd_text: str) -> Dict:
     action_verb_pct = round(strong_count / total_verb_bullets * 100, 1)
 
     # 7. Contact info
-    has_email = bool(re.search(r'[\w.+-]+@[\w-]+\.[\w.-]+', resume_text))
-    has_phone = bool(re.search(r'[\+]?[\d\s\-\(\)]{7,15}', resume_text))
-    has_linkedin = bool(re.search(r'linkedin', res_lower))
+    has_email = bool(re.search(r"[\w.+-]+@[\w-]+\.[\w.-]+", resume_text))
+    has_phone = bool(re.search(r"[\+]?[\d\s\-\(\)]{7,15}", resume_text))
+    has_linkedin = bool(re.search(r"linkedin", res_lower))
 
     return {
         "resume_skills": sorted(resume_skills),
@@ -167,8 +301,9 @@ def heuristic_analysis(resume_text: str, jd_text: str) -> Dict:
         "extra_skills": sorted(extra_skills),
         "keyword_match_pct": keyword_pct,
         "sections_found": sections_found,
-        "sections_missing": [s for s in ["experience", "education", "skills", "summary", "projects"]
-                            if s not in sections_found],
+        "sections_missing": [
+            s for s in ["experience", "education", "skills", "summary", "projects"] if s not in sections_found
+        ],
         "word_count": word_count,
         "bullet_count": bullet_count,
         "quantified_bullets": quant_count,
@@ -185,6 +320,7 @@ def heuristic_analysis(resume_text: str, jd_text: str) -> Dict:
 
 
 # ── LLM-Powered Deep Analysis (Single Batched Call) ─────────────────────────────
+
 
 def _build_llm_prompt(resume_text: str, jd_text: str, heuristics: Dict) -> str:
     """
@@ -315,26 +451,43 @@ def _generate_heuristic_reasoning(h: Dict, scores: Dict) -> Dict:
     """Generate reasoning text from heuristics alone (fallback)."""
     return {
         "keywords": f"Your resume matches {len(h['matched_skills'])} of {len(h['jd_skills'])} skills from the job description ({h['keyword_match_pct']}% overlap). "
-                    f"Missing: {', '.join(h['missing_skills'][:5]) or 'none detected'}.",
+        f"Missing: {', '.join(h['missing_skills'][:5]) or 'none detected'}.",
         "formatting": f"Found {len(h['sections_found'])}/5 key sections ({', '.join(h['sections_found'])}). "
-                      f"{'Missing: ' + ', '.join(h['sections_missing']) + '.' if h['sections_missing'] else 'All critical sections present.'}",
+        f"{'Missing: ' + ', '.join(h['sections_missing']) + '.' if h['sections_missing'] else 'All critical sections present.'}",
         "impact": "Impact analysis requires AI evaluation. Upload again when the AI service is available for a deeper assessment.",
-        "length": f"Resume is {h['word_count']} words. " +
-                  ("Ideal range (350–750 words)." if 350 <= h['word_count'] <= 750
-                   else f"{'Too short — expand on achievements.' if h['word_count'] < 350 else 'Consider trimming to 1-2 pages.'}"),
-        "relevance": f"Skill overlap with the job description is {h['keyword_match_pct']}%. " +
-                     (f"Add these missing skills: {', '.join(h['missing_skills'][:5])}." if h['missing_skills'] else "Good coverage."),
-        "action_verbs": f"{h['strong_verb_count']} of {h['total_bullets']} bullets start with strong action verbs. " +
-                        (f"Weak verbs found: {'; '.join(h['weak_verb_examples'][:2])}." if h['weak_verb_examples'] else "Good verb usage."),
-        "quantification": f"{h['quantified_bullets']} of {h['total_bullets']} bullets include quantified metrics ({h['quantification_pct']}%). " +
-                          ("Add numbers like percentages, dollar amounts, or user counts to strengthen impact." if h['quantification_pct'] < 50 else "Good use of metrics."),
+        "length": f"Resume is {h['word_count']} words. "
+        + (
+            "Ideal range (350–750 words)."
+            if 350 <= h["word_count"] <= 750
+            else f"{'Too short — expand on achievements.' if h['word_count'] < 350 else 'Consider trimming to 1-2 pages.'}"
+        ),
+        "relevance": f"Skill overlap with the job description is {h['keyword_match_pct']}%. "
+        + (
+            f"Add these missing skills: {', '.join(h['missing_skills'][:5])}."
+            if h["missing_skills"]
+            else "Good coverage."
+        ),
+        "action_verbs": f"{h['strong_verb_count']} of {h['total_bullets']} bullets start with strong action verbs. "
+        + (
+            f"Weak verbs found: {'; '.join(h['weak_verb_examples'][:2])}."
+            if h["weak_verb_examples"]
+            else "Good verb usage."
+        ),
+        "quantification": f"{h['quantified_bullets']} of {h['total_bullets']} bullets include quantified metrics ({h['quantification_pct']}%). "
+        + (
+            "Add numbers like percentages, dollar amounts, or user counts to strengthen impact."
+            if h["quantification_pct"] < 50
+            else "Good use of metrics."
+        ),
     }
 
 
 # ── Main Entry Point ────────────────────────────────────────────────────────────
 
-def score_resume(resume_text: str, jd: str, skills_resume="", skills_jd="",
-                 years_resume=0, years_jd=0, **kwargs) -> Dict:
+
+def score_resume(
+    resume_text: str, jd: str, skills_resume="", skills_jd="", years_resume=0, years_jd=0, **kwargs
+) -> Dict:
     """
     Main scoring entrypoint.
     Uses heuristics as foundation + single LLM call for deep analysis.
@@ -369,36 +522,53 @@ def score_resume(resume_text: str, jd: str, skills_resume="", skills_jd="",
 
             # Generate basic fixes from heuristics
             if heuristics["missing_skills"]:
-                top_fixes.append({
-                    "priority": 1, "category": "keywords",
-                    "original": "", "fix": f"Add these missing skills to your Skills section: {', '.join(heuristics['missing_skills'][:5])}"
-                })
+                top_fixes.append(
+                    {
+                        "priority": 1,
+                        "category": "keywords",
+                        "original": "",
+                        "fix": f"Add these missing skills to your Skills section: {', '.join(heuristics['missing_skills'][:5])}",
+                    }
+                )
             if heuristics["quantification_pct"] < 40:
-                top_fixes.append({
-                    "priority": 2, "category": "quantification",
-                    "original": "", "fix": "Add metrics to your bullet points (e.g., 'Improved performance by 30%', 'Managed 5-person team')"
-                })
+                top_fixes.append(
+                    {
+                        "priority": 2,
+                        "category": "quantification",
+                        "original": "",
+                        "fix": "Add metrics to your bullet points (e.g., 'Improved performance by 30%', 'Managed 5-person team')",
+                    }
+                )
             if heuristics["weak_verb_examples"]:
-                top_fixes.append({
-                    "priority": 3, "category": "action_verbs",
-                    "original": heuristics["weak_verb_examples"][0],
-                    "fix": f"Replace weak opening '{heuristics['weak_verb_examples'][0][:40]}...' with a strong verb like 'Architected', 'Spearheaded', or 'Delivered'"
-                })
+                top_fixes.append(
+                    {
+                        "priority": 3,
+                        "category": "action_verbs",
+                        "original": heuristics["weak_verb_examples"][0],
+                        "fix": f"Replace weak opening '{heuristics['weak_verb_examples'][0][:40]}...' with a strong verb like 'Architected', 'Spearheaded', or 'Delivered'",
+                    }
+                )
             if heuristics["sections_missing"]:
-                top_fixes.append({
-                    "priority": 4, "category": "formatting",
-                    "original": "", "fix": f"Add missing sections: {', '.join(heuristics['sections_missing'])}"
-                })
+                top_fixes.append(
+                    {
+                        "priority": 4,
+                        "category": "formatting",
+                        "original": "",
+                        "fix": f"Add missing sections: {', '.join(heuristics['sections_missing'])}",
+                    }
+                )
 
         # Compute weighted final score
         weights = {
-            "keywords": 0.20, "formatting": 0.10, "impact": 0.20,
-            "length": 0.05, "relevance": 0.20, "action_verbs": 0.10,
-            "quantification": 0.15
+            "keywords": 0.20,
+            "formatting": 0.10,
+            "impact": 0.20,
+            "length": 0.05,
+            "relevance": 0.20,
+            "action_verbs": 0.10,
+            "quantification": 0.15,
         }
-        final_score = int(sum(
-            scores.get(dim, 50) * w for dim, w in weights.items()
-        ))
+        final_score = int(sum(scores.get(dim, 50) * w for dim, w in weights.items()))
         final_score = max(0, min(100, final_score))
 
         # Build backward-compatible breakdown
@@ -443,7 +613,7 @@ def score_resume(resume_text: str, jd: str, skills_resume="", skills_jd="",
                 "bullet_count": heuristics["bullet_count"],
                 "quantified_ratio": f"{heuristics['quantified_bullets']}/{heuristics['total_bullets']}",
                 "action_verb_ratio": f"{heuristics['strong_verb_count']}/{heuristics['total_bullets']}",
-            }
+            },
         }
 
         return {
@@ -466,6 +636,7 @@ def score_resume(resume_text: str, jd: str, skills_resume="", skills_jd="",
 
     except Exception as e:
         import traceback
+
         traceback.print_exc()
         return {
             "score": 50,

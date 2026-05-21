@@ -2,16 +2,19 @@
 Unified LLM Service for SmartResume
 Supports Gemini (Google) and Groq (Llama 3/Mixtral)
 """
-import os
+
+import hashlib
 import json
-import re
 import logging
+import os
+import re
 import time
 from typing import Any, Dict, List, Optional, Tuple
-import hashlib
+
 import google.generativeai as genai
+
 from config import settings
-from database import LLMCallLog, SessionLocal, LLMCache
+from database import LLMCache, LLMCallLog, SessionLocal
 
 # Configure Logger
 logger = logging.getLogger(__name__)
@@ -20,6 +23,7 @@ logger = logging.getLogger(__name__)
 GROQ_AVAILABLE = False
 try:
     from groq import Groq
+
     GROQ_AVAILABLE = True
 except ImportError:
     logger.warning("Groq package not installed. Run 'pip install groq'")
@@ -27,9 +31,9 @@ except ImportError:
 # Pre-compiled regex patterns for score extraction fallback
 SCORE_PATTERNS = [
     re.compile(r'"score"\s*:\s*(\d+(?:\.\d+)?)', re.IGNORECASE),
-    re.compile(r'score\s*:\s*(\d+(?:\.\d+)?)', re.IGNORECASE),
-    re.compile(r'score\s+is\s+(\d+(?:\.\d+)?)', re.IGNORECASE),
-    re.compile(r'(\d+(?:\.\d+)?)\s*/\s*30', re.IGNORECASE)
+    re.compile(r"score\s*:\s*(\d+(?:\.\d+)?)", re.IGNORECASE),
+    re.compile(r"score\s+is\s+(\d+(?:\.\d+)?)", re.IGNORECASE),
+    re.compile(r"(\d+(?:\.\d+)?)\s*/\s*30", re.IGNORECASE),
 ]
 
 # Task-aware model lanes (cheap-fast vs higher-quality).
@@ -116,12 +120,13 @@ def _clean_json_text(response_text: str) -> str:
 def _validate_json_payload(payload: dict, required_keys: list[str]) -> bool:
     return isinstance(payload, dict) and all(key in payload for key in required_keys)
 
+
 def get_llm_evaluation(resume_text: str, jd_text: str, ml_score: float) -> Dict:
     """
     Get comprehensive evaluation from the configured LLM provider
     """
     provider = settings.LLM_PROVIDER.strip().lower()
-    
+
     # Fallback logic: if preferred provider fails, try the other
     if provider == "groq" and GROQ_CLIENT:
         result = _get_groq_evaluation(resume_text, jd_text, ml_score)
@@ -129,26 +134,26 @@ def get_llm_evaluation(resume_text: str, jd_text: str, ml_score: float) -> Dict:
             return result
         logger.warning("Groq failed, falling back to Gemini")
         return _get_gemini_evaluation(resume_text, jd_text, ml_score)
-    
+
     # Default to Gemini
     return _get_gemini_evaluation(resume_text, jd_text, ml_score)
+
 
 def _get_gemini_evaluation(resume_text: str, jd_text: str, ml_score: float) -> Dict:
     """Original Gemini evaluation logic"""
     if not GEMINI_CONFIGURED:
         return {"success": False, "error": "Gemini not configured"}
-        
+
     try:
         prompt = _get_evaluation_prompt(resume_text, jd_text, ml_score)
-        model_candidates = ['gemini-1.5-flash', 'gemini-1.5-pro']
+        model_candidates = ["gemini-1.5-flash", "gemini-1.5-pro"]
         response_text = None
-        
+
         for model_name in model_candidates:
             try:
                 model = genai.GenerativeModel(model_name)
                 generation_config = genai.types.GenerationConfig(
-                    candidate_count=1,
-                    response_mime_type="application/json"
+                    candidate_count=1, response_mime_type="application/json"
                 )
                 response = model.generate_content(prompt, generation_config=generation_config)
                 if response.text:
@@ -157,39 +162,44 @@ def _get_gemini_evaluation(resume_text: str, jd_text: str, ml_score: float) -> D
             except Exception as e:
                 logger.warning(f"Gemini {model_name} failed: {e}")
                 continue
-                
+
         if not response_text:
             return {"success": False, "error": "All Gemini models failed"}
-            
+
         return _parse_llm_response(response_text)
-        
+
     except Exception as e:
         logger.error(f"Gemini evaluation error: {e}")
         return {"success": False, "error": str(e)}
+
 
 def _get_groq_evaluation(resume_text: str, jd_text: str, ml_score: float) -> Dict:
     """Groq evaluation logic using Llama 3"""
     if not GROQ_CLIENT:
         return {"success": False, "error": "Groq client not initialized"}
-        
+
     try:
         prompt = _get_evaluation_prompt(resume_text, jd_text, ml_score)
         completion = GROQ_CLIENT.chat.completions.create(
             model=settings.GROQ_MODEL,
             messages=[
-                {"role": "system", "content": "You are an expert ATS (Applicant Tracking System) optimizer. Respond only in valid JSON format."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are an expert ATS (Applicant Tracking System) optimizer. Respond only in valid JSON format.",
+                },
+                {"role": "user", "content": prompt},
             ],
             response_format={"type": "json_object"},
             temperature=0.1,
         )
-        
+
         response_text = completion.choices[0].message.content
         return _parse_llm_response(response_text)
-        
+
     except Exception as e:
         logger.error(f"Groq evaluation error: {e}")
         return {"success": False, "error": str(e)}
+
 
 def _get_evaluation_prompt(resume_text: str, jd_text: str, ml_score: float) -> str:
     return f"""
@@ -218,6 +228,7 @@ def _get_evaluation_prompt(resume_text: str, jd_text: str, ml_score: float) -> s
     Ensure radar_metrics are integers or floats between 0 and 10.
     """
 
+
 def _parse_llm_response(response_text: str) -> Dict:
     """Common parser for LLM responses"""
     try:
@@ -227,38 +238,46 @@ def _parse_llm_response(response_text: str) -> Dict:
             clean_text = response_text.split("```json")[1].split("```")[0].strip()
         elif "```" in response_text:
             clean_text = response_text.split("```")[1].split("```")[0].strip()
-            
+
         data = json.loads(clean_text)
-        
+
         # Normalize fields - Support multiple possible keys from AI
         score = float(data.get("score", data.get("ai_score", data.get("total_score", 0))))
-        
+
         # Flexibly find suggestions
-        suggestions = data.get("suggestions", data.get("improvements", data.get("recommendations", data.get("action_items", []))))
-        
+        suggestions = data.get(
+            "suggestions", data.get("improvements", data.get("recommendations", data.get("action_items", [])))
+        )
+
         if not isinstance(suggestions, list):
             suggestions = [str(suggestions)] if suggestions else []
-        
+
         # Ensure we have at least some suggestions if the score is low
         if not suggestions and score < 25:
-            suggestions = ["Optimize your technical keyword density", "Quantify more achievements with metrics", "Ensure formatting is ATS-compliant"]
-            
+            suggestions = [
+                "Optimize your technical keyword density",
+                "Quantify more achievements with metrics",
+                "Ensure formatting is ATS-compliant",
+            ]
+
         radar_metrics = data.get("radar_metrics", {})
-        
+
         return {
             "success": True,
             "score": round(min(30.0, max(0.0, score)), 1),
             "suggestions": suggestions[:5],
             "evaluation": {
                 "radar_metrics": radar_metrics,
-                "overall_feedback": data.get("overall_feedback", data.get("feedback", ""))
-            }
+                "overall_feedback": data.get("overall_feedback", data.get("feedback", "")),
+            },
         }
     except Exception as e:
         logger.error(f"Response parsing failed: {e}. Raw response: {response_text[:200]}")
         return {"success": False, "error": "Parsing failed"}
 
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
 
 def _call_llm(
     prompt: str,
@@ -277,15 +296,27 @@ def _call_llm(
                         messages=[{"role": "system", "content": system}, {"role": "user", "content": prompt}],
                     )
                     output = resp.choices[0].message.content or ""
-                    _log_llm_call(task, provider, model_name, True, int((time.perf_counter() - start) * 1000), user_id=user_id)
+                    _log_llm_call(
+                        task, provider, model_name, True, int((time.perf_counter() - start) * 1000), user_id=user_id
+                    )
                     return output
                 if provider == "gemini" and GEMINI_CONFIGURED:
                     model = genai.GenerativeModel(model_name)
                     output = (model.generate_content(prompt).text or "").strip()
-                    _log_llm_call(task, provider, model_name, True, int((time.perf_counter() - start) * 1000), user_id=user_id)
+                    _log_llm_call(
+                        task, provider, model_name, True, int((time.perf_counter() - start) * 1000), user_id=user_id
+                    )
                     return output
             except Exception as e:
-                _log_llm_call(task, provider, model_name, False, int((time.perf_counter() - start) * 1000), error=str(e), user_id=user_id)
+                _log_llm_call(
+                    task,
+                    provider,
+                    model_name,
+                    False,
+                    int((time.perf_counter() - start) * 1000),
+                    error=str(e),
+                    user_id=user_id,
+                )
                 logger.warning("LLM call failed (%s/%s): %s", provider, model_name, e)
                 continue
     return ""
@@ -300,9 +331,9 @@ def _call_llm_json(
 ) -> dict:
     """LLM JSON caller with schema checks, fallback routing, and telemetry."""
     required = required_keys or []
-    
+
     # 1. Check semantic cache
-    prompt_hash = hashlib.sha256(f"{task}:{system}:{prompt}".encode('utf-8')).hexdigest()
+    prompt_hash = hashlib.sha256(f"{task}:{system}:{prompt}".encode("utf-8")).hexdigest()
     try:
         db = SessionLocal()
         cached = db.query(LLMCache).filter(LLMCache.prompt_hash == prompt_hash).first()
@@ -329,15 +360,19 @@ def _call_llm_json(
                 elif provider == "gemini" and GEMINI_CONFIGURED:
                     model = genai.GenerativeModel(model_name)
                     cfg = genai.types.GenerationConfig(response_mime_type="application/json")
-                    payload = json.loads(_clean_json_text(model.generate_content(prompt, generation_config=cfg).text or "{}"))
+                    payload = json.loads(
+                        _clean_json_text(model.generate_content(prompt, generation_config=cfg).text or "{}")
+                    )
                 else:
                     continue
 
                 if required and not _validate_json_payload(payload, required):
                     raise ValueError(f"Missing required keys: {required}")
 
-                _log_llm_call(task, provider, model_name, True, int((time.perf_counter() - start) * 1000), user_id=user_id)
-                
+                _log_llm_call(
+                    task, provider, model_name, True, int((time.perf_counter() - start) * 1000), user_id=user_id
+                )
+
                 # 2. Write to cache
                 try:
                     db = SessionLocal()
@@ -346,10 +381,18 @@ def _call_llm_json(
                     db.close()
                 except Exception as e:
                     logger.warning(f"Cache write failed: {e}")
-                    
+
                 return payload
             except Exception as e:
-                _log_llm_call(task, provider, model_name, False, int((time.perf_counter() - start) * 1000), error=str(e), user_id=user_id)
+                _log_llm_call(
+                    task,
+                    provider,
+                    model_name,
+                    False,
+                    int((time.perf_counter() - start) * 1000),
+                    error=str(e),
+                    user_id=user_id,
+                )
                 logger.warning("LLM JSON call failed (%s/%s): %s", provider, model_name, e)
                 continue
     return {}
@@ -357,45 +400,47 @@ def _call_llm_json(
 
 # ── Resume Text Chunking ───────────────────────────────────────────────────────
 
+
 def _extract_section(resume_text: str, section_name: str) -> str:
     """Uses regex to quickly extract a specific section from the resume without LLM."""
     text_lower = resume_text.lower()
-    
+
     sections = {
-        "experience": [r'work\s+experience', r'professional\s+experience', r'\bexperience\b', r'employment\s+history'],
-        "education": [r'\beducation\b', r'academic\s+background'],
-        "skills": [r'\bskills\b', r'technical\s+skills', r'core\s+competencies']
+        "experience": [r"work\s+experience", r"professional\s+experience", r"\bexperience\b", r"employment\s+history"],
+        "education": [r"\beducation\b", r"academic\s+background"],
+        "skills": [r"\bskills\b", r"technical\s+skills", r"core\s+competencies"],
     }
-    
-    patterns = sections.get(section_name, [rf'\b{section_name}\b'])
-    
+
+    patterns = sections.get(section_name, [rf"\b{section_name}\b"])
+
     best_start = -1
     for p in patterns:
         match = re.search(p, text_lower)
         if match:
             best_start = match.start()
             break
-            
+
     if best_start == -1:
-        return resume_text[:1000] # Fallback to first 1000 chars
-        
+        return resume_text[:1000]  # Fallback to first 1000 chars
+
     # Find next section header to determine end
     all_headers = [p for h_list in sections.values() for p in h_list]
     end_idx = len(resume_text)
-    
+
     # Search for next header after the current one
-    search_area = text_lower[best_start + 20:]
+    search_area = text_lower[best_start + 20 :]
     for h in all_headers:
         match = re.search(h, search_area)
         if match:
             end_idx = min(end_idx, best_start + 20 + match.start())
-            
+
     # Return the chunk
     chunk = resume_text[best_start:end_idx].strip()
     return chunk if len(chunk) > 50 else resume_text[:1000]
 
 
 # ── Original Features ─────────────────────────────────────────────────────────
+
 
 def generate_cover_letter(resume_text: str, jd_text: str) -> str:
     exp = _extract_section(resume_text, "experience")
@@ -424,6 +469,7 @@ Write the complete, final cover letter with NO placeholders. All fields must be 
         task="quick_copy",
     )
 
+
 def generate_interview_questions(resume_text: str, jd_text: str) -> str:
     # Interviews mainly rely on experience
     exp = _extract_section(resume_text, "experience")
@@ -433,6 +479,7 @@ def generate_interview_questions(resume_text: str, jd_text: str) -> str:
         task="analysis_quality",
     )
 
+
 def rewrite_bullet(flaw_text: str, resume_context: str) -> str:
     return _call_llm(
         f"You are an expert resume writer. The following is a flaw or suggestion found in the user's resume:\n'{flaw_text}'\n\nGiven the context of their resume:\n{resume_context[:2000]}\n\nWrite exactly ONE highly professional, metric-driven, ATS-optimized bullet point that fixes this flaw. Respond ONLY with the bullet point text, no other chat.",
@@ -440,21 +487,20 @@ def rewrite_bullet(flaw_text: str, resume_context: str) -> str:
         task="analysis_quality",
     )
 
+
 # ── GitHub vs Resume Comparison ───────────────────────────────────────────────
+
 
 def compare_github_resume(resume_text: str, top_languages: dict, pinned_repos: list, recent_commits: list) -> dict:
     """Cross-reference resume skill claims against real GitHub activity."""
     repos_summary = "\n".join(
-        f"- {r.get('name')}: {r.get('description','')} ({r.get('language','')})"
-        for r in pinned_repos[:6]
+        f"- {r.get('name')}: {r.get('description','')} ({r.get('language','')})" for r in pinned_repos[:6]
     )
-    commits_summary = "\n".join(
-        f"- [{c.get('repo')}] {c.get('message','')}" for c in recent_commits[:8]
-    )
-    
+    commits_summary = "\n".join(f"- [{c.get('repo')}] {c.get('message','')}" for c in recent_commits[:8])
+
     # We only need skills and projects to compare with GitHub
     rel_text = _extract_section(resume_text, "skills") + "\n" + _extract_section(resume_text, "projects")
-    
+
     prompt = f"""Compare this resume with the candidate's real GitHub activity.
 
 RESUME SKILLS/PROJECTS:
@@ -487,6 +533,7 @@ Return JSON:
 
 # ── Communication Tools ───────────────────────────────────────────────────────
 
+
 def audit_resume_language(resume_text: str) -> dict:
     """Score resume writing quality and flag weak language."""
     prompt = f"""Audit this resume's writing quality.
@@ -511,7 +558,11 @@ Return JSON:
         task="analysis_quality",
         required_keys=["overall_score", "fixes"],
     )
-    return result if result else {"overall_score": 50, "fixes": [], "passive_voice_examples": [], "vague_language_examples": []}
+    return (
+        result
+        if result
+        else {"overall_score": 50, "fixes": [], "passive_voice_examples": [], "vague_language_examples": []}
+    )
 
 
 def generate_elevator_pitch(resume_text: str, target_role: str) -> str:
@@ -542,6 +593,7 @@ def generate_cold_email(resume_text: str, company: str, role: str) -> str:
 
 
 # ── Resume Intelligence ───────────────────────────────────────────────────────
+
 
 def rewrite_bullet_point(bullet: str, role: str = "") -> list:
     prompt = f"""Rewrite this resume bullet point in STAR format (Situation-Task-Action-Result) with strong action verbs and quantified impact. Target role: {role or 'Software Engineer'}.
@@ -577,10 +629,21 @@ Return JSON:
         task="analysis_quality",
         required_keys=["critical_missing", "overall_match_pct"],
     )
-    return result if result else {"critical_missing": [], "nice_to_have_missing": [], "strong_matches": [], "weak_matches": [], "overall_match_pct": 0}
+    return (
+        result
+        if result
+        else {
+            "critical_missing": [],
+            "nice_to_have_missing": [],
+            "strong_matches": [],
+            "weak_matches": [],
+            "overall_match_pct": 0,
+        }
+    )
 
 
 # ── Dynamic AI Roadmap Generator ──────────────────────────────────────────────
+
 
 def generate_dynamic_roadmap(resume_text: str, target_role: str, target_company: str) -> dict:
     """
@@ -663,15 +726,49 @@ Be specific about the candidate's actual weaknesses. Do NOT give generic advice.
             "summary": f"Personalized plan to land a {target_role} role at {target_company}.",
             "skill_gaps": ["DSA fundamentals", "System Design", "Project depth"],
             "phases": [
-                {"week_label": "Weeks 1-2", "title": "Core DSA", "focus": "Arrays, Strings, Hashing", "description": "Master fundamental data structures with NeetCode's Roadmap.", "resource_label": "NeetCode Roadmap", "resource_url": "https://neetcode.io/roadmap", "resource_type": "DSA"},
-                {"week_label": "Weeks 3-4", "title": "Advanced Algorithms", "focus": "Trees, Graphs, DP", "description": "Work through Striver's SDE Sheet topics on Trees and Graphs.", "resource_label": "Striver A2Z Sheet", "resource_url": "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/", "resource_type": "DSA"},
-                {"week_label": "Weeks 5-6", "title": "Build a Strong Project", "focus": "Full-stack project", "description": "Build a deployable project showcasing backend, DB, and auth skills.", "resource_label": "GFG Project Ideas", "resource_url": "https://www.geeksforgeeks.org/top-10-projects-for-beginners-to-practice-html-and-css-skills/", "resource_type": "Project"},
-                {"week_label": "Weeks 7-8", "title": "System Design & Mock Interviews", "focus": "System design fundamentals", "description": "Study system design basics and practice mock interviews for the target role.", "resource_label": "System Design Primer", "resource_url": "https://github.com/donnemartin/system-design-primer", "resource_type": "System Design"},
-            ]
+                {
+                    "week_label": "Weeks 1-2",
+                    "title": "Core DSA",
+                    "focus": "Arrays, Strings, Hashing",
+                    "description": "Master fundamental data structures with NeetCode's Roadmap.",
+                    "resource_label": "NeetCode Roadmap",
+                    "resource_url": "https://neetcode.io/roadmap",
+                    "resource_type": "DSA",
+                },
+                {
+                    "week_label": "Weeks 3-4",
+                    "title": "Advanced Algorithms",
+                    "focus": "Trees, Graphs, DP",
+                    "description": "Work through Striver's SDE Sheet topics on Trees and Graphs.",
+                    "resource_label": "Striver A2Z Sheet",
+                    "resource_url": "https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/",
+                    "resource_type": "DSA",
+                },
+                {
+                    "week_label": "Weeks 5-6",
+                    "title": "Build a Strong Project",
+                    "focus": "Full-stack project",
+                    "description": "Build a deployable project showcasing backend, DB, and auth skills.",
+                    "resource_label": "GFG Project Ideas",
+                    "resource_url": "https://www.geeksforgeeks.org/top-10-projects-for-beginners-to-practice-html-and-css-skills/",
+                    "resource_type": "Project",
+                },
+                {
+                    "week_label": "Weeks 7-8",
+                    "title": "System Design & Mock Interviews",
+                    "focus": "System design fundamentals",
+                    "description": "Study system design basics and practice mock interviews for the target role.",
+                    "resource_label": "System Design Primer",
+                    "resource_url": "https://github.com/donnemartin/system-design-primer",
+                    "resource_type": "System Design",
+                },
+            ],
         }
     return result
 
+
 # ── Resume Parsing to JSON ───────────────────────────────────────────────────
+
 
 def parse_resume_to_builder(resume_text: str) -> dict:
     """
@@ -735,6 +832,6 @@ Return ONLY a valid JSON object matching EXACTLY this schema (use empty strings 
             "experience": [],
             "education": [],
             "projects": [],
-            "skills": {"languages": "", "frameworks": "", "tools": ""}
+            "skills": {"languages": "", "frameworks": "", "tools": ""},
         }
     return result

@@ -9,12 +9,13 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from .base_agent import BaseAgent, AgentTool, AgentContext
+from .base_agent import AgentContext, AgentTool, BaseAgent
 
 logger = logging.getLogger(__name__)
 
 
 # ── Helper: resolve resume text ──────────────────────────────────────────────
+
 
 def _get_resume_text(context: AgentContext) -> str:
     """Resolve resume text from context, falling back to latest DB analysis."""
@@ -161,7 +162,7 @@ class CoachAgent(BaseAgent):
             return {"error": "Database session not available."}
 
         try:
-            from services.agent_service import build_user_context, _format_context
+            from services.agent_service import _format_context, build_user_context
 
             ctx = build_user_context(context.user, context.db)
             formatted = _format_context(ctx)
@@ -186,11 +187,12 @@ class CoachAgent(BaseAgent):
                 if res.get("agent") == "Scout":
                     response_text = str(res.get("response", ""))
                     import re
+
                     # Simple heuristic to find a company and role from Scout's output
-                    company_match = re.search(r'company:\s*([a-zA-Z0-9\s]+)', response_text, re.IGNORECASE)
+                    company_match = re.search(r"company:\s*([a-zA-Z0-9\s]+)", response_text, re.IGNORECASE)
                     if company_match:
                         company = company_match.group(1).strip()
-                    role_match = re.search(r'title:\s*([a-zA-Z0-9\s]+)', response_text, re.IGNORECASE)
+                    role_match = re.search(r"title:\s*([a-zA-Z0-9\s]+)", response_text, re.IGNORECASE)
                     if role_match:
                         role = role_match.group(1).strip()
 
@@ -250,9 +252,7 @@ class CoachAgent(BaseAgent):
             )
 
             if not analysis:
-                return {
-                    "error": "No resume analysis found. Go to Resume Lab and analyze your resume first."
-                }
+                return {"error": "No resume analysis found. Go to Resume Lab and analyze your resume first."}
 
             score_breakdown = analysis.score_breakdown or {}
             keyword_gaps = analysis.keyword_gaps or []
@@ -263,10 +263,7 @@ class CoachAgent(BaseAgent):
             weakest = []
             if radar:
                 sorted_dims = sorted(radar, key=lambda d: d.get("A", 50))
-                weakest = [
-                    {"dimension": d.get("subject", ""), "score": d.get("A", 0)}
-                    for d in sorted_dims[:3]
-                ]
+                weakest = [{"dimension": d.get("subject", ""), "score": d.get("A", 0)} for d in sorted_dims[:3]]
 
             days_since = (datetime.utcnow() - analysis.created_at).days if analysis.created_at else None
 
@@ -280,11 +277,7 @@ class CoachAgent(BaseAgent):
                 "jd_was_provided": bool(analysis.jd_used),
                 "verdict": (
                     f"Score: {analysis.ats_score}/100. "
-                    + (
-                        f"Weakest area: {weakest[0]['dimension']} ({weakest[0]['score']}/100). "
-                        if weakest
-                        else ""
-                    )
+                    + (f"Weakest area: {weakest[0]['dimension']} ({weakest[0]['score']}/100). " if weakest else "")
                     + (
                         f"Analysis is {days_since} days old — consider re-analyzing."
                         if days_since and days_since > 7
@@ -307,22 +300,14 @@ class CoachAgent(BaseAgent):
         try:
             from database import GitHubProfile
 
-            gh = (
-                context.db.query(GitHubProfile)
-                .filter(GitHubProfile.user_id == context.user.id)
-                .first()
-            )
+            gh = context.db.query(GitHubProfile).filter(GitHubProfile.user_id == context.user.id).first()
 
             if not gh:
-                return {
-                    "error": "No GitHub profile linked. Connect your GitHub account first (Settings → GitHub)."
-                }
+                return {"error": "No GitHub profile linked. Connect your GitHub account first (Settings → GitHub)."}
 
             resume_text = _get_resume_text(context)
             if not resume_text:
-                return {
-                    "error": "No resume text available. Upload a resume first, then I can cross-reference."
-                }
+                return {"error": "No resume text available. Upload a resume first, then I can cross-reference."}
 
             top_languages = gh.top_languages or {}
             pinned_repos = gh.pinned_repos or []
@@ -331,9 +316,7 @@ class CoachAgent(BaseAgent):
             # If we already have cached gaps/bonuses from the last sync, return those
             # alongside a fresh LLM comparison
             try:
-                result = self._llm.compare_github_resume(
-                    resume_text, top_languages, pinned_repos, recent_commits
-                )
+                result = self._llm.compare_github_resume(resume_text, top_languages, pinned_repos, recent_commits)
             except Exception as llm_exc:
                 logger.warning("LLM comparison failed, using cached data: %s", llm_exc)
                 result = {
