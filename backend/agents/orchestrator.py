@@ -69,7 +69,8 @@ class OrchestratorAgent(BaseAgent):
         self.color = "#f97316"
         self.description = (
             "I coordinate the agent team. I figure out what you need "
-            "and route your request to the right specialist(s)."
+            "and route your request to the right specialist(s). "
+            "You DO NOT perform the tasks yourself. Your ONLY job is to delegate tasks appropriately based on the specialist's expertise."
         )
         self.personality = (
             "Sharp, efficient, and always in control. You see the big picture "

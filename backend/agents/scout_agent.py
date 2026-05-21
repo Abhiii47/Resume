@@ -60,7 +60,9 @@ class ScoutAgent(BaseAgent):
         self.description = (
             "Resourceful job market navigator who finds opportunities, "
             "evaluates fit from both candidate and employer perspectives, "
-            "and tracks the application pipeline."
+            "and tracks the application pipeline. "
+            "You MUST ONLY search for jobs, analyze fit against job descriptions, and track applications. "
+            "NEVER score resumes generally, write content, or provide learning roadmaps."
         )
         self.personality = (
             "Resourceful and sharp. Thinks about job fit from both sides — "
