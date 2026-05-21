@@ -24,7 +24,7 @@ export default function AgentCard({ agent, isActive, onClick }) {
     >
       <div style={{
         width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22,
-        background: `${ac}18`, border: `2px solid ${isActive ? ac : "rgba(255,255,255,.08)"}`,
+        background: `${ac}18`, border: `1px solid ${isActive ? ac : "rgba(255,255,255,.08)"}`, borderRadius: '0.5rem',
         flexShrink: 0, transition: "border-color .2s,box-shadow .2s",
         boxShadow: hovered ? `0 0 16px ${ac}40` : "none",
       }}>{agent.emoji}</div>
@@ -41,8 +41,8 @@ export default function AgentCard({ agent, isActive, onClick }) {
 
       {hovered && (
         <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-          style={{ position: "absolute", left: "calc(100% + 12px)", top: "50%", transform: "translateY(-50%)", background: "#111", border: "2px solid #222", padding: "10px 14px", minWidth: 200, maxWidth: 260, zIndex: 100, boxShadow: "6px 6px 0 #000" }}>
-          <div style={{ position: "absolute", left: -6, top: "50%", transform: "translateY(-50%) rotate(45deg)", width: 10, height: 10, background: "#111", borderLeft: "2px solid #222", borderBottom: "2px solid #222" }} />
+          style={{ position: "absolute", left: "calc(100% + 12px)", top: "50%", transform: "translateY(-50%)", background: "var(--card)", border: "1px solid var(--border)", padding: "10px 14px", minWidth: 200, maxWidth: 260, zIndex: 100, borderRadius: "0.5rem", boxShadow: "var(--shadow-soft-lg)" }}>
+          <div style={{ position: "absolute", left: -5, top: "50%", transform: "translateY(-50%) rotate(45deg)", width: 10, height: 10, background: "var(--card)", borderLeft: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }} />
           <div style={{ fontSize: 12, fontWeight: 700, color: ac, marginBottom: 4 }}>{agent.emoji} {agent.name}</div>
           <div style={{ fontSize: 11, color: "hsl(0 0% 65%)", lineHeight: 1.5, marginBottom: 6 }}>{agent.description || agent.role}</div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

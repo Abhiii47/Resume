@@ -45,14 +45,14 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
   const analysisCount = history ? history.length : 0;
 
   const statCards = [
-    { label: 'Top ATS Score', value: latestScore, suffix: '/ 100', bg: 'hsl(24,100%,50%)', shadow: '6px 6px 0 #b34500', color: '#111' },
-    { label: 'Resumes Analyzed', value: analysisCount, suffix: 'iterations', bg: '#2563EB', shadow: '6px 6px 0 #1a3a8f', color: '#111' },
-    { label: 'Active Tracker', value: 6, suffix: 'categories', bg: '#16A34A', shadow: '6px 6px 0 #0d5c2a', color: '#111' },
+    { label: 'Top ATS Score', value: latestScore, suffix: '/ 100', bg: var(--primary), shadow: '6px 6px 0 #b34500', color: 'var(--foreground)' },
+    { label: 'Resumes Analyzed', value: analysisCount, suffix: 'iterations', bg: '#2563EB', shadow: '6px 6px 0 #1a3a8f', color: 'var(--foreground)' },
+    { label: 'Active Tracker', value: 6, suffix: 'categories', bg: '#16A34A', shadow: '6px 6px 0 #0d5c2a', color: 'var(--foreground)' },
   ];
 
   const actionCards = [
     { label: 'Resume Builder', desc: 'Create & Export PDF', icon: FileText, accent: '#2563EB', onClick: () => navigate('/builder') },
-    { label: 'Resume Lab', desc: 'Analyze & Fix Flaws', icon: UploadCloud, accent: 'hsl(24,100%,50%)', onClick: () => setActiveTab('workspace') },
+    { label: 'Resume Lab', desc: 'Analyze & Fix Flaws', icon: UploadCloud, accent: var(--primary), onClick: () => setActiveTab('workspace') },
     { label: 'Job Tracker', desc: 'Discover & Match', icon: CheckCircle2, accent: '#16A34A', onClick: () => setActiveTab('tracker') },
     { label: 'Learning Hub', desc: 'AI Roadmap & Resources', icon: BookOpen, accent: '#8b5cf6', onClick: () => setActiveTab('resources') },
   ];
@@ -60,12 +60,12 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
   return (
     <div
       className="p-6 md:p-10 flex flex-col min-h-full"
-      style={{ background: '#fdfbf7' }}
+      
     >
       {/* Header */}
       <div className="mb-10">
-        <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'hsl(24,100%,50%)' }}>Agentic Career Hub</p>
-        <h2 className="text-5xl font-black uppercase" style={{ color: '#111' }}>Command Center</h2>
+        <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: var(--primary) }}>Agentic Career Hub</p>
+        <h2 className="text-5xl font-black uppercase" style={{ color: 'var(--foreground)' }}>Command Center</h2>
       </div>
 
       {/* Stat Cards */}
@@ -74,7 +74,7 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
           <div
             key={i}
             className="p-6 transition-transform hover:-translate-y-1"
-            style={{ background: card.bg, border: '2px solid #000', boxShadow: card.shadow, color: card.color }}
+            className="glass-card"
           >
             <p className="text-xs font-black uppercase tracking-widest opacity-70 mb-2">{card.label}</p>
             <div className="flex items-baseline gap-2">
@@ -86,26 +86,23 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
       </div>
 
       {/* Quick Actions */}
-      <h3 className="text-sm font-black uppercase tracking-widest mb-5" style={{ color: '#666' }}>Quick Actions</h3>
+      <h3 className="text-sm font-black uppercase tracking-widest mb-5" style={{ color: 'var(--muted-foreground)' }}>Quick Actions</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
         {actionCards.map((card, i) => (
           <div
             key={i}
             onClick={card.onClick}
-            className="p-5 flex flex-col gap-4 cursor-pointer transition-all hover:-translate-y-1"
-            style={{ background: '#fff', border: '2px solid #000', boxShadow: '4px 4px 0 #000' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = card.accent; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#000'; }}
+            className="glass-card p-5 flex flex-col gap-4 cursor-pointer transition-all hover:-translate-y-1 group"}
           >
             <div
               className="w-12 h-12 flex items-center justify-center shrink-0"
-              style={{ background: card.accent, color: '#111' }}
+              style={{ background: card.accent, color: 'var(--foreground)' }}
             >
               <card.icon className="w-6 h-6" />
             </div>
             <div className="flex-1">
-              <h4 className="font-black text-base uppercase" style={{ color: '#111' }}>{card.label}</h4>
-              <p className="text-xs mt-0.5" style={{ color: '#666' }}>{card.desc}</p>
+              <h4 className="font-black text-base uppercase" style={{ color: 'var(--foreground)' }}>{card.label}</h4>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{card.desc}</p>
             </div>
             <div className="text-right text-xs font-black" style={{ color: card.accent }}>Open →</div>
           </div>
@@ -115,37 +112,37 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
       {showLlmMetrics && (
       <>
       {/* LLM Reliability */}
-      <h3 className="text-sm font-black uppercase tracking-widest mb-5" style={{ color: '#666' }}>AI Reliability</h3>
-      <div className="p-6" style={{ background: '#fff', border: '2px solid #000', boxShadow: '4px 4px 0 #000' }}>
+      <h3 className="text-sm font-black uppercase tracking-widest mb-5" style={{ color: 'var(--muted-foreground)' }}>AI Reliability</h3>
+      <div className="p-6" className="glass-card">
         {llmMetricsLoading ? (
-          <p className="text-sm font-bold animate-pulse" style={{ color: 'hsl(24,100%,50%)' }}>Loading metrics...</p>
+          <p className="text-sm font-bold animate-pulse" style={{ color: var(--primary) }}>Loading metrics...</p>
         ) : !llmMetrics ? (
-          <p className="text-sm" style={{ color: '#666' }}>No telemetry yet. Trigger a few AI actions first.</p>
+          <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>No telemetry yet. Trigger a few AI actions first.</p>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
               {[
-                { label: 'Total Calls', value: llmMetrics.total_calls || 0, color: '#111' },
+                { label: 'Total Calls', value: llmMetrics.total_calls || 0, color: 'var(--foreground)' },
                 { label: 'Success Rate', value: `${llmMetrics.success_rate_pct || 0}%`, color: '#16A34A' },
-                { label: 'Avg Latency', value: `${llmMetrics.avg_latency_ms || 0}ms`, color: 'hsl(24,100%,50%)' },
+                { label: 'Avg Latency', value: `${llmMetrics.avg_latency_ms || 0}ms`, color: var(--primary) },
               ].map((m, i) => (
-                <div key={i} className="p-4" style={{ background: '#fdfbf7', border: '2px solid #000' }}>
-                  <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: '#666' }}>{m.label}</p>
+                <div key={i} className="p-4" className="glass-card">
+                  <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: 'var(--muted-foreground)' }}>{m.label}</p>
                   <p className="text-4xl font-black" style={{ color: m.color, fontFamily: 'var(--font-display)' }}>{m.value}</p>
                 </div>
               ))}
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               {[{ title: 'By Task', data: llmMetrics.by_task }, { title: 'By Provider', data: llmMetrics.by_provider }].map((section, i) => (
-                <div key={i} className="p-4" style={{ background: '#fdfbf7', border: '2px solid #000' }}>
-                  <p className="text-xs font-black uppercase tracking-widest mb-4 pb-2" style={{ color: '#666', borderBottom: '2px solid #000' }}>{section.title}</p>
+                <div key={i} className="p-4" className="glass-card">
+                  <p className="text-xs font-black uppercase tracking-widest mb-4 pb-2" style={{ color: 'var(--muted-foreground)', borderBottom: '1px solid var(--border)' }}>{section.title}</p>
                   <div className="space-y-3 max-h-44 overflow-y-auto">
                     {Object.keys(section.data || {}).length === 0 ? (
                       <p className="text-xs" style={{ color: '#444' }}>No data yet</p>
                     ) : Object.entries(section.data).map(([key, data]) => (
-                      <div key={key} className="flex justify-between text-xs font-bold" style={{ color: '#111', borderBottom: '1px solid #ccc', paddingBottom: 6 }}>
+                      <div key={key} className="flex justify-between text-xs font-bold" style={{ color: 'var(--foreground)', borderBottom: '1px solid #ccc', paddingBottom: 6 }}>
                         <span className="truncate">{key}</span>
-                        <span className="shrink-0 ml-4" style={{ color: '#666' }}>{data.success_rate_pct}% · {data.avg_latency_ms}ms</span>
+                        <span className="shrink-0 ml-4" style={{ color: 'var(--muted-foreground)' }}>{data.success_rate_pct}% · {data.avg_latency_ms}ms</span>
                       </div>
                     ))}
                   </div>
@@ -239,44 +236,44 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
       value: selectedAnalysis.score_breakdown?.impact_metrics
           || selectedAnalysis.score_breakdown?.impact
           || 0,
-      max: 35, color: 'hsl(24,100%,50%)'
+      max: 35, color: var(--primary)
     },
   ] : [];
 
   return (
-    <div className="flex flex-col lg:flex-row h-full" style={{ background: '#fdfbf7' }}>
+    <div className="flex flex-col lg:flex-row h-full" >
       {/* Left: Upload & Preview */}
       <div
         className="w-full lg:w-1/2 p-6 lg:p-8 flex flex-col"
-        style={{ borderRight: '2px solid #1f1f1f', background: '#fdfbf7' }}
+        style={{ borderRight: '1px solid var(--border)', background: '#fdfbf7' }}
       >
         <h2 className="text-3xl font-black uppercase text-[#111] mb-6" style={{ letterSpacing: '-0.02em' }}>Resume Lab</h2>
 
         {/* Upload zone */}
         <div
           className="p-6 mb-5 shrink-0"
-          style={{ background: '#fff', border: '2px solid #000' }}
+          className="glass-card"
         >
           <form onSubmit={handleUpload} className="flex flex-col sm:flex-row gap-3">
             <label
               className="flex-1 cursor-pointer p-4 flex items-center justify-center gap-3 text-sm font-bold transition-all"
               style={{
                 border: dragging ? '2px solid hsl(24,100%,50%)' : '2px dashed #333',
-                background: dragging ? 'rgba(255,102,0,0.1)' : '#fdfbf7',
-                color: '#666',
+                background: dragging ? 'rgba(0,119,255,0.1)' : '#fdfbf7',
+                color: 'var(--muted-foreground)',
               }}
               onDragOver={e => { e.preventDefault(); setDragging(true); }}
               onDragLeave={() => setDragging(false)}
               onDrop={handleDrop}
             >
               <input type="file" accept=".pdf" className="hidden" onChange={handleFileChange} />
-              <UploadCloud className="w-5 h-5 shrink-0" style={{ color: 'hsl(24,100%,50%)' }} />
+              <UploadCloud className="w-5 h-5 shrink-0" style={{ color: var(--primary) }} />
               <span style={{ color: file ? '#fff' : '#555' }}>{file ? file.name : 'Drop PDF or click to upload'}</span>
             </label>
             <button
               type="submit" disabled={!file || isAnalyzing}
               className="px-6 py-3 font-black uppercase text-sm transition-all"
-              style={{ background: (!file || isAnalyzing) ? '#222' : 'hsl(24,100%,50%)', color: (!file || isAnalyzing) ? '#444' : '#111', border: '2px solid #000', cursor: (!file || isAnalyzing) ? 'not-allowed' : 'pointer' }}
+              className="modern-btn-primary disabled:opacity-50"
             >
               Analyze
             </button>
@@ -287,14 +284,14 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
         {history && history.length > 0 && (
           <div
             className="mb-5 flex items-center justify-between p-3 shrink-0"
-            style={{ background: '#fdfbf7', border: '2px solid #000' }}
+            className="glass-card"
           >
-            <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(24,100%,50%)' }}>Evolution Timeline</span>
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: var(--primary) }}>Evolution Timeline</span>
             <select
               value={selectedIndex}
               onChange={e => setSelectedIndex(Number(e.target.value))}
               className="text-xs font-bold p-1 outline-none"
-              style={{ background: '#fff', border: '2px solid #000', color: '#ccc', cursor: 'pointer' }}
+              style={{ background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--muted-foreground)', cursor: 'pointer' }}
             >
               {history.map((item, idx) => (
                 <option key={item.id} value={idx}>
@@ -308,22 +305,22 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
         {/* PDF Viewer */}
         <div
           className="flex-1 overflow-hidden relative"
-          style={{ minHeight: 200, border: '2px solid #000', background: '#fdfbf7' }}
+          style={{ minHeight: 200, border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', background: '#fdfbf7' }}
         >
           {pdfUrl ? (
             <object data={pdfUrl} type="application/pdf" className="w-full h-full" style={{ minHeight: 300 }}>
-              <div className="h-full flex flex-col items-center justify-center gap-2 p-4" style={{ color: '#666' }}>
+              <div className="h-full flex flex-col items-center justify-center gap-2 p-4" style={{ color: 'var(--muted-foreground)' }}>
                 <FileText className="w-8 h-8" />
                 <p className="text-sm font-bold">PDF preview unavailable in this browser.</p>
-                <a href={pdfUrl} download className="text-xs font-black" style={{ color: 'hsl(24,100%,50%)' }}>Download PDF</a>
+                <a href={pdfUrl} download className="text-xs font-black" style={{ color: var(--primary) }}>Download PDF</a>
               </div>
             </object>
           ) : selectedAnalysis ? (
-            <div className="text-sm whitespace-pre-wrap p-6 overflow-y-auto h-full" style={{ color: '#aaa' }}>
+            <div className="text-sm whitespace-pre-wrap p-6 overflow-y-auto h-full" style={{ color: 'var(--muted-foreground)' }}>
               {selectedAnalysis.resume_preview || '[ Resume text preview will appear here ]'}
             </div>
           ) : (
-            <div className="h-full flex items-center justify-center text-sm font-bold" style={{ color: '#333' }}>
+            <div className="h-full flex items-center justify-center text-sm font-bold" style={{ color: 'var(--foreground)' }}>
               Upload a PDF to preview it here.
             </div>
           )}
@@ -335,12 +332,12 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
         className="w-full lg:w-1/2 p-6 lg:p-8 overflow-y-auto"
         style={{ background: '#fff' }}
       >
-        <h2 className="text-3xl font-black uppercase mb-6" style={{ letterSpacing: '-0.02em', color: 'hsl(24,100%,50%)' }}>Diagnostics & Fixes</h2>
+        <h2 className="text-3xl font-black uppercase mb-6" style={{ letterSpacing: '-0.02em', color: var(--primary) }}>Diagnostics & Fixes</h2>
 
         {!selectedAnalysis ? (
           <div
             className="p-10 text-center font-bold"
-            style={{ background: '#fdfbf7', border: '2px solid #1f1f1f', color: '#444' }}
+            className="glass-card text-muted-foreground"
           >
             Upload a resume to see diagnostic results.
           </div>
@@ -353,7 +350,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
                   <p className="text-[10px] font-black uppercase tracking-widest mb-1" style={{ color: s.color }}>{s.label}</p>
                   <p className="text-4xl font-black" style={{ color: s.color, fontFamily: 'Playfair Display, serif' }}>{s.value}<span className="text-base opacity-40">/{s.max}</span></p>
                   {/* mini bar */}
-                  <div className="mt-2 h-1" style={{ background: '#1a1a1a' }}>
+                  <div className="mt-2 h-1" style={{ background: 'var(--secondary)' }}>
                     <div style={{ height: '100%', width: `${(s.value / s.max) * 100}%`, background: s.color, transition: 'width 0.8s ease' }} />
                   </div>
                 </div>
@@ -361,7 +358,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
             </div>
 
             {/* Flaws & Suggestions */}
-            <div className="relative overflow-hidden" style={{ background: '#fdfbf7', border: '2px solid #1f1f1f' }}>
+            <div className="relative overflow-hidden" className="glass-card">
               <div style={{ position: 'absolute', top: 0, left: 0, width: 3, height: '100%', background: '#ef4444' }} />
               <div className="p-6 pl-7">
                 <h3 className="text-base font-black uppercase mb-5 flex items-center gap-2" style={{ color: '#ef4444' }}>
@@ -371,17 +368,17 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
                 {selectedAnalysis.gemini_suggestions && selectedAnalysis.gemini_suggestions.length > 0 ? (
                   <div className="space-y-4">
                     {selectedAnalysis.gemini_suggestions.map((s, i) => (
-                      <div key={i} className="p-4 text-sm" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>
+                      <div key={i} className="p-4 text-sm" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>
                         <div className="flex items-start gap-3 mb-3">
                           <span
                             className="text-xs font-black shrink-0 px-1.5 py-0.5"
-                            style={{ background: '#ef4444', color: '#111' }}
+                            style={{ background: '#ef4444', color: 'var(--foreground)' }}
                           >#{i + 1}</span>
-                          <p className="font-medium" style={{ color: '#ccc' }}>{s}</p>
+                          <p className="font-medium" style={{ color: 'var(--muted-foreground)' }}>{s}</p>
                         </div>
                         {rewrittenBullets[i] ? (
-                          <div className="mt-3 p-3 text-sm" style={{ background: 'rgba(255,102,0,0.06)', borderLeft: '3px solid hsl(24,100%,50%)', color: '#ccc' }}>
-                            <span className="text-xs font-black uppercase block mb-1" style={{ color: 'hsl(24,100%,50%)' }}>AI Rewrite:</span>
+                          <div className="mt-3 p-3 text-sm" style={{ background: 'rgba(0,119,255,0.06)', borderLeft: '3px solid hsl(24,100%,50%)', color: 'var(--muted-foreground)' }}>
+                            <span className="text-xs font-black uppercase block mb-1" style={{ color: var(--primary) }}>AI Rewrite:</span>
                             {rewrittenBullets[i]}
                           </div>
                         ) : (
@@ -389,7 +386,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
                             onClick={() => handleRewrite(s, i)}
                             disabled={rewritingIndex === i}
                             className="mt-2 text-xs font-black uppercase px-4 py-2 transition-colors"
-                            style={{ background: rewritingIndex === i ? '#222' : 'hsl(24,100%,50%)', color: rewritingIndex === i ? '#555' : '#111', border: '2px solid #000', cursor: rewritingIndex === i ? 'not-allowed' : 'pointer' }}
+                            style={{ background: rewritingIndex === i ? '#222' : var(--primary), color: rewritingIndex === i ? '#555' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', cursor: rewritingIndex === i ? 'not-allowed' : 'pointer' }}
                           >
                             {rewritingIndex === i ? 'Generating...' : 'Rewrite Bullet →'}
                           </button>
@@ -398,7 +395,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm font-bold" style={{ color: '#666' }}>No major flaws detected. Solid resume!</p>
+                  <p className="text-sm font-bold" style={{ color: 'var(--muted-foreground)' }}>No major flaws detected. Solid resume!</p>
                 )}
               </div>
             </div>
@@ -423,7 +420,7 @@ function JobTracker() {
   const [activeView, setActiveView] = useState('discover');
 
   const STAGES = ['wishlist', 'applied', 'interview', 'offer', 'rejected'];
-  const STAGE_COLORS = { wishlist: '#6b7280', applied: 'hsl(24,100%,50%)', interview: '#3b82f6', offer: '#22c55e', rejected: '#ef4444' };
+  const STAGE_COLORS = { wishlist: '#6b7280', applied: var(--primary), interview: '#3b82f6', offer: '#22c55e', rejected: '#ef4444' };
 
   useEffect(() => { fetchApps(); fetchJobs(); }, []);
 
@@ -497,7 +494,7 @@ function JobTracker() {
     }
   };
 
-  const inputStyle = { background: '#fff', border: '2px solid #000', color: '#111', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
+  const inputStyle = { background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
 
   return (
     <div
@@ -507,7 +504,7 @@ function JobTracker() {
       {/* Header */}
       <div
         className="flex justify-between items-center mb-6 p-4 shrink-0"
-        style={{ background: '#fdfbf7', border: '2px solid #1f1f1f' }}
+        className="glass-card"
       >
         <h2 className="text-2xl font-black uppercase text-[#111]" style={{ letterSpacing: '-0.02em' }}>Job Tracker</h2>
         <div className="flex gap-3">
@@ -517,9 +514,9 @@ function JobTracker() {
               onClick={() => setActiveView(view)}
               className="px-3 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
               style={{
-                background: activeView === view ? 'hsl(24,100%,50%)' : 'transparent',
+                background: activeView === view ? var(--primary) : 'transparent',
                 color: activeView === view ? '#111' : '#666',
-                border: `2px solid ${activeView === view ? 'hsl(24,100%,50%)' : '#333'}`,
+                border: `2px solid ${activeView === view ? var(--primary) : '#333'}`,
               }}
             >
               {view === 'discover' ? <><Search className="w-3.5 h-3.5" /> Discover</> : <><LayoutDashboard className="w-3.5 h-3.5" /> Pipeline {apps.length > 0 && `(${apps.length})`}</>}
@@ -528,7 +525,7 @@ function JobTracker() {
           <button
             onClick={() => setShowAdd(v => !v)}
             className="px-4 py-2 text-xs font-black uppercase transition-all"
-            style={{ background: showAdd ? '#333' : '#fff', color: '#111', border: '2px solid #000' }}
+            style={{ background: showAdd ? '#333' : '#fff', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}
           >
             {showAdd ? '✕ Cancel' : '+ Add Job'}
           </button>
@@ -540,23 +537,23 @@ function JobTracker() {
         <form
           onSubmit={handleAdd}
           className="p-5 mb-5 flex gap-4 items-end flex-wrap shrink-0"
-          style={{ background: '#fdfbf7', border: '2px solid #1f1f1f' }}
+          className="glass-card"
         >
           <div className="flex-1 min-w-28">
-            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#666' }}>Company</label>
+            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Company</label>
             <input required value={newApp.company} onChange={e => setNewApp({ ...newApp, company: e.target.value })} style={inputStyle} placeholder="e.g. Google" />
           </div>
           <div className="flex-1 min-w-28">
-            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#666' }}>Role</label>
+            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Role</label>
             <input required value={newApp.role} onChange={e => setNewApp({ ...newApp, role: e.target.value })} style={inputStyle} placeholder="e.g. SDE Intern" />
           </div>
           <div className="flex-1 min-w-24">
-            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#666' }}>Stage</label>
+            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Stage</label>
             <select value={newApp.stage} onChange={e => setNewApp({ ...newApp, stage: e.target.value })} style={{ ...inputStyle, cursor: 'pointer' }}>
               {STAGES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
             </select>
           </div>
-          <button type="submit" className="px-6 py-2.5 font-black uppercase text-sm" style={{ background: 'hsl(24,100%,50%)', color: '#111', border: '2px solid #000', height: 42 }}>Save</button>
+          <button type="submit" className="px-6 py-2.5 font-black uppercase text-sm" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', height: 42 }}>Save</button>
         </form>
       )}
 
@@ -571,41 +568,41 @@ function JobTracker() {
               style={{ ...inputStyle, flex: 1 }}
               placeholder="Search role (e.g. backend engineer, ML engineer)"
             />
-            <button onClick={() => fetchJobs(jobSearch)} className="px-6 font-black uppercase text-sm" style={{ background: 'hsl(24,100%,50%)', color: '#111', border: '2px solid #000' }}>Search</button>
+            <button onClick={() => fetchJobs(jobSearch)} className="px-6 font-black uppercase text-sm" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Search</button>
           </div>
 
           {jobsLoading ? (
-            <div className="text-center font-bold animate-pulse py-12" style={{ color: 'hsl(24,100%,50%)', background: '#fdfbf7', border: '2px solid #1f1f1f' }}>Fetching live jobs...</div>
+            <div className="text-center font-bold animate-pulse py-12" style={{ color: var(--primary), background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Fetching live jobs...</div>
           ) : jobs.length === 0 ? (
-            <div className="text-center font-bold py-12" style={{ color: '#444', background: '#fdfbf7', border: '2px solid #1f1f1f' }}>No jobs found — try a different role</div>
+            <div className="text-center font-bold py-12" style={{ color: '#444', background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>No jobs found — try a different role</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {jobs.map(job => (
                 <div
                   key={job.id}
                   className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1"
-                  style={{ background: '#fdfbf7', border: '2px solid #1f1f1f', boxShadow: '3px 3px 0 #000' }}
+                  className="glass-card"
                 >
                   <div>
                     <div className="flex justify-between items-start gap-2">
                       <h4 className="font-black text-base leading-tight text-[#111]">{job.title}</h4>
-                      {job.posted && <span className="text-[10px] font-bold shrink-0 px-2 py-0.5" style={{ border: '2px solid #000', color: '#666' }}>{job.posted}</span>}
+                      {job.posted && <span className="text-[10px] font-bold shrink-0 px-2 py-0.5" style={{ border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--muted-foreground)' }}>{job.posted}</span>}
                     </div>
                     <p className="text-sm font-bold mt-1" style={{ color: '#3b82f6' }}>{job.company}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#666' }}>{job.location}</p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{job.location}</p>
                     {job.salary && <p className="text-xs font-black mt-2 inline-block px-2 py-1" style={{ background: 'rgba(34,197,94,0.08)', color: '#22c55e', border: '1px solid rgba(34,197,94,0.2)' }}>💰 {job.salary}</p>}
                   </div>
                   {job.tags && job.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
-                      {job.tags.map((t, i) => <span key={i} className="text-[10px] font-bold px-2 py-0.5" style={{ background: '#1a1a1a', color: '#888', border: '2px solid #000' }}>{t}</span>)}
+                      {job.tags.map((t, i) => <span key={i} className="text-[10px] font-bold px-2 py-0.5" style={{ background: 'var(--secondary)', color: '#888', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>{t}</span>)}
                     </div>
                   )}
                   <div className="flex gap-2 mt-auto pt-3" style={{ borderTop: '1px dashed #1f1f1f' }}>
-                    <button onClick={() => handleMatchResume(job)} className="flex-1 text-xs font-black uppercase py-2 flex items-center justify-center gap-1 transition-colors" style={{ background: 'hsl(24,100%,50%)', color: '#111', border: '2px solid #000' }}>
+                    <button onClick={() => handleMatchResume(job)} className="flex-1 text-xs font-black uppercase py-2 flex items-center justify-center gap-1 transition-colors" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
                       <BarChart2 className="w-3.5 h-3.5" /> AI Match
                     </button>
-                    <button onClick={() => saveJobToTracker(job)} className="flex-1 text-xs font-black uppercase py-2 transition-colors" style={{ background: 'transparent', color: '#ccc', border: '2px solid #333' }}>+ Track</button>
-                    {job.url && <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase py-2 px-3 transition-colors" style={{ background: 'transparent', color: '#666', border: '2px solid #333' }}>↗</a>}
+                    <button onClick={() => saveJobToTracker(job)} className="flex-1 text-xs font-black uppercase py-2 transition-colors" style={{ background: 'transparent', color: 'var(--muted-foreground)', border: '2px solid #333' }}>+ Track</button>
+                    {job.url && <a href={job.url} target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase py-2 px-3 transition-colors" style={{ background: 'transparent', color: 'var(--muted-foreground)', border: '2px solid #333' }}>↗</a>}
                   </div>
                 </div>
               ))}
@@ -620,7 +617,7 @@ function JobTracker() {
               <h4 className="font-black text-sm text-[#111]">Career Comms Lab</h4>
               <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
             </div>
-            <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
+            <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
             <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Available in Learning Hub →</p>
           </div>
         </div>
@@ -635,19 +632,19 @@ function JobTracker() {
               <div key={status} className="w-72 shrink-0 flex flex-col">
                 <div
                   className="p-3 mb-3 font-black uppercase text-xs tracking-widest flex justify-between items-center"
-                  style={{ background: '#fdfbf7', border: '2px solid #1f1f1f', borderBottomColor: STAGE_COLORS[status], borderBottomWidth: 4 }}
+                  style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', borderBottomColor: STAGE_COLORS[status], borderBottomWidth: 4 }}
                 >
                   <span style={{ color: STAGE_COLORS[status] }}>{status}</span>
-                  <span className="px-2 text-xs" style={{ background: '#1a1a1a', color: '#888', border: '2px solid #000' }}>{colApps.length}</span>
+                  <span className="px-2 text-xs" style={{ background: 'var(--secondary)', color: '#888', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>{colApps.length}</span>
                 </div>
                 <div className="flex-1 space-y-3 overflow-y-auto min-h-32 p-1">
                   {colApps.length === 0 ? (
-                    <div className="text-xs font-bold text-center mt-6 py-4" style={{ color: '#333', border: '2px dashed #1f1f1f' }}>Empty</div>
+                    <div className="text-xs font-bold text-center mt-6 py-4" style={{ color: 'var(--foreground)', border: '2px dashed #1f1f1f' }}>Empty</div>
                   ) : colApps.map(app => (
                     <div
                       key={app.id}
                       className="p-4 transition-transform hover:-translate-y-0.5 relative group"
-                      style={{ background: '#fdfbf7', border: '2px solid #1f1f1f', boxShadow: '2px 2px 0 #000' }}
+                      className="glass-card"
                     >
                       <button
                         onClick={() => handleDelete(app.id)}
@@ -655,12 +652,12 @@ function JobTracker() {
                         style={{ background: 'rgba(239,68,68,0.15)', color: '#ef4444', border: '1px solid #ef4444' }}
                       >✕</button>
                       <p className="font-black text-base leading-tight pr-6 text-[#111]">{app.company}</p>
-                      <p className="text-xs font-bold mb-3" style={{ color: '#666' }}>{app.role}</p>
+                      <p className="text-xs font-bold mb-3" style={{ color: 'var(--muted-foreground)' }}>{app.role}</p>
                       <select
                         value={app.stage}
                         onChange={e => handleStageChange(app.id, e.target.value)}
                         className="w-full text-xs font-bold uppercase outline-none"
-                        style={{ background: '#fff', border: '2px solid #000', color: '#111', padding: '6px 8px', cursor: 'pointer' }}
+                        style={{ background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)', padding: '6px 8px', cursor: 'pointer' }}
                       >
                         {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
@@ -680,31 +677,31 @@ function JobTracker() {
           style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(4px)' }}
         >
           <div className="w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6" style={{ background: '#fdfbf7', border: '2px solid #222', boxShadow: '8px 8px 0 hsl(24,100%,50%)' }}>
-            <div className="flex justify-between items-start mb-5" style={{ borderBottom: '2px solid #000', paddingBottom: '1rem' }}>
+            <div className="flex justify-between items-start mb-5" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
               <div>
                 <h3 className="text-lg font-black uppercase text-[#111]">{matchModal.title}</h3>
                 <p className="text-sm font-bold mt-0.5" style={{ color: '#3b82f6' }}>{matchModal.company}</p>
               </div>
-              <button onClick={() => { setMatchModal(null); setMatchResult(null); }} className="text-xs font-black uppercase px-3 py-1.5" style={{ color: '#666', border: '2px solid #000' }}>✕ Close</button>
+              <button onClick={() => { setMatchModal(null); setMatchResult(null); }} className="text-xs font-black uppercase px-3 py-1.5" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>✕ Close</button>
             </div>
 
-            {matchLoading && <div className="text-center py-10 font-bold animate-pulse" style={{ color: 'hsl(24,100%,50%)' }}>Analyzing resume fit...</div>}
+            {matchLoading && <div className="text-center py-10 font-bold animate-pulse" style={{ color: var(--primary) }}>Analyzing resume fit...</div>}
 
             {matchResult && !matchResult.error && (
               <div className="space-y-5">
                 <div
                   className="flex items-center gap-5 p-4"
-                  style={{ background: '#fff', border: '2px solid #000' }}
+                  className="glass-card"
                 >
                   <div
                     className="text-5xl font-black"
-                    style={{ color: matchResult.match_score >= 70 ? '#22c55e' : matchResult.match_score >= 50 ? 'hsl(24,100%,50%)' : '#ef4444', fontFamily: 'Playfair Display, serif' }}
+                    style={{ color: matchResult.match_score >= 70 ? '#22c55e' : matchResult.match_score >= 50 ? var(--primary) : '#ef4444', fontFamily: 'Playfair Display, serif' }}
                   >
                     {matchResult.match_score}%
                   </div>
                   <div>
                     <p className="font-black uppercase text-[#111]">{matchResult.verdict}</p>
-                    <p className="text-sm mt-0.5" style={{ color: '#666' }}>{matchResult.one_liner}</p>
+                    <p className="text-sm mt-0.5" style={{ color: 'var(--muted-foreground)' }}>{matchResult.one_liner}</p>
                   </div>
                 </div>
 
@@ -719,11 +716,11 @@ function JobTracker() {
 
                 {matchResult.resume_tweaks?.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'hsl(24,100%,50%)' }}>Resume Fixes</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: var(--primary) }}>Resume Fixes</p>
                     <div className="space-y-2">
                       {matchResult.resume_tweaks.map((t, i) => (
-                        <div key={i} className="p-3 text-sm" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>
-                          <span className="text-xs font-black uppercase" style={{ color: 'hsl(24,100%,50%)' }}>{t.section}: </span>{t.action}
+                        <div key={i} className="p-3 text-sm" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>
+                          <span className="text-xs font-black uppercase" style={{ color: var(--primary) }}>{t.section}: </span>{t.action}
                         </div>
                       ))}
                     </div>
@@ -743,7 +740,7 @@ function JobTracker() {
                   </div>
                 )}
 
-                <button onClick={() => saveJobToTracker(matchModal)} className="w-full py-3 font-black uppercase text-sm flex items-center justify-center gap-2" style={{ background: 'hsl(24,100%,50%)', color: '#111', border: '2px solid #000' }}>
+                <button onClick={() => saveJobToTracker(matchModal)} className="w-full py-3 font-black uppercase text-sm flex items-center justify-center gap-2" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
                   <CheckCircle2 className="w-4 h-4" /> Save to My Pipeline
                 </button>
               </div>
@@ -766,7 +763,7 @@ function CareerCommsLab({ onClose }) {
   const [loadingKey, setLoadingKey] = useState('');
   const [outputs, setOutputs] = useState({});
 
-  const inputStyle = { background: '#fff', border: '2px solid #000', color: '#111', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
+  const inputStyle = { background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
   const authHeaders = { Authorization: `Bearer ${getAuthToken()}` };
 
   const setToolOutput = (key, payload) => {
@@ -811,13 +808,13 @@ function CareerCommsLab({ onClose }) {
     }
     const value = output.value;
     if (typeof value === 'string') {
-      return <div className="mt-3 p-3 text-sm whitespace-pre-wrap" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>{value}</div>;
+      return <div className="mt-3 p-3 text-sm whitespace-pre-wrap" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>{value}</div>;
     }
     if (Array.isArray(value)) {
       return (
         <div className="mt-3 space-y-2">
           {value.map((item, idx) => (
-            <div key={`${key}-${idx}`} className="p-3 text-sm" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>
+            <div key={`${key}-${idx}`} className="p-3 text-sm" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>
               {typeof item === 'string' ? item : JSON.stringify(item)}
             </div>
           ))}
@@ -825,7 +822,7 @@ function CareerCommsLab({ onClose }) {
       );
     }
     return (
-      <div className="mt-3 p-3 text-sm" style={{ background: '#fdfbf7', border: '2px solid #000', color: '#111' }}>
+      <div className="mt-3 p-3 text-sm" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>
         {value?.overall_feedback && <p className="mb-3">{value.overall_feedback}</p>}
         {value?.overall_score !== undefined && <p className="mb-3"><strong>Overall Score:</strong> {value.overall_score}</p>}
         {value?.overall_match_pct !== undefined && <p className="mb-3"><strong>Match:</strong> {value.overall_match_pct}%</p>}
@@ -871,24 +868,24 @@ function CareerCommsLab({ onClose }) {
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-start mb-6">
           <div>
-            <h3 className="text-2xl font-black uppercase" style={{ color: 'hsl(24,100%,50%)' }}>Career Comms Lab</h3>
-            <p className="text-sm mt-1" style={{ color: '#666', maxWidth: 620 }}>These tools run against your latest analyzed resume, so the writing layer stays connected to your actual resume data.</p>
+            <h3 className="text-2xl font-black uppercase" style={{ color: var(--primary) }}>Career Comms Lab</h3>
+            <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)', maxWidth: 620 }}>These tools run against your latest analyzed resume, so the writing layer stays connected to your actual resume data.</p>
           </div>
-          <button onClick={onClose} className="px-4 py-2 text-xs font-black uppercase" style={{ color: '#666', border: '2px solid #000' }}>Close</button>
+          <button onClick={onClose} className="px-4 py-2 text-xs font-black uppercase" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Close</button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
           <div className="lg:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#666' }}>Target Job Description</label>
+            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Target Job Description</label>
             <textarea value={jd} onChange={e => setJd(e.target.value)} style={{ ...inputStyle, minHeight: 120 }} placeholder="Paste a target JD here for cover letters, interview prep, and keyword heatmaps." />
           </div>
           <div className="space-y-4">
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#666' }}>Target Role</label>
+              <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Target Role</label>
               <input value={targetRole} onChange={e => setTargetRole(e.target.value)} style={inputStyle} placeholder="Software Engineer" />
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#666' }}>Company</label>
+              <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Company</label>
               <input value={company} onChange={e => setCompany(e.target.value)} style={inputStyle} placeholder="Google, Stripe, etc." />
             </div>
           </div>
@@ -898,14 +895,14 @@ function CareerCommsLab({ onClose }) {
           {cards.map(card => {
             const disabled = loadingKey === card.key || (card.requiresJd && !jd.trim()) || (card.requiresCompany && !company.trim());
             return (
-              <div key={card.key} className="p-5 flex flex-col" style={{ background: '#fdfbf7', border: '2px solid #1f1f1f' }}>
+              <div key={card.key} className="p-5 flex flex-col" className="glass-card">
                 <h4 className="font-black text-sm uppercase text-[#111]">{card.title}</h4>
-                <p className="text-xs mt-2 flex-1" style={{ color: '#666' }}>{card.description}</p>
+                <p className="text-xs mt-2 flex-1" style={{ color: 'var(--muted-foreground)' }}>{card.description}</p>
                 <button
                   onClick={card.action}
                   disabled={disabled}
                   className="mt-4 py-2 text-xs font-black uppercase"
-                  style={{ background: disabled ? '#222' : 'hsl(24,100%,50%)', color: disabled ? '#444' : '#111', border: '2px solid #000', cursor: disabled ? 'not-allowed' : 'pointer' }}
+                  style={{ background: disabled ? '#222' : var(--primary), color: disabled ? '#444' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', cursor: disabled ? 'not-allowed' : 'pointer' }}
                 >
                   {loadingKey === card.key ? 'Running...' : `Run ${card.title}`}
                 </button>
@@ -920,7 +917,7 @@ function CareerCommsLab({ onClose }) {
 }
 
 const CATEGORIES = [
-  { id: 'dsa', label: 'DSA', color: 'hsl(24,100%,50%)', resources: [
+  { id: 'dsa', label: 'DSA', color: var(--primary), resources: [
     { name: 'Striver A2Z', desc: 'The industry-standard A2Z roadmap for SDE roles', url: 'https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/', tag: '450+ problems' },
     { name: 'NeetCode 150', desc: 'Most important LeetCode patterns for FAANG', url: 'https://neetcode.io/practice', tag: '150 curated' },
     { name: 'Love Babbar 450', desc: 'Popular DSA sheet cracked by thousands', url: 'https://450dsa.com', tag: '450 problems' },
@@ -999,7 +996,7 @@ function ResourceHub() {
   };
 
   const cat = CATEGORIES.find(c => c.id === activeCategory);
-  const inputStyle = { background: '#fff', border: '2px solid #000', color: '#111', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
+  const inputStyle = { background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
 
   return (
     <div className="p-6 flex flex-col relative" style={{ minHeight: '100%', background: 'transparent' }}>
@@ -1010,7 +1007,7 @@ function ResourceHub() {
           <button
             onClick={() => setShowDsaTracker(true)}
             className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
-            style={{ background: 'transparent', color: '#666', border: '2px solid #2a2a2a' }}
+            style={{ background: 'transparent', color: 'var(--muted-foreground)', border: '2px solid #2a2a2a' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#ccc'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#777'; }}
           >
@@ -1019,7 +1016,7 @@ function ResourceHub() {
           <button
             onClick={() => setShowHolisticTracker(true)}
             className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
-            style={{ background: 'transparent', color: '#666', border: '2px solid #2a2a2a' }}
+            style={{ background: 'transparent', color: 'var(--muted-foreground)', border: '2px solid #2a2a2a' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#ccc'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#777'; }}
           >
@@ -1028,7 +1025,7 @@ function ResourceHub() {
           <button
             onClick={() => setShowCommsLab(true)}
             className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
-            style={{ background: 'transparent', color: '#666', border: '2px solid #2a2a2a' }}
+            style={{ background: 'transparent', color: 'var(--muted-foreground)', border: '2px solid #2a2a2a' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#ccc'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; e.currentTarget.style.color = '#777'; }}
           >
@@ -1037,7 +1034,7 @@ function ResourceHub() {
           <button
             onClick={() => { setShowForm(true); setShowRoadmap(false); }}
             className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
-            style={{ background: 'hsl(24,100%,50%)', color: '#111', border: '2px solid #000' }}
+            style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}
           >
             <BookOpen className="w-3.5 h-3.5" /> AI Roadmap
           </button>
@@ -1069,7 +1066,7 @@ function ResourceHub() {
             <a
               key={i} href={r.url} target="_blank" rel="noopener noreferrer"
               className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1 group"
-              style={{ background: '#fdfbf7', border: '2px solid #1f1f1f', textDecoration: 'none' }}
+              style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', textDecoration: 'none' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = cat.color + '55'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = '#1f1f1f'; }}
             >
@@ -1077,7 +1074,7 @@ function ResourceHub() {
                 <h4 className="font-black text-sm text-[#111]">{r.name}</h4>
                 <span className="text-[10px] font-black px-2 py-0.5 shrink-0 ml-2" style={{ background: cat.color + '22', color: cat.color, border: `1px solid ${cat.color}44` }}>{r.tag}</span>
               </div>
-              <p className="text-xs flex-1" style={{ color: '#666' }}>{r.desc}</p>
+              <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>{r.desc}</p>
               <p className="text-xs font-black" style={{ color: cat.color }}>Open ↗</p>
             </a>
           ))}
@@ -1091,10 +1088,10 @@ function ResourceHub() {
             >
               <div className="flex justify-between items-start">
                 <h4 className="font-black text-sm text-[#111]">Holistic Daily Tracker</h4>
-                <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(255,102,0,0.15)', color: 'hsl(24,100%,50%)', border: '1px solid rgba(255,102,0,0.3)' }}>Built-in</span>
+                <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(255,102,0,0.15)', color: var(--primary), border: '1px solid rgba(255,102,0,0.3)' }}>Built-in</span>
               </div>
-              <p className="text-xs flex-1" style={{ color: '#666' }}>Track daily progress across 6 categories: DSA, System Design, Projects, CS Core, Behavioral, and Apps.</p>
-              <p className="text-xs font-black" style={{ color: 'hsl(24,100%,50%)' }}>Open Tracker →</p>
+              <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>Track daily progress across 6 categories: DSA, System Design, Projects, CS Core, Behavioral, and Apps.</p>
+              <p className="text-xs font-black" style={{ color: var(--primary) }}>Open Tracker →</p>
             </div>
           )}
 
@@ -1108,7 +1105,7 @@ function ResourceHub() {
                 <h4 className="font-black text-sm text-[#111]">DSA Problem Tracker</h4>
                 <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.15)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.3)' }}>Live</span>
               </div>
-              <p className="text-xs flex-1" style={{ color: '#666' }}>Track individual NeetCode and Striver problems with streaks, contribution history, and roadmap alignment.</p>
+              <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>Track individual NeetCode and Striver problems with streaks, contribution history, and roadmap alignment.</p>
               <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Open DSA Module â†’</p>
             </div>
           )}
@@ -1122,13 +1119,13 @@ function ResourceHub() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
           >
             <div className="flex justify-between items-start">
-              <h4 className="font-black text-sm" style={{ color: 'hsl(24,100%,50%)' }}>Your AI Roadmap</h4>
-              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(255,102,0,0.1)', color: 'hsl(24,100%,50%)', border: '1px solid rgba(255,102,0,0.2)' }}>AI</span>
+              <h4 className="font-black text-sm" style={{ color: var(--primary) }}>Your AI Roadmap</h4>
+              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(0,119,255,0.1)', color: var(--primary), border: '1px solid rgba(255,102,0,0.2)' }}>AI</span>
             </div>
-            <p className="text-xs flex-1" style={{ color: '#666' }}>
+            <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>
               {roadmap ? `Plan for ${roadmap.role} @ ${roadmap.company} ready.` : '8-week personalized plan based on your resume + target role.'}
             </p>
-            <p className="text-xs font-black" style={{ color: 'hsl(24,100%,50%)' }}>{roadmap ? 'View / Regenerate →' : 'Generate My Plan →'}</p>
+            <p className="text-xs font-black" style={{ color: var(--primary) }}>{roadmap ? 'View / Regenerate →' : 'Generate My Plan →'}</p>
           </div>
           <div
             onClick={() => setShowCommsLab(true)}
@@ -1141,7 +1138,7 @@ function ResourceHub() {
               <h4 className="font-black text-sm text-[#111]">Career Comms Lab</h4>
               <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
             </div>
-            <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
+            <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
             <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Open Writing Tools â†’</p>
           </div>
         </div>
@@ -1151,7 +1148,7 @@ function ResourceHub() {
       {showDsaTracker && (
         <div className="absolute inset-0 z-10 p-6 overflow-y-auto" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}>
           <div className="max-w-6xl mx-auto flex justify-end mb-4">
-            <button onClick={() => setShowDsaTracker(false)} className="px-4 py-2 text-xs font-black uppercase" style={{ color: '#666', border: '2px solid #000' }}>âœ• Close DSA Tracker</button>
+            <button onClick={() => setShowDsaTracker(false)} className="px-4 py-2 text-xs font-black uppercase" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>âœ• Close DSA Tracker</button>
           </div>
           <DSATracker roadmap={roadmap} />
         </div>
@@ -1161,7 +1158,7 @@ function ResourceHub() {
       {showHolisticTracker && (
         <div className="absolute inset-0 z-10 p-6 overflow-y-auto" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}>
           <div className="max-w-4xl mx-auto flex justify-end mb-4">
-            <button onClick={() => setShowHolisticTracker(false)} className="px-4 py-2 text-xs font-black uppercase" style={{ color: '#666', border: '2px solid #000' }}>✕ Close Tracker</button>
+            <button onClick={() => setShowHolisticTracker(false)} className="px-4 py-2 text-xs font-black uppercase" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>✕ Close Tracker</button>
           </div>
           <HolisticTracker roadmap={roadmap} />
         </div>
@@ -1172,21 +1169,21 @@ function ResourceHub() {
         <div className="absolute inset-0 z-10 flex items-center justify-center p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}>
           <div className="w-full max-w-lg p-8" style={{ background: '#fdfbf7', border: '2px solid #222', boxShadow: '8px 8px 0 hsl(24,100%,50%)' }}>
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-black uppercase" style={{ color: 'hsl(24,100%,50%)' }}>Generate My Plan</h3>
-              <button onClick={() => setShowForm(false)} className="text-xs font-black uppercase px-3 py-1" style={{ color: '#666', border: '2px solid #000' }}>✕</button>
+              <h3 className="text-2xl font-black uppercase" style={{ color: var(--primary) }}>Generate My Plan</h3>
+              <button onClick={() => setShowForm(false)} className="text-xs font-black uppercase px-3 py-1" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>✕</button>
             </div>
-            <p className="text-xs mb-6" style={{ color: '#666' }}>AI analyzes your resume and builds a targeted 8-week roadmap. Upload a resume in Resume Lab first.</p>
+            <p className="text-xs mb-6" style={{ color: 'var(--muted-foreground)' }}>AI analyzes your resume and builds a targeted 8-week roadmap. Upload a resume in Resume Lab first.</p>
             <form onSubmit={handleGenerate} className="space-y-4">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#666' }}>Target Role</label>
+                <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Target Role</label>
                 <input required value={targetRole} onChange={e => setTargetRole(e.target.value)} style={inputStyle} placeholder="e.g. Software Development Engineer" />
               </div>
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: '#666' }}>Target Company</label>
+                <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Target Company</label>
                 <input required value={targetCompany} onChange={e => setTargetCompany(e.target.value)} style={inputStyle} placeholder="e.g. Google, Amazon, Microsoft" />
               </div>
               {error && <div className="p-3 text-xs font-bold" style={{ background: 'rgba(239,68,68,0.08)', border: '2px solid #7f1d1d', color: '#fca5a5' }}>{error}</div>}
-              <button type="submit" disabled={isGenerating} className="w-full py-3 font-black uppercase text-sm" style={{ background: isGenerating ? '#222' : 'hsl(24,100%,50%)', color: isGenerating ? '#444' : '#111', border: '2px solid #000', cursor: isGenerating ? 'not-allowed' : 'pointer' }}>
+              <button type="submit" disabled={isGenerating} className="w-full py-3 font-black uppercase text-sm" style={{ background: isGenerating ? '#222' : var(--primary), color: isGenerating ? '#444' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', cursor: isGenerating ? 'not-allowed' : 'pointer' }}>
                 {isGenerating ? 'Generating...' : 'Generate My 8-Week Plan'}
               </button>
             </form>
@@ -1197,14 +1194,14 @@ function ResourceHub() {
       {/* Roadmap View */}
       {showRoadmap && roadmap && (
         <div className="absolute inset-0 z-10 p-6 flex flex-col overflow-y-auto" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}>
-          <div className="flex justify-between items-start mb-8" style={{ borderBottom: '2px solid #000', paddingBottom: '1.5rem' }}>
+          <div className="flex justify-between items-start mb-8" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
             <div>
-              <h3 className="text-2xl font-black uppercase" style={{ color: 'hsl(24,100%,50%)' }}>{roadmap.role} @ {roadmap.company}</h3>
-              <p className="text-sm mt-1" style={{ color: '#666', maxWidth: 560 }}>{roadmap.summary}</p>
+              <h3 className="text-2xl font-black uppercase" style={{ color: var(--primary) }}>{roadmap.role} @ {roadmap.company}</h3>
+              <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)', maxWidth: 560 }}>{roadmap.summary}</p>
             </div>
             <div className="flex gap-2 shrink-0 ml-4">
-              <button onClick={() => { setShowForm(true); setShowRoadmap(false); }} className="px-4 py-2 text-xs font-black uppercase" style={{ background: 'hsl(24,100%,50%)', color: '#111', border: '2px solid #000' }}>Regenerate</button>
-              <button onClick={() => setShowRoadmap(false)} className="px-4 py-2 text-xs font-black uppercase" style={{ color: '#666', border: '2px solid #000' }}>Close</button>
+              <button onClick={() => { setShowForm(true); setShowRoadmap(false); }} className="px-4 py-2 text-xs font-black uppercase" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Regenerate</button>
+              <button onClick={() => setShowRoadmap(false)} className="px-4 py-2 text-xs font-black uppercase" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Close</button>
             </div>
           </div>
 
@@ -1222,22 +1219,22 @@ function ResourceHub() {
               const isLast = i === roadmap.phases.length - 1;
               return (
                 <div key={i} className="flex gap-6 group">
-                  <div className="w-20 shrink-0 text-right font-black text-xs pt-4" style={{ color: 'hsl(24,100%,50%)' }}>{phase.week_label}</div>
+                  <div className="w-20 shrink-0 text-right font-black text-xs pt-4" style={{ color: var(--primary) }}>{phase.week_label}</div>
                   <div className="w-5 flex flex-col items-center">
-                    <div className="w-5 h-5 border-2 rounded-full mt-4 shrink-0 group-hover:scale-125 transition-transform z-10" style={{ background: 'hsl(24,100%,50%)', borderColor: 'hsl(24,100%,50%)' }} />
+                    <div className="w-5 h-5 border-2 rounded-full mt-4 shrink-0 group-hover:scale-125 transition-transform z-10" style={{ background: var(--primary), borderColor: var(--primary) }} />
                     {!isLast && <div className="w-px flex-1 -mt-1" style={{ background: '#eee' }} />}
                   </div>
-                  <div className="flex-1 mb-6 p-5 hover:-translate-y-0.5 transition-transform" style={{ background: '#fdfbf7', border: '2px solid #1f1f1f' }}>
+                  <div className="flex-1 mb-6 p-5 hover:-translate-y-0.5 transition-transform" className="glass-card">
                     <div className="flex justify-between items-start mb-1">
                       <h4 className="font-black text-lg uppercase text-[#111]">{phase.title}</h4>
-                      <span className="text-[10px] font-black px-2 py-0.5 ml-2 shrink-0" style={{ background: 'rgba(255,102,0,0.15)', color: 'hsl(24,100%,50%)' }}>{phase.resource_type}</span>
+                      <span className="text-[10px] font-black px-2 py-0.5 ml-2 shrink-0" style={{ background: 'rgba(255,102,0,0.15)', color: var(--primary) }}>{phase.resource_type}</span>
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'hsl(24,100%,50%)' }}>Focus: {phase.focus}</p>
-                    <p className="text-sm mb-4" style={{ color: '#666' }}>{phase.description}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: var(--primary) }}>Focus: {phase.focus}</p>
+                    <p className="text-sm mb-4" style={{ color: 'var(--muted-foreground)' }}>{phase.description}</p>
                     {phase.resource_url && (
-                      <a href={phase.resource_url} target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase px-3 py-1.5 inline-block transition-colors" style={{ border: '2px solid hsl(24,100%,50%)', color: 'hsl(24,100%,50%)' }}
-                        onMouseEnter={e => { e.currentTarget.style.background = 'hsl(24,100%,50%)'; e.currentTarget.style.color = '#111'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'hsl(24,100%,50%)'; }}
+                      <a href={phase.resource_url} target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase px-3 py-1.5 inline-block transition-colors" style={{ border: '2px solid hsl(24,100%,50%)', color: var(--primary) }}
+                        onMouseEnter={e => { e.currentTarget.style.background = var(--primary); e.currentTarget.style.color = '#111'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = var(--primary); }}
                       >
                         {phase.resource_label} ↗
                       </a>
@@ -1308,13 +1305,13 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex" style={{ background: '#fdfbf7' }}>
-        <div className="hidden lg:flex" style={{ width: 240, minWidth: 240, background: '#fdfbf7', borderRight: '2px solid #1f1f1f' }} />
+      <div className="min-h-screen flex" >
+        <div className="hidden lg:flex" style={{ width: 240, minWidth: 240, background: '#fdfbf7', borderRight: '1px solid var(--border)' }} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-sm font-black uppercase tracking-widest mb-3 animate-pulse" style={{ color: 'hsl(24,100%,50%)' }}>Loading your dashboard...</div>
+            <div className="text-sm font-black uppercase tracking-widest mb-3 animate-pulse" style={{ color: var(--primary) }}>Loading your dashboard...</div>
             <div className="flex gap-1.5 justify-center">
-              {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'hsl(24,100%,50%)', animationDelay: `${i * 0.15}s` }} />)}
+              {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: var(--primary), animationDelay: `${i * 0.15}s` }} />)}
             </div>
           </div>
         </div>
@@ -1343,12 +1340,12 @@ export default function DashboardPage() {
       Content = <ResumeBuilder />;
       break;
     default:
-      Content = <div className="p-6 text-sm font-bold" style={{ color: '#666' }}>Module in development.</div>;
+      Content = <div className="p-6 text-sm font-bold" style={{ color: 'var(--muted-foreground)' }}>Module in development.</div>;
   }
 
   return (
     <>
-      <div className="flex h-screen overflow-hidden" style={{ background: '#fdfbf7' }}>
+      <div className="flex h-screen overflow-hidden" >
         <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} onLogout={handleLogout} />
         <main className="flex-1 overflow-y-auto relative pt-16 lg:pt-0">
           {isAnalyzing && (

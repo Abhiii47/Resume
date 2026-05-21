@@ -238,7 +238,7 @@ export default function SignupPage() {
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-black border-t-transparent animate-spin inline-block" />
+                    <span className="w-4 h-4 border border-border shadow-soft border-t-transparent animate-spin inline-block" />
                     Creating account...
                   </span>
                 ) : "Create Free Account →"}

@@ -42,7 +42,7 @@ export default class ErrorBoundary extends React.Component {
             <div className="flex gap-3">
               <button
                 onClick={() => window.location.reload()}
-                className="brutalist-button px-6 py-2 text-xs flex-1"
+                className="modern-btn-outline px-6 py-2 text-xs flex-1"
               >
                 [ Reload App ]
               </button>

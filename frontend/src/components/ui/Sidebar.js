@@ -66,18 +66,15 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
 
   return (
     <aside
-      className="flex flex-col h-full z-20 w-full"
-      style={{ background: 'hsl(40,30%,92%)', borderRight: '3px solid #000' }}
+      className="flex flex-col h-full z-20 w-full glass-card border-r-0 rounded-none"
     >
       {/* Logo */}
       <div
-        className="flex items-center gap-3 px-5 py-5 cursor-pointer group"
-        style={{ borderBottom: '2px solid #000' }}
+        className="flex items-center gap-3 px-5 py-5 cursor-pointer group border-b border-border"
         onClick={() => { setActiveTab('overview'); onClose?.(); }}
       >
         <div
-          className="w-9 h-9 flex items-center justify-center shrink-0 font-black text-sm text-white"
-          style={{ background: 'hsl(24,100%,50%)', border: '2px solid #000' }}
+          className="w-9 h-9 flex items-center justify-center shrink-0 font-black text-sm text-white rounded-lg ocean-gradient shadow-soft"
         >
           SR
         </div>
@@ -111,22 +108,17 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
                 else { setActiveTab(item.id); }
                 onClose?.();
               }}
-              className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold transition-all relative"
-              style={{
-                background: active ? 'rgba(255,102,0,0.12)' : 'transparent',
-                color: active ? 'hsl(24,100%,50%)' : '#444',
-                borderLeft: active ? '3px solid hsl(24,100%,50%)' : '3px solid transparent',
-                borderRadius: 0,
-              }}
-              onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#111'; e.currentTarget.style.background = 'rgba(0,0,0,0.05)'; } }}
-              onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#444'; e.currentTarget.style.background = 'transparent'; } }}
+              className={`flex items-center gap-3 w-full px-4 py-2.5 text-sm font-bold transition-all relative rounded-lg mb-1 ${
+                active 
+                  ? 'bg-primary/10 text-primary' 
+                  : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+              }`}
             >
               <item.icon className="w-4 h-4 shrink-0" />
               <div className="text-left">
                 <span className="block leading-tight text-[13px]">{item.label}</span>
                 <span
-                  className="text-[10px] block"
-                  style={{ color: active ? 'hsl(24,100%,60%)' : '#888' }}
+                  className={`text-[10px] block ${active ? 'text-primary/70' : 'text-muted-foreground/70'}`}
                 >
                   {item.desc}
                 </span>
@@ -137,13 +129,10 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
       </nav>
 
       {/* Footer */}
-      <div className="p-3" style={{ borderTop: '2px solid #000' }}>
+      <div className="p-3 border-t border-border">
         <button
           onClick={onLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold transition-all"
-          style={{ color: '#555', background: 'transparent' }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = '#555'; e.currentTarget.style.background = 'transparent'; }}
+          className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold transition-all text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg"
         >
           <LogoutIcon className="w-4 h-4 shrink-0" />
           <span>Log Out</span>
@@ -160,8 +149,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout }) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 flex items-center justify-center"
-        style={{ background: 'hsl(40,30%,92%)', border: '2px solid #000', color: '#111' }}
+        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 flex items-center justify-center glass-card text-foreground rounded-lg"
         aria-label="Open menu"
       >
         <MenuIcon className="w-5 h-5" />

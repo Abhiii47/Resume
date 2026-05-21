@@ -1,13 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const CARD = { background: '#fff', border: '2px solid #000', boxShadow: '4px 4px 0 #000' };
+const CARD = { background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', boxShadow: '4px 4px 0 #000' };
 
 export default function AboutPage() {
   const navigate = useNavigate();
 
   const features = [
-    { label: 'Hybrid AI Engine', desc: 'Heuristic analysis + LLM deep evaluation in a single batched call. 7-dimension scoring with human-readable reasoning.', color: 'hsl(24,100%,50%)' },
+    { label: 'Hybrid AI Engine', desc: 'Heuristic analysis + LLM deep evaluation in a single batched call. 7-dimension scoring with human-readable reasoning.', color: var(--primary) },
     { label: 'Privacy First', desc: 'Your resume text is analyzed in-memory and stored securely. We never share your data with third parties.', color: '#2563EB' },
     { label: 'Real-Time Jobs', desc: 'Adzuna-powered job discovery across 10+ countries. AI resume-to-job matching with gap analysis.', color: '#16A34A' },
     { label: 'Personalized Roadmaps', desc: 'AI generates 8-week learning plans tailored to your resume gaps, target role, and dream company.', color: '#8b5cf6' },
@@ -25,13 +25,13 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen" style={{ background: 'hsl(40,30%,92%)' }}>
       {/* Nav */}
-      <header className="w-full" style={{ background: 'hsl(40,30%,92%)', borderBottom: '2px solid #000' }}>
+      <header className="w-full" style={{ background: 'hsl(40,30%,92%)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: 'hsl(24,100%,50%)', border: '2px solid #000' }}>SR</div>
-            <span className="font-black text-lg" style={{ color: '#111', letterSpacing: '-0.03em' }}>SmartResume</span>
+            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: var(--primary), border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>SR</div>
+            <span className="font-black text-lg" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>SmartResume</span>
           </div>
-          <div className="hidden md:flex items-center gap-8 font-black text-sm uppercase tracking-widest" style={{ color: '#111' }}>
+          <div className="hidden md:flex items-center gap-8 font-black text-sm uppercase tracking-widest" style={{ color: 'var(--foreground)' }}>
             {['How it Works', 'Resources', 'Templates'].map(label => (
               <span key={label} onClick={() => navigate(`/${label.toLowerCase().replace(/ /g, '-')}`)} className="cursor-pointer hover:underline">{label}</span>
             ))}
@@ -43,11 +43,11 @@ export default function AboutPage() {
       <div className="max-w-5xl mx-auto px-6 py-20">
         {/* Hero */}
         <div className="flex items-center gap-3 mb-4">
-          <span style={{ width: 28, height: 2, background: 'hsl(24,100%,50%)', display: 'inline-block' }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(24,100%,50%)' }}>About the Platform</span>
+          <span style={{ width: 28, height: 2, background: var(--primary), display: 'inline-block' }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: var(--primary) }}>About the Platform</span>
         </div>
-        <h1 className="font-display-serif text-5xl md:text-6xl mb-6" style={{ color: '#111', letterSpacing: '-0.03em' }}>
-          We Don't Guess.<br />We <span className="inline-block px-2" style={{ background: 'hsl(24,100%,50%)', color: '#111', border: '2px solid #000' }}>Diagnose.</span>
+        <h1 className="font-display-serif text-5xl md:text-6xl mb-6" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>
+          We Don't Guess.<br />We <span className="inline-block px-2" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Diagnose.</span>
         </h1>
         <p className="text-lg mb-16 max-w-2xl" style={{ color: '#555', lineHeight: 1.7 }}>
           Traditional resume tools give you a number. SmartResume gives you a 7-dimension diagnostic report
@@ -57,8 +57,8 @@ export default function AboutPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
           {stats.map((s, i) => (
-            <div key={i} className="p-5 text-center shadow-hard" style={CARD}>
-              <p className="text-4xl font-black mb-1" style={{ color: 'hsl(24,100%,50%)', fontFamily: 'Playfair Display, serif' }}>{s.value}</p>
+            <div key={i} className="p-5 text-center shadow-soft" style={CARD}>
+              <p className="text-4xl font-black mb-1" style={{ color: var(--primary), fontFamily: 'Playfair Display, serif' }}>{s.value}</p>
               <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#888' }}>{s.label}</p>
             </div>
           ))}
@@ -66,31 +66,31 @@ export default function AboutPage() {
 
         {/* Features */}
         <div className="flex items-center gap-3 mb-6">
-          <span style={{ width: 28, height: 2, background: 'hsl(24,100%,50%)', display: 'inline-block' }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(24,100%,50%)' }}>What Powers SmartResume</span>
+          <span style={{ width: 28, height: 2, background: var(--primary), display: 'inline-block' }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: var(--primary) }}>What Powers SmartResume</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-16">
           {features.map((f, i) => (
-            <div key={i} className="p-6 shadow-hard transition-transform hover:-translate-y-1" style={CARD}>
-              <div className="w-10 h-10 flex items-center justify-center mb-4 shadow-hard-sm" style={{ background: f.color, border: '2px solid #000' }}>
+            <div key={i} className="p-6 shadow-soft transition-transform hover:-translate-y-1" style={CARD}>
+              <div className="w-10 h-10 flex items-center justify-center mb-4 shadow-soft-sm" style={{ background: f.color, border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
                 <span className="text-white font-black text-sm">{String(i + 1).padStart(2, '0')}</span>
               </div>
-              <h3 className="font-black text-base uppercase mb-2" style={{ color: '#111' }}>{f.label}</h3>
-              <p className="text-sm" style={{ color: '#666', lineHeight: 1.6 }}>{f.desc}</p>
+              <h3 className="font-black text-base uppercase mb-2" style={{ color: 'var(--foreground)' }}>{f.label}</h3>
+              <p className="text-sm" style={{ color: 'var(--muted-foreground)', lineHeight: 1.6 }}>{f.desc}</p>
             </div>
           ))}
         </div>
 
         {/* Tech Stack */}
-        <div className="p-8 shadow-hard" style={{ ...CARD, borderColor: 'hsl(24,100%,50%)' }}>
-          <h2 className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'hsl(24,100%,50%)' }}>Tech Stack</h2>
+        <div className="p-8 shadow-soft" style={{ ...CARD, borderColor: var(--primary) }}>
+          <h2 className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: var(--primary) }}>Tech Stack</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm" style={{ color: '#555' }}>
             <div>
-              <p className="font-black mb-2" style={{ color: '#111' }}>Frontend</p>
+              <p className="font-black mb-2" style={{ color: 'var(--foreground)' }}>Frontend</p>
               <p>React 18 · TailwindCSS v4 · Framer Motion · GSAP · Recharts · Lucide Icons</p>
             </div>
             <div>
-              <p className="font-black mb-2" style={{ color: '#111' }}>Backend</p>
+              <p className="font-black mb-2" style={{ color: 'var(--foreground)' }}>Backend</p>
               <p>FastAPI · SQLAlchemy · Neon PostgreSQL · Groq (Llama 3.3) · Google Gemini · Adzuna API</p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function AboutPage() {
 
         {/* CTA */}
         <div className="text-center mt-16">
-          <button onClick={() => navigate("/signup")} className="neu-btn-primary px-10 py-4 text-base shadow-hard">
+          <button onClick={() => navigate("/signup")} className="modern-btn-primary px-10 py-4 text-base shadow-soft">
             Start Analyzing — Free →
           </button>
         </div>

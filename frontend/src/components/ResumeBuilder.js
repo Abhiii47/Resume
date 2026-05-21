@@ -473,7 +473,7 @@ export default function ResumeBuilder() {
             <select
               value={fontFamily}
               onChange={e => setFontFamily(e.target.value)}
-              className="brutalist-input py-2 px-3 text-xs font-mono cursor-pointer"
+              className="modern-input py-2 px-3 text-xs font-mono cursor-pointer"
               title="Resume font"
             >
               {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -481,22 +481,22 @@ export default function ResumeBuilder() {
             <select
               value={layoutMode}
               onChange={e => setLayoutMode(e.target.value)}
-              className="brutalist-input py-2 px-3 text-xs font-mono cursor-pointer"
+              className="modern-input py-2 px-3 text-xs font-mono cursor-pointer"
               title="Resume density"
             >
               {LAYOUTS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
-            <label className="brutalist-button py-2 px-4 text-xs cursor-pointer border-dashed hover:bg-muted text-muted-foreground hover:text-foreground">
+            <label className="modern-btn-outline py-2 px-4 text-xs cursor-pointer border-dashed hover:bg-muted text-muted-foreground hover:text-foreground">
               Parse PDF
               <input type="file" accept=".pdf" className="hidden" onChange={handleParsePdf} />
             </label>
-            <button onClick={() => saveResume(false)} disabled={saveStatus === 'saving'} className="brutalist-button px-4 py-2 text-xs">
+            <button onClick={() => saveResume(false)} disabled={saveStatus === 'saving'} className="modern-btn-outline px-4 py-2 text-xs">
               {saveStatus === 'saving' ? "Saving..." : "Save"}
             </button>
-            <button onClick={handleAnalyzeBuilder} disabled={analyzingBuilder} className="brutalist-button px-4 py-2 text-xs">
+            <button onClick={handleAnalyzeBuilder} disabled={analyzingBuilder} className="modern-btn-outline px-4 py-2 text-xs">
               {analyzingBuilder ? "Analyzing..." : "Analyze Builder"}
             </button>
-            <button onClick={handlePrint} className="brutalist-button bg-accent text-accent-foreground px-4 py-2 text-xs">
+            <button onClick={handlePrint} className="modern-btn-outline bg-accent text-accent-foreground px-4 py-2 text-xs">
               Export PDF
             </button>
           </div>
@@ -519,7 +519,7 @@ export default function ResumeBuilder() {
           </div>
           <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3">
             <input
-              className="brutalist-input w-full p-2 text-xs font-mono"
+              className="modern-input w-full p-2 text-xs font-mono"
               value={analysisJd}
               onChange={e => setAnalysisJd(e.target.value)}
               placeholder="Optional target job description for builder analysis"
@@ -702,18 +702,18 @@ export default function ResumeBuilder() {
         <div className="space-y-4">
           {activeTab === 'personal' && (
             <div className="space-y-4">
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Full Name</label><input className="brutalist-input w-full p-2" value={resumeData.personal.name} onChange={e => updatePersonal('name', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Email</label><input className="brutalist-input w-full p-2" value={resumeData.personal.email} onChange={e => updatePersonal('email', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Phone</label><input className="brutalist-input w-full p-2" value={resumeData.personal.phone} onChange={e => updatePersonal('phone', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">LinkedIn URL</label><input className="brutalist-input w-full p-2" value={resumeData.personal.linkedin} onChange={e => updatePersonal('linkedin', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">GitHub URL</label><input className="brutalist-input w-full p-2" value={resumeData.personal.github} onChange={e => updatePersonal('github', e.target.value)} /></div>
+              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Full Name</label><input className="modern-input w-full p-2" value={resumeData.personal.name} onChange={e => updatePersonal('name', e.target.value)} /></div>
+              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Email</label><input className="modern-input w-full p-2" value={resumeData.personal.email} onChange={e => updatePersonal('email', e.target.value)} /></div>
+              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Phone</label><input className="modern-input w-full p-2" value={resumeData.personal.phone} onChange={e => updatePersonal('phone', e.target.value)} /></div>
+              <div><label className="text-xs font-mono font-bold uppercase block mb-1">LinkedIn URL</label><input className="modern-input w-full p-2" value={resumeData.personal.linkedin} onChange={e => updatePersonal('linkedin', e.target.value)} /></div>
+              <div><label className="text-xs font-mono font-bold uppercase block mb-1">GitHub URL</label><input className="modern-input w-full p-2" value={resumeData.personal.github} onChange={e => updatePersonal('github', e.target.value)} /></div>
             </div>
           )}
 
           {activeTab === 'summary' && (
             <div>
               <label className="text-xs font-mono font-bold uppercase block mb-1">Professional Summary</label>
-              <textarea className="brutalist-input w-full p-2 h-32" value={resumeData.summary} onChange={e => { setResumeData({...resumeData, summary: e.target.value}); setSaveStatus('dirty'); }} />
+              <textarea className="modern-input w-full p-2 h-32" value={resumeData.summary} onChange={e => { setResumeData({...resumeData, summary: e.target.value}); setSaveStatus('dirty'); }} />
               <p className="text-xs font-mono text-muted-foreground mt-2">Tip: Keep this between 50-90 words and role-specific.</p>
             </div>
           )}
@@ -728,13 +728,13 @@ export default function ResumeBuilder() {
                     <button onClick={() => removeArrayItem('experience', i)} className="text-destructive font-mono text-xs hover:underline">[Remove]</button>
                   </div>
                   <div className="space-y-2">
-                    <input className="brutalist-input w-full p-2 text-sm font-bold" placeholder="Company Name" value={exp.company} onChange={e => updateArrayItem('experience', i, 'company', e.target.value)} />
-                    <input className="brutalist-input w-full p-2 text-sm" placeholder="Job Title" value={exp.title} onChange={e => updateArrayItem('experience', i, 'title', e.target.value)} />
+                    <input className="modern-input w-full p-2 text-sm font-bold" placeholder="Company Name" value={exp.company} onChange={e => updateArrayItem('experience', i, 'company', e.target.value)} />
+                    <input className="modern-input w-full p-2 text-sm" placeholder="Job Title" value={exp.title} onChange={e => updateArrayItem('experience', i, 'title', e.target.value)} />
                     <div className="flex gap-2">
-                      <input className="brutalist-input w-1/2 p-2 text-sm" placeholder="Start Date (e.g. Jan 2020)" value={exp.startDate} onChange={e => updateArrayItem('experience', i, 'startDate', e.target.value)} />
-                      <input className="brutalist-input w-1/2 p-2 text-sm" placeholder="End Date (e.g. Present)" value={exp.endDate} onChange={e => updateArrayItem('experience', i, 'endDate', e.target.value)} />
+                      <input className="modern-input w-1/2 p-2 text-sm" placeholder="Start Date (e.g. Jan 2020)" value={exp.startDate} onChange={e => updateArrayItem('experience', i, 'startDate', e.target.value)} />
+                      <input className="modern-input w-1/2 p-2 text-sm" placeholder="End Date (e.g. Present)" value={exp.endDate} onChange={e => updateArrayItem('experience', i, 'endDate', e.target.value)} />
                     </div>
-                    <textarea className="brutalist-input w-full p-2 text-sm h-24" placeholder="Description (one bullet per line)" value={exp.description} onChange={e => updateArrayItem('experience', i, 'description', e.target.value)} />
+                    <textarea className="modern-input w-full p-2 text-sm h-24" placeholder="Description (one bullet per line)" value={exp.description} onChange={e => updateArrayItem('experience', i, 'description', e.target.value)} />
                   </div>
                 </div>
               ))}
@@ -754,9 +754,9 @@ export default function ResumeBuilder() {
                     <button onClick={() => removeArrayItem('education', i)} className="text-destructive font-mono text-xs hover:underline">[Remove]</button>
                   </div>
                   <div className="space-y-2">
-                    <input className="brutalist-input w-full p-2 text-sm font-bold" placeholder="School/University" value={edu.school} onChange={e => updateArrayItem('education', i, 'school', e.target.value)} />
-                    <input className="brutalist-input w-full p-2 text-sm" placeholder="Degree (e.g. B.S. Computer Science)" value={edu.degree} onChange={e => updateArrayItem('education', i, 'degree', e.target.value)} />
-                    <input className="brutalist-input w-full p-2 text-sm" placeholder="Year / Expected Graduation" value={edu.year} onChange={e => updateArrayItem('education', i, 'year', e.target.value)} />
+                    <input className="modern-input w-full p-2 text-sm font-bold" placeholder="School/University" value={edu.school} onChange={e => updateArrayItem('education', i, 'school', e.target.value)} />
+                    <input className="modern-input w-full p-2 text-sm" placeholder="Degree (e.g. B.S. Computer Science)" value={edu.degree} onChange={e => updateArrayItem('education', i, 'degree', e.target.value)} />
+                    <input className="modern-input w-full p-2 text-sm" placeholder="Year / Expected Graduation" value={edu.year} onChange={e => updateArrayItem('education', i, 'year', e.target.value)} />
                   </div>
                 </div>
               ))}
@@ -776,9 +776,9 @@ export default function ResumeBuilder() {
                     <button onClick={() => removeArrayItem('projects', i)} className="text-destructive font-mono text-xs hover:underline">[Remove]</button>
                   </div>
                   <div className="space-y-2">
-                    <input className="brutalist-input w-full p-2 text-sm font-bold" placeholder="Project Name" value={proj.name} onChange={e => updateArrayItem('projects', i, 'name', e.target.value)} />
-                    <input className="brutalist-input w-full p-2 text-sm" placeholder="Technologies Used" value={proj.technologies} onChange={e => updateArrayItem('projects', i, 'technologies', e.target.value)} />
-                    <textarea className="brutalist-input w-full p-2 text-sm h-24" placeholder="Description (one bullet per line)" value={proj.description} onChange={e => updateArrayItem('projects', i, 'description', e.target.value)} />
+                    <input className="modern-input w-full p-2 text-sm font-bold" placeholder="Project Name" value={proj.name} onChange={e => updateArrayItem('projects', i, 'name', e.target.value)} />
+                    <input className="modern-input w-full p-2 text-sm" placeholder="Technologies Used" value={proj.technologies} onChange={e => updateArrayItem('projects', i, 'technologies', e.target.value)} />
+                    <textarea className="modern-input w-full p-2 text-sm h-24" placeholder="Description (one bullet per line)" value={proj.description} onChange={e => updateArrayItem('projects', i, 'description', e.target.value)} />
                   </div>
                 </div>
               ))}
@@ -790,9 +790,9 @@ export default function ResumeBuilder() {
 
           {activeTab === 'skills' && (
             <div className="space-y-4">
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Languages</label><input className="brutalist-input w-full p-2" placeholder="e.g. Python, Java, JavaScript" value={resumeData.skills.languages} onChange={e => updateSkills('languages', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Frameworks</label><input className="brutalist-input w-full p-2" placeholder="e.g. React, Node.js, Django" value={resumeData.skills.frameworks} onChange={e => updateSkills('frameworks', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Tools / Other</label><input className="brutalist-input w-full p-2" placeholder="e.g. Git, Docker, AWS" value={resumeData.skills.tools} onChange={e => updateSkills('tools', e.target.value)} /></div>
+              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Languages</label><input className="modern-input w-full p-2" placeholder="e.g. Python, Java, JavaScript" value={resumeData.skills.languages} onChange={e => updateSkills('languages', e.target.value)} /></div>
+              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Frameworks</label><input className="modern-input w-full p-2" placeholder="e.g. React, Node.js, Django" value={resumeData.skills.frameworks} onChange={e => updateSkills('frameworks', e.target.value)} /></div>
+              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Tools / Other</label><input className="modern-input w-full p-2" placeholder="e.g. Git, Docker, AWS" value={resumeData.skills.tools} onChange={e => updateSkills('tools', e.target.value)} /></div>
             </div>
           )}
         </div>
@@ -806,7 +806,7 @@ export default function ResumeBuilder() {
           style={{ fontFamily, lineHeight: layoutMode === 'compact' ? 1.35 : 1.5 }}
         >
           {/* Header */}
-          <header className="border-b-2 border-black pb-4 mb-4 text-center">
+          <header className="border-b border-border pb-4 mb-4 text-center">
             <h1 style={{ fontFamily, fontSize: resumeData.personal.name ? (layoutMode === 'compact' ? '1.75rem' : '2rem') : '1.5rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: resumeData.personal.name ? '#000' : '#aaa' }}>
               {resumeData.personal.name || 'Your Name Here'}
             </h1>

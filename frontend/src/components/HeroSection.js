@@ -177,11 +177,11 @@ const HeroSection = ({ onUploadClick, onCheckScoreClick }) => {
   return (
     <section
       style={{ backgroundColor: "hsl(40,30%,92%)" }}
-      className="relative min-h-[92vh] flex flex-col cream-grid-bg overflow-hidden pt-20"
+      className="relative min-h-[92vh] flex flex-col mesh-bg overflow-hidden pt-20"
     >
       {/* Floating decorative squares — entrance pop */}
       <div
-        className="absolute top-10 right-12 w-16 h-16 block-orange shadow-hard hidden lg:block"
+        className="absolute top-10 right-12 w-16 h-16 bg-primary text-primary-foreground shadow-soft hidden lg:block"
         style={{
           transform: mounted ? "rotate(2deg) scale(1)" : "rotate(2deg) scale(0)",
           opacity: mounted ? 0.8 : 0,
@@ -189,7 +189,7 @@ const HeroSection = ({ onUploadClick, onCheckScoreClick }) => {
         }}
       />
       <div
-        className="absolute bottom-24 left-8 w-10 h-10 block-blue shadow-hard hidden lg:block"
+        className="absolute bottom-24 left-8 w-10 h-10 bg-blue-500 text-white shadow-soft hidden lg:block"
         style={{
           transform: mounted ? "rotate(-4deg) scale(1)" : "rotate(-4deg) scale(0)",
           opacity: mounted ? 0.7 : 0,
@@ -197,7 +197,7 @@ const HeroSection = ({ onUploadClick, onCheckScoreClick }) => {
         }}
       />
       <div
-        className="absolute top-1/3 right-1/4 w-8 h-8 block-green shadow-hard-sm hidden xl:block"
+        className="absolute top-1/3 right-1/4 w-8 h-8 bg-green-500 text-white shadow-soft-sm hidden xl:block"
         style={{
           transform: mounted ? "rotate(1deg) scale(1)" : "rotate(1deg) scale(0)",
           opacity: mounted ? 0.6 : 0,
@@ -213,7 +213,7 @@ const HeroSection = ({ onUploadClick, onCheckScoreClick }) => {
           <div className="flex flex-col">
             {/* Badge — slides down */}
             <span
-              className="inline-block text-xs font-bold uppercase tracking-widest mb-6 px-3 py-1.5 border-2 border-black self-start shadow-hard-sm"
+              className="inline-block text-xs font-bold uppercase tracking-widest mb-6 px-3 py-1.5 border border-border shadow-soft self-start shadow-soft-sm"
               style={{
                 background: "hsl(24,100%,50%)", color: "#111",
                 transform: mounted ? "translateY(0)" : "translateY(-16px)",
@@ -304,7 +304,7 @@ const HeroSection = ({ onUploadClick, onCheckScoreClick }) => {
               ].map((b) => (
                 <div
                   key={b.text}
-                  className="px-3 py-1.5 text-xs font-black uppercase tracking-widest shadow-hard-sm"
+                  className="px-3 py-1.5 text-xs font-black uppercase tracking-widest shadow-soft-sm"
                   style={{
                     background: b.bg, color: "#fff", border: "2px solid #000",
                     transform: mounted
@@ -328,10 +328,10 @@ const HeroSection = ({ onUploadClick, onCheckScoreClick }) => {
                 transition: "transform 0.6s cubic-bezier(0.16,1,0.3,1) 0.5s, opacity 0.5s ease 0.5s",
               }}
             >
-              <button onClick={onUploadClick} className="neu-btn-primary px-8 py-4 text-base shadow-hard" style={{ fontSize: "1rem" }}>
+              <button onClick={onUploadClick} className="modern-btn-primary px-8 py-4 text-base shadow-soft" style={{ fontSize: "1rem" }}>
                 [ UPLOAD_RESUME ] →
               </button>
-              <button onClick={onCheckScoreClick} className="neu-btn-outline px-8 py-4 text-base" style={{ fontSize: "1rem" }}>
+              <button onClick={onCheckScoreClick} className="modern-btn-outline px-8 py-4 text-base" style={{ fontSize: "1rem" }}>
                 &gt; CHECK_ATS_SCORE
               </button>
             </div>
