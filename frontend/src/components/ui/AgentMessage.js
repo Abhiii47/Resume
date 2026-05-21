@@ -195,8 +195,9 @@ function inlineMarkdown(text) {
     }
     const linkMatch = part.match(/\[([^\]]+)\]\(([^)]+)\)/);
     if (linkMatch) {
+      const url = encodeURI(linkMatch[2]);
       return (
-        <a key={i} href={linkMatch[2]} target="_blank" rel="noopener noreferrer"
+        <a key={i} href={url} target="_blank" rel="noopener noreferrer"
           style={{ color: "hsl(24,100%,50%)", textDecoration: "underline" }}>
           {linkMatch[1]}
         </a>

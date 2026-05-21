@@ -306,13 +306,13 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
           style={{ minHeight: 200, border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', background: '#fdfbf7' }}
         >
           {pdfUrl ? (
-            <object data={pdfUrl} type="application/pdf" className="w-full h-full" style={{ minHeight: 300 }}>
+            <iframe src={(pdfUrl || "").toString()} title="Resume Preview" type="application/pdf" className="w-full h-full" style={{ minHeight: 300 }}>
               <div className="h-full flex flex-col items-center justify-center gap-2 p-4" style={{ color: 'var(--muted-foreground)' }}>
                 <FileText className="w-8 h-8" />
                 <p className="text-sm font-bold">PDF preview unavailable in this browser.</p>
-                <a href={pdfUrl} download className="text-xs font-black" style={{ color: 'var(--primary)' }}>Download PDF</a>
+                <a href={(pdfUrl || "").toString()} download className="text-xs font-black" style={{ color: 'var(--primary)' }}>Download PDF</a>
               </div>
-            </object>
+            </iframe>
           ) : selectedAnalysis ? (
             <div className="text-sm whitespace-pre-wrap p-6 overflow-y-auto h-full" style={{ color: 'var(--muted-foreground)' }}>
               {selectedAnalysis.resume_preview || '[ Resume text preview will appear here ]'}
