@@ -179,7 +179,7 @@ class AnalystAgent(BaseAgent):
     # ── Tool Handlers ─────────────────────────────────────────────────────
 
     def _handle_score_resume(self, **kwargs) -> dict:
-        """Run full scoring engine via scorer_final.score_resume."""
+        """Run full scoring engine via scorer_final.score_resume, and save result to DB."""
         context: AgentContext = kwargs["context"]
         resume_text = _get_resume_text(context)
         if not resume_text:
@@ -191,10 +191,52 @@ class AnalystAgent(BaseAgent):
             from scorer_final import score_resume
 
             result = score_resume(resume_text, jd_text or "")
+
+            ats_score = result.get("score", 0)
+            suggestions = result.get("gemini_suggestions", [])
+            breakdown = result.get("breakdown", {})
+
+            # ── Save back to DB so Resume Lab + Overview stay in sync ────────
+            if context.db and context.user:
+                try:
+                    from database import Analysis
+                    from security_utils import encrypt_resume_text
+
+                    # Check if score actually differs from latest (avoid duplicates)
+                    latest = (
+                        context.db.query(Analysis)
+                        .filter(Analysis.user_id == context.user.id)
+                        .order_by(Analysis.created_at.desc())
+                        .first()
+                    )
+
+                    # Save new analysis entry so workspace history is updated
+                    analysis = Analysis(
+                        user_id=context.user.id,
+                        resume_text=encrypt_resume_text(resume_text),
+                        resume_preview=resume_text[:200].strip(),
+                        jd_used=jd_text[:500] if jd_text else None,
+                        ats_score=int(ats_score),
+                        score_breakdown=breakdown,
+                        keyword_gaps=result.get("technical_metrics", {}),
+                        suggestions=suggestions,
+                        radar_data=result.get("radar_data", []),
+                        role_alignment=result.get("role_alignment", {}),
+                    )
+                    context.db.add(analysis)
+                    context.db.commit()
+                    logger.info(
+                        "Maya saved agent analysis to DB: score=%s user=%s",
+                        ats_score, context.user.id
+                    )
+                except Exception as db_exc:
+                    logger.warning("Could not save agent analysis to DB: %s", db_exc)
+            # ─────────────────────────────────────────────────────────────────
+
             return {
-                "score": result.get("score"),
-                "breakdown": result.get("breakdown"),
-                "suggestions": result.get("gemini_suggestions", [])[:5],
+                "score": ats_score,
+                "breakdown": breakdown,
+                "suggestions": suggestions[:5],
                 "radar_data": result.get("radar_data"),
                 "full_report": result.get("full_report", {}),
                 "ai_available": result.get("gemini_available", False),

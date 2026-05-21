@@ -35,8 +35,12 @@ function AnimatedScore({ value, className, style }) {
 
 /* ── Overview Tab ───────────────────────────────────────────── */
 function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLoading, showLlmMetrics = false }) {
+  // Normalize: accept both `total_score` (from DB scorer) and `ats_score` (legacy)
   const latestScore = history && history.length > 0
-    ? (history[0].score_breakdown?.total_score || history[0].ats_score || 0)
+    ? (history[0].score_breakdown?.total_score
+       || history[0].score_breakdown?.overall
+       || history[0].ats_score
+       || 0)
     : 0;
   const analysisCount = history ? history.length : 0;
 
@@ -214,10 +218,29 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
 
   const selectedAnalysis = history && history.length > 0 ? history[selectedIndex] : null;
 
+  // Normalize score fields: support both old (keyword_match) and new (keywords) keys
   const scoreItems = selectedAnalysis ? [
-    { label: 'Keywords', value: selectedAnalysis.score_breakdown?.keyword_match || 0, max: 35, color: '#3b82f6' },
-    { label: 'Format', value: selectedAnalysis.score_breakdown?.format_readability || 0, max: 30, color: '#8b5cf6' },
-    { label: 'Impact', value: selectedAnalysis.score_breakdown?.impact_metrics || 0, max: 35, color: 'hsl(24,100%,50%)' },
+    {
+      label: 'Keywords',
+      value: selectedAnalysis.score_breakdown?.keyword_match
+          || selectedAnalysis.score_breakdown?.keywords
+          || 0,
+      max: 35, color: '#3b82f6'
+    },
+    {
+      label: 'Format',
+      value: selectedAnalysis.score_breakdown?.format_readability
+          || selectedAnalysis.score_breakdown?.format
+          || 0,
+      max: 30, color: '#8b5cf6'
+    },
+    {
+      label: 'Impact',
+      value: selectedAnalysis.score_breakdown?.impact_metrics
+          || selectedAnalysis.score_breakdown?.impact
+          || 0,
+      max: 35, color: 'hsl(24,100%,50%)'
+    },
   ] : [];
 
   return (
@@ -582,33 +605,17 @@ function JobTracker() {
               ))}
             </div>
           )}
+          {/* Career Comms Lab — available in Learning Hub */}
           <div
-            onClick={() => setShowCommsLab(true)}
-            className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1 cursor-pointer"
+            className="p-5 mt-5 flex flex-col gap-3"
             style={{ background: '#fdfbf7', border: '2px dashed #2a2a2a' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.45)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
           >
             <div className="flex justify-between items-start">
               <h4 className="font-black text-sm text-[#111]">Career Comms Lab</h4>
               <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
             </div>
             <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
-            <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Open Writing Tools â†’</p>
-          </div>
-          <div
-            onClick={() => setShowCommsLab(true)}
-            className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1 cursor-pointer"
-            style={{ background: '#fdfbf7', border: '2px dashed #2a2a2a' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.45)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
-          >
-            <div className="flex justify-between items-start">
-              <h4 className="font-black text-sm text-[#111]">Career Comms Lab</h4>
-              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(59,130,246,0.12)', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.22)' }}>Connected</span>
-            </div>
-            <p className="text-xs flex-1" style={{ color: '#666' }}>Generate cover letters, interview prep, outreach email, language audits, headlines, and keyword heatmaps from your latest analyzed resume.</p>
-            <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Open Writing Tools â†’</p>
+            <p className="text-xs font-black" style={{ color: '#3b82f6' }}>Available in Learning Hub →</p>
           </div>
         </div>
       )}
@@ -1324,7 +1331,7 @@ export default function DashboardPage() {
       Content = <ResourceHub />;
       break;
     case 'copilot':
-      Content = <AgentChat />;
+      Content = <AgentChat onAnalysisRefresh={fetchHistory} />;
       break;
     case 'builder':
       Content = <ResumeBuilder />;

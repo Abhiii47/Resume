@@ -43,7 +43,7 @@ function parseSSE(chunk) {
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 
-export default function AgentChat() {
+export default function AgentChat({ onAnalysisRefresh }) {
   const [agents, setAgents]           = useState(TEAM);
   const [messages, setMessages]       = useState([]);
   const [trace, setTrace]             = useState([]);
@@ -54,6 +54,8 @@ export default function AgentChat() {
   const [traceOpen, setTraceOpen]     = useState(false);
   const endRef   = useRef(null);
   const abortRef = useRef(null);
+  // Track whether any agent_message was received during this turn
+  const hadAgentMessageRef = useRef(false);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streaming]);
 
@@ -89,6 +91,8 @@ export default function AgentChat() {
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
+    hadAgentMessageRef.current = false;
+
     try {
       const res = await fetch(`${API_BASE}/agents/chat`, {
         method: "POST",
@@ -122,18 +126,25 @@ export default function AgentChat() {
               tools_used: evt.data.tools_used || [],
               timestamp: new Date().toISOString(),
             };
+            // Always add to trace (debug log)
             setTrace(p => [...p, m]);
 
             if (evt.event === "agent_thinking") {
               setStatus(evt.data.agent, "thinking");
+              // Show thinking indicator in main chat (but only one at a time)
               setMessages(p => [...p.filter(x => x.event_type !== "agent_thinking"), m]);
             } else if (evt.event === "tool_call") {
+              // Tool calls go to trace only — not the main chat
               setStatus(evt.data.agent, "tool_executing");
-              setMessages(p => [...p, m]);
             } else if (evt.event === "tool_result") {
-              setMessages(p => [...p, m]);
+              // Tool results go to trace only — not the main chat
+              // Trigger a history refresh if score_resume was run (Maya saved a new analysis)
+              if (evt.data.tool === "score_resume" && evt.data.success) {
+                onAnalysisRefresh && onAnalysisRefresh();
+              }
             } else if (evt.event === "agent_message") {
               setStatus(evt.data.agent, "active");
+              hadAgentMessageRef.current = true;
               setMessages(p => [...p.filter(x => x.event_type !== "agent_thinking"), m]);
             } else if (evt.event === "agent_handoff") {
               setStatus(evt.data.to_agent, "thinking");
@@ -143,6 +154,8 @@ export default function AgentChat() {
               setMessages(p => [...p, m]);
             } else if (evt.event === "done") {
               resetAll();
+              // Refresh history so Resume Lab + Overview reflect any new analysis
+              onAnalysisRefresh && onAnalysisRefresh();
             }
           }
         }

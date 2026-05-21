@@ -191,22 +191,93 @@ class WriterAgent(BaseAgent):
             return {"error": f"Rewrite failed: {exc}"}
 
     def _handle_generate_cover_letter(self, **kwargs) -> Any:
-        """Generate a tailored cover letter."""
+        """Generate a tailored cover letter with real user data filled in."""
+        import re as _re
         context: AgentContext = kwargs["context"]
-        company = kwargs.get("company", "the company")
-        role = kwargs.get("role", "Software Engineer")
         resume_text = _get_resume_text(context)
 
         if not resume_text:
             return {"error": "No resume text available. Upload a resume first."}
 
+        # ── Extract real personal details from resume ─────────────────────
+        # Name: look for first non-empty line that looks like a name
+        name = ""
+        for line in resume_text.split("\n")[:5]:
+            line = line.strip()
+            if line and len(line.split()) in (2, 3) and not any(c in line for c in ["@", ":", "http", "+"]):
+                name = line
+                break
+
+        # Email
+        email_match = _re.search(r'[\w.+-]+@[\w-]+\.[\w.]+', resume_text)
+        email = email_match.group(0) if email_match else ""
+
+        # Phone
+        phone_match = _re.search(r'[\+]?[\d\s\-\(\)]{10,15}', resume_text)
+        phone = phone_match.group(0).strip() if phone_match else ""
+
+        # LinkedIn
+        linkedin_match = _re.search(r'linkedin\.com/in/[\w\-]+', resume_text, _re.IGNORECASE)
+        linkedin = linkedin_match.group(0) if linkedin_match else ""
+
+        # ── Get company/role from kwargs OR Scout's shared context ────────
+        company = kwargs.get("company", "")
+        role = kwargs.get("role", "")
+
+        # Pull from previous Scout results if not explicitly provided
+        if not company or not role:
+            prev_results = context.shared_context.get("previous_results", [])
+            for res in prev_results:
+                response_text = str(res.get("response", ""))
+                # Look for job title and company patterns in Scout's response
+                if not company:
+                    company_match = _re.search(r'at\s+([A-Z][a-zA-Z\s]+?)[\.,\n]', response_text)
+                    if company_match:
+                        company = company_match.group(1).strip()
+                if not role:
+                    role_match = _re.search(r'(Machine Learning|Software|Data|Backend|Frontend|Full.?Stack|ML|AI)\s+(?:Engineer|Scientist|Developer|Analyst)', response_text, _re.IGNORECASE)
+                    if role_match:
+                        role = role_match.group(0).strip()
+
+        company = company or "the company"
+        role = role or "Software Engineer"
+
+        # ── JD context ────────────────────────────────────────────────────
         jd = _get_jd_text(context) or f"Role: {role} at {company}"
 
+        # ── Build personalized header block ───────────────────────────────
+        personal_header = f"{name}\n" if name else ""
+        if email:
+            personal_header += f"{email}"
+        if phone:
+            personal_header += f" | {phone}"
+        if linkedin:
+            personal_header += f" | linkedin.com/in/{linkedin.split('/')[-1]}"
+
         try:
-            cover_letter = self._llm.generate_cover_letter(resume_text, jd)
+            # Pass real personal data into the prompt so LLM fills everything in
+            cover_letter = self._llm.generate_cover_letter(
+                resume_text,
+                f"Role: {role} at {company}\n{jd[:800]}",
+            )
+
+            # Post-process: replace any remaining placeholders with real data
+            if name:
+                cover_letter = cover_letter.replace("[Your Name]", name).replace("[Full Name]", name)
+            if email:
+                cover_letter = cover_letter.replace("[Your Email]", email).replace("[Email]", email)
+            if phone:
+                cover_letter = cover_letter.replace("[Phone]", phone).replace("[Your Phone]", phone)
+            cover_letter = cover_letter.replace("[Company Name]", company).replace("[Company]", company)
+            cover_letter = cover_letter.replace("[Position]", role).replace("[Role]", role)
+            # Inject real header at the top if not present
+            if personal_header and name and name not in cover_letter[:200]:
+                cover_letter = f"{personal_header}\n\n{cover_letter}"
+
             return {
                 "company": company,
                 "role": role,
+                "candidate_name": name or context.user.username if context.user else "Candidate",
                 "cover_letter": cover_letter,
             }
         except Exception as exc:

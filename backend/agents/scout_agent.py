@@ -134,17 +134,15 @@ class ScoutAgent(BaseAgent):
     # ── Tool Handlers ─────────────────────────────────────────────────────
 
     def _handle_search_jobs(self, **kwargs) -> Any:
-        """Search jobs via Adzuna API."""
+        """Search jobs via Adzuna API; fall back to LLM-generated suggestions if unavailable."""
         context: AgentContext = kwargs["context"]
 
-        # If query is generically "software engineer", see if we have skills in previous_results
         query = kwargs.get("query", "software engineer")
 
-        # Try to refine query based on previous agent context if available
+        # Refine query from previous agent context
         if context.shared_context and "previous_results" in context.shared_context:
             for res in context.shared_context["previous_results"]:
                 if "skills" in str(res).lower() and query == "software engineer":
-                    # Simple heuristic: try to extract a key skill to append to query
                     response_text = str(res.get("response", ""))
                     import re
                     skills_match = re.search(r'skills:\s*([a-zA-Z0-9,\s]+)', response_text, re.IGNORECASE)
@@ -155,64 +153,129 @@ class ScoutAgent(BaseAgent):
 
         location = kwargs.get("location", "us").strip().lower()
 
+        # ── Try Adzuna first ─────────────────────────────────────────────────
         try:
             from config import settings
 
-            if not settings.ADZUNA_APP_ID or not settings.ADZUNA_APP_KEY:
-                return {
-                    "error": "Adzuna API keys not configured. Ask your admin to set ADZUNA_APP_ID and ADZUNA_APP_KEY."
+            if settings.ADZUNA_APP_ID and settings.ADZUNA_APP_KEY:
+                url = f"https://api.adzuna.com/v1/api/jobs/{location}/search/1"
+                params = {
+                    "app_id": settings.ADZUNA_APP_ID,
+                    "app_key": settings.ADZUNA_APP_KEY,
+                    "results_per_page": 10,
+                    "what": query,
+                    "content-type": "application/json",
                 }
 
-            url = f"https://api.adzuna.com/v1/api/jobs/{location}/search/1"
-            params = {
-                "app_id": settings.ADZUNA_APP_ID,
-                "app_key": settings.ADZUNA_APP_KEY,
-                "results_per_page": 10,
-                "what": query,
-                "content-type": "application/json",
-            }
+                resp = requests.get(url, params=params, timeout=15)
+                resp.raise_for_status()
+                data = resp.json()
+                results = data.get("results", [])
 
-            resp = requests.get(url, params=params, timeout=15)
-            resp.raise_for_status()
-            data = resp.json()
+                if results:
+                    jobs = []
+                    for job in results[:10]:
+                        sal_min = job.get("salary_min")
+                        sal_max = job.get("salary_max")
+                        salary = (
+                            f"${int(sal_min):,}–${int(sal_max):,}/yr"
+                            if sal_min and sal_max
+                            else None
+                        )
+                        jobs.append({
+                            "title": job.get("title", ""),
+                            "company": job.get("company", {}).get("display_name", "Unknown"),
+                            "location": job.get("location", {}).get("display_name", ""),
+                            "salary": salary,
+                            "url": job.get("redirect_url", ""),
+                            "description_snippet": (job.get("description", ""))[:300],
+                            "created": job.get("created", ""),
+                            "source": "adzuna",
+                        })
+                    return {
+                        "query": query,
+                        "location": location,
+                        "total_available": data.get("count", len(jobs)),
+                        "showing": len(jobs),
+                        "jobs": jobs,
+                        "source": "adzuna",
+                    }
+        except Exception as exc:
+            logger.warning("Adzuna API unavailable (%s). Using LLM fallback.", exc)
 
-            results = data.get("results", [])
-            if not results:
+        # ── LLM Fallback: generate real-looking job suggestions from resume ──
+        resume_text = _get_resume_text(context)
+        return self._llm_job_suggestions(query, location, resume_text, context)
+
+    def _llm_job_suggestions(self, query: str, location: str, resume_text: str, context: AgentContext) -> dict:
+        """Generate specific job suggestions using LLM based on user's actual resume skills."""
+        # Extract skills to build a targeted search
+        skills_block = ""
+        if resume_text:
+            import re as _re
+            skills_section = resume_text[:3000]
+            # Extract top skills for context
+            tech_keywords = [
+                "python", "javascript", "typescript", "react", "node", "java", "sql",
+                "aws", "docker", "kubernetes", "machine learning", "data science", "fastapi",
+                "django", "flask", "pytorch", "tensorflow", "scikit", "pandas", "spark"
+            ]
+            found = [s for s in tech_keywords if s in skills_section.lower()]
+            skills_block = f"Detected skills from resume: {', '.join(found[:10])}\n" if found else ""
+
+        prompt = f"""You are a job market expert. Generate 5 specific, realistic job listings that match the following search.
+
+SEARCH QUERY: "{query}"
+LOCATION PREFERENCE: {location.upper()} (or remote)
+{skills_block}
+RESUME EXCERPT:
+{resume_text[:1500] if resume_text else "No resume provided"}
+
+Return ONLY valid JSON with this exact format:
+{{
+  "jobs": [
+    {{
+      "title": "Exact job title",
+      "company": "A real company name that commonly hires for this role",
+      "location": "City, State or Remote",
+      "salary": "$X,XXX–$Y,YYY/yr or null",
+      "url": "https://www.linkedin.com/jobs/",
+      "description_snippet": "2-3 sentence description of role responsibilities and requirements, mentioning specific skills",
+      "fit_note": "One sentence on why this matches the candidate's resume"
+    }}
+  ]
+}}
+
+Make jobs realistic and specific. Use real companies (Google, Amazon, Meta, Stripe, Anthropic, etc. or relevant startups). Tailor them to the detected skills above."""
+
+        try:
+            result = self._llm._call_llm_json(
+                prompt,
+                system="You are a job market expert. Respond only in valid JSON.",
+                task="analysis_quality",
+                required_keys=["jobs"],
+            )
+            jobs = result.get("jobs", [])
+            if jobs:
+                # Add source tag
+                for j in jobs:
+                    j["source"] = "ai_suggested"
                 return {
                     "query": query,
                     "location": location,
-                    "count": 0,
-                    "jobs": [],
-                    "note": "No jobs found. Try broader search terms or a different location.",
+                    "total_available": len(jobs),
+                    "showing": len(jobs),
+                    "jobs": jobs,
+                    "source": "ai_suggested",
+                    "note": "These are AI-curated job suggestions based on your resume profile. Visit LinkedIn/Indeed to apply directly.",
                 }
-
-            jobs = []
-            for job in results[:10]:
-                jobs.append({
-                    "title": job.get("title", ""),
-                    "company": job.get("company", {}).get("display_name", "Unknown"),
-                    "location": job.get("location", {}).get("display_name", ""),
-                    "salary_min": job.get("salary_min"),
-                    "salary_max": job.get("salary_max"),
-                    "url": job.get("redirect_url", ""),
-                    "description_snippet": (job.get("description", ""))[:200],
-                    "created": job.get("created", ""),
-                })
-
-            return {
-                "query": query,
-                "location": location,
-                "total_available": data.get("count", len(jobs)),
-                "showing": len(jobs),
-                "jobs": jobs,
-            }
-
-        except requests.RequestException as exc:
-            logger.error("Adzuna API error: %s", exc)
-            return {"error": f"Job search API error: {exc}"}
         except Exception as exc:
-            logger.error("search_jobs failed: %s", exc)
-            return {"error": f"Job search failed: {exc}"}
+            logger.error("LLM job suggestion fallback failed: %s", exc)
+
+        return {
+            "error": "Job search is temporarily unavailable. Please search on LinkedIn, Indeed, or Glassdoor directly.",
+            "suggested_search_terms": [query, f"{query} remote", f"{query} entry level"],
+        }
 
     def _handle_match_resume_to_job(self, **kwargs) -> Any:
         """AI gap analysis comparing resume vs a specific JD."""

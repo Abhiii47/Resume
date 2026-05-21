@@ -344,12 +344,10 @@ Rules:
         )
         self.status = AgentStatus.STANDBY
 
-
-
     async def _run_workflow(
         self, workflow_name: str, context: AgentContext
     ) -> AsyncGenerator[SSEEvent, None]:
-        """Execute a predefined multi-agent workflow."""
+        """Execute a predefined multi-agent workflow with rich inter-agent context."""
         workflow = WORKFLOW_TEMPLATES[workflow_name]
 
         # Announce the workflow
@@ -378,6 +376,23 @@ Rules:
             if not agent:
                 continue
 
+            # ── Build an enriched task that includes prior agent findings ──
+            enriched_task = step["task"]
+            if accumulated_context:
+                prior_summary_lines = []
+                for prior in accumulated_context:
+                    excerpt = prior.get("response", "")[:600]
+                    tools_used = prior.get("tools_used", [])
+                    tools_str = f" (used: {', '.join(tools_used)})" if tools_used else ""
+                    prior_summary_lines.append(
+                        f"[{prior['agent']}{tools_str}]:\n{excerpt}"
+                    )
+                prior_block = "\n\n".join(prior_summary_lines)
+                enriched_task = (
+                    f"{step['task']}\n\n"
+                    f"Context from previous agents:\n{prior_block}"
+                )
+
             # Handoff
             yield SSEEvent(
                 event="agent_handoff",
@@ -390,10 +405,10 @@ Rules:
                 },
             )
 
-            # Build context with previous agent results
+            # Build context with accumulated prior results
             agent_context = AgentContext(
                 user_id=context.user_id,
-                user_message=step["task"],
+                user_message=enriched_task,
                 conversation_history=context.conversation_history,
                 resume_text=context.resume_text,
                 job_description=context.job_description,
@@ -409,19 +424,22 @@ Rules:
                 user=context.user,
             )
 
-            # Stream agent events
+            # Stream agent events — collect full response + tools used
             agent_response = ""
+            agent_tools_used: list[str] = []
             async for event in agent.run(agent_context):
                 yield event
                 if event.event == "agent_message":
                     agent_response = event.data.get("content", "")
+                    agent_tools_used = event.data.get("tools_used", [])
 
             agents_used.append(agent.name)
             if agent_response:
                 accumulated_context.append({
                     "agent": agent.name,
                     "task": step["task"],
-                    "response": agent_response[:800],
+                    "response": agent_response[:900],
+                    "tools_used": agent_tools_used,
                 })
 
         yield SSEEvent(

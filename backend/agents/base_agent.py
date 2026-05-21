@@ -138,14 +138,15 @@ class BaseAgent(ABC):
 {tools_block}
 
 **Response Rules**:
-1. When you need data or need to perform an action, respond with ONLY a JSON block:
+1. When you need data or need to perform an action, respond with ONLY a JSON block — no text before or after:
    {{"tool_call": {{"name": "<tool_name>", "arguments": {{...}}}}}}
-2. When you have enough information, write your final answer as plain text (NO JSON).
-3. NEVER combine a tool_call and a final answer in the same response.
-4. Be concise, specific, and action-oriented.
-5. Reference real numbers and data — never be vague.
-6. If a task is outside your expertise, clearly state which team member should handle it.
-7. Max 300 words for final answers unless generating a document."""
+2. When you have enough information, write your final answer as plain text (NO JSON at all).
+3. CRITICAL: NEVER mix a tool_call JSON with plain text in the same response. ONE OR THE OTHER.
+4. Call tools ONE AT A TIME. Do not output multiple tool_call blocks in a single response.
+5. Be concise, specific, and action-oriented.
+6. Reference real numbers and data — never be vague.
+7. If a task is outside your expertise, clearly state which team member should handle it.
+8. Max 300 words for final answers unless generating a document."""
 
     async def _call_llm(self, messages: list[dict], task: str = "general") -> str:
         if not self._llm:
@@ -175,23 +176,73 @@ class BaseAgent(ABC):
 
     @staticmethod
     def _extract_json(text: str) -> dict:
+        """Parse a JSON object from text, even when mixed with prose."""
+        # 1. Try the whole text first (clean JSON response)
         try:
             return json.loads(text)
         except (json.JSONDecodeError, TypeError):
             pass
+
+        # 2. Fenced code block
         m = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", text, re.DOTALL)
         if m:
             try:
                 return json.loads(m.group(1))
             except json.JSONDecodeError:
                 pass
-        m = re.search(r"\{.*\}", text, re.DOTALL)
-        if m:
+
+        # 3. Scan for ALL JSON objects using a bracket-balanced scanner
+        #    This correctly handles multiple JSON blocks in the same response.
+        i = 0
+        candidates = []
+        while i < len(text):
+            if text[i] == '{':
+                depth = 0
+                start = i
+                for j in range(i, len(text)):
+                    if text[j] == '{':
+                        depth += 1
+                    elif text[j] == '}':
+                        depth -= 1
+                        if depth == 0:
+                            candidates.append(text[start:j + 1])
+                            i = j + 1
+                            break
+                else:
+                    break
+            else:
+                i += 1
+
+        # Return the first candidate that parses as valid JSON
+        # Prefer ones that contain 'tool_call' (most important case)
+        for candidate in candidates:
             try:
-                return json.loads(m.group())
+                obj = json.loads(candidate)
+                if isinstance(obj, dict):
+                    if "tool_call" in obj:  # Prioritise tool_call blocks
+                        return obj
             except json.JSONDecodeError:
                 pass
+        for candidate in candidates:
+            try:
+                obj = json.loads(candidate)
+                if isinstance(obj, dict):
+                    return obj
+            except json.JSONDecodeError:
+                pass
+
         return {"raw_response": text}
+
+    @staticmethod
+    def _clean_content(text: str) -> str:
+        """Strip embedded tool_call JSON blobs from prose before displaying."""
+        # Remove fenced JSON blocks
+        text = re.sub(r"```(?:json)?\s*\n?\{[\s\S]*?\}\s*\n?```", "", text)
+        # Remove bare tool_call JSON objects
+        text = re.sub(r'\{\s*"tool_call"\s*:[\s\S]*?\}\s*', "", text)
+        # Remove any remaining standalone JSON object blocks
+        text = re.sub(r'\n\{[\s\S]{0,2000}?\}\n', "\n", text)
+        return text.strip()
 
     def _parse_tool_call(self, response: str) -> Optional[ToolCall]:
         data = self._extract_json(response)
@@ -361,6 +412,22 @@ class BaseAgent(ABC):
 
             else:
                 self.status = AgentStatus.ACTIVE
+                # Clean any embedded raw JSON / tool_call artifacts from the
+                # final message before it reaches the user
+                clean = self._clean_content(response)
+                if not clean:
+                    # The response was ONLY JSON (tool_call without args)
+                    # — push it back to the LLM for a proper final answer
+                    messages.append({"role": "assistant", "content": response})
+                    messages.append({
+                        "role": "user",
+                        "content": (
+                            "Your previous response contained only JSON. "
+                            "Please write your final answer as plain text — "
+                            "no JSON, just a helpful, clear summary for the user."
+                        ),
+                    })
+                    continue
                 yield SSEEvent(
                     event="agent_message",
                     data={
@@ -368,7 +435,7 @@ class BaseAgent(ABC):
                         "emoji": self.emoji,
                         "color": self.color,
                         "role": self.role,
-                        "content": response.strip(),
+                        "content": clean,
                         "tools_used": [t.tool_name for t in tool_log],
                     },
                 )

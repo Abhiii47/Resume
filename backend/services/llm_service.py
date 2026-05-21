@@ -398,11 +398,29 @@ def _extract_section(resume_text: str, section_name: str) -> str:
 # ── Original Features ─────────────────────────────────────────────────────────
 
 def generate_cover_letter(resume_text: str, jd_text: str) -> str:
-    # A cover letter needs experience and skills
     exp = _extract_section(resume_text, "experience")
+    # Extract first few lines to help LLM find the candidate's name/contact
+    header_lines = "\n".join(l for l in resume_text.split("\n")[:8] if l.strip())
     return _call_llm(
-        f"Write a professional, concise cover letter.\nRELEVANT EXPERIENCE:\n{exp[:1500]}\nJOB:\n{jd_text[:1000]}",
-        system="You are an expert cover letter writer.",
+        f"""Write a professional, ready-to-send cover letter. 
+IMPORTANT RULES:
+- Extract the candidate's real name, email, and phone from the RESUME HEADER below — never use [Your Name] or any placeholder
+- Use the real company name from the JOB section — never use [Company Name] or any placeholder
+- Write in first person
+- Keep it under 300 words, 3 paragraphs
+- End with the candidate's real name as signature
+
+RESUME HEADER (extract name/contact from here):
+{header_lines}
+
+RELEVANT EXPERIENCE:
+{exp[:1500]}
+
+JOB / COMPANY:
+{jd_text[:1000]}
+
+Write the complete, final cover letter with NO placeholders. All fields must be filled with real data from above.""",
+        system="You are an expert cover letter writer. Always use real data from the resume. Never write placeholder text like [Your Name], [Company Name], [Date], etc.",
         task="quick_copy",
     )
 
