@@ -110,7 +110,6 @@ function renderMarkdown(text) {
     // Numbered list
     if (/^\d+\.\s+/.test(line)) {
       const numItems = [];
-      let num = 1;
       while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
         numItems.push(lines[i].replace(/^\d+\.\s+/, ""));
         i++;

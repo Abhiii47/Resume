@@ -27,7 +27,7 @@ export default function App() {
   let isIframe = false;
   try {
     isIframe = window.self !== window.top;
-  } catch (e) {
+  } catch {
     // Cross-origin throws DOMException, meaning it is an iframe
     isIframe = true;
   }

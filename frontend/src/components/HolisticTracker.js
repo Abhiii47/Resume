@@ -38,7 +38,7 @@ export default function HolisticTracker({ roadmap }) {
     e?.preventDefault();
     setLogging(categoryId);
     try {
-      const res = await axios.post(`${API_BASE}/tracker/log`, {
+      await axios.post(`${API_BASE}/tracker/log`, {
         category: categoryId,
         count: 1,
         note: logNote
@@ -47,7 +47,7 @@ export default function HolisticTracker({ roadmap }) {
       });
       setLogNote("");
       await fetchTrackerData();
-    } catch (err) {
+    } catch {
       alert("Failed to log activity");
     } finally {
       setLogging(false);

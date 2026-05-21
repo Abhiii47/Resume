@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { API_BASE, getAuthToken, removeAuthToken } from "../utils";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../components/ui/Sidebar";
 import AnalysisLoader from "../components/AnalysisLoader";
-import { ScoreCardSkeleton, ResumeHistorySkeleton } from "../components/ui/Skeletons";
+
 import { UploadCloud, FileText, CheckCircle2, BookOpen, Search, LayoutDashboard, BarChart2, Zap } from "lucide-react";
 import HolisticTracker from "../components/HolisticTracker";
 import DSATracker from "../components/DSATracker";
@@ -45,14 +45,14 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
   const analysisCount = history ? history.length : 0;
 
   const statCards = [
-    { label: 'Top ATS Score', value: latestScore, suffix: '/ 100', bg: var(--primary), shadow: '6px 6px 0 #b34500', color: 'var(--foreground)' },
+    { label: 'Top ATS Score', value: latestScore, suffix: '/ 100', bg: 'var(--primary)', shadow: '6px 6px 0 #b34500', color: 'var(--foreground)' },
     { label: 'Resumes Analyzed', value: analysisCount, suffix: 'iterations', bg: '#2563EB', shadow: '6px 6px 0 #1a3a8f', color: 'var(--foreground)' },
     { label: 'Active Tracker', value: 6, suffix: 'categories', bg: '#16A34A', shadow: '6px 6px 0 #0d5c2a', color: 'var(--foreground)' },
   ];
 
   const actionCards = [
     { label: 'Resume Builder', desc: 'Create & Export PDF', icon: FileText, accent: '#2563EB', onClick: () => navigate('/builder') },
-    { label: 'Resume Lab', desc: 'Analyze & Fix Flaws', icon: UploadCloud, accent: var(--primary), onClick: () => setActiveTab('workspace') },
+    { label: 'Resume Lab', desc: 'Analyze & Fix Flaws', icon: UploadCloud, accent: 'var(--primary)', onClick: () => setActiveTab('workspace') },
     { label: 'Job Tracker', desc: 'Discover & Match', icon: CheckCircle2, accent: '#16A34A', onClick: () => setActiveTab('tracker') },
     { label: 'Learning Hub', desc: 'AI Roadmap & Resources', icon: BookOpen, accent: '#8b5cf6', onClick: () => setActiveTab('resources') },
   ];
@@ -64,7 +64,7 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
     >
       {/* Header */}
       <div className="mb-10">
-        <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: var(--primary) }}>Agentic Career Hub</p>
+        <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: 'var(--primary)' }}>Agentic Career Hub</p>
         <h2 className="text-5xl font-black uppercase" style={{ color: 'var(--foreground)' }}>Command Center</h2>
       </div>
 
@@ -92,7 +92,7 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
           <div
             key={i}
             onClick={card.onClick}
-            className="glass-card p-5 flex flex-col gap-4 cursor-pointer transition-all hover:-translate-y-1 group"}
+            className="glass-card p-5 flex flex-col gap-4 cursor-pointer transition-all hover:-translate-y-1 group"
           >
             <div
               className="w-12 h-12 flex items-center justify-center shrink-0"
@@ -115,7 +115,7 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
       <h3 className="text-sm font-black uppercase tracking-widest mb-5" style={{ color: 'var(--muted-foreground)' }}>AI Reliability</h3>
       <div className="p-6" className="glass-card">
         {llmMetricsLoading ? (
-          <p className="text-sm font-bold animate-pulse" style={{ color: var(--primary) }}>Loading metrics...</p>
+          <p className="text-sm font-bold animate-pulse" style={{ color: 'var(--primary)' }}>Loading metrics...</p>
         ) : !llmMetrics ? (
           <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>No telemetry yet. Trigger a few AI actions first.</p>
         ) : (
@@ -124,7 +124,7 @@ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLo
               {[
                 { label: 'Total Calls', value: llmMetrics.total_calls || 0, color: 'var(--foreground)' },
                 { label: 'Success Rate', value: `${llmMetrics.success_rate_pct || 0}%`, color: '#16A34A' },
-                { label: 'Avg Latency', value: `${llmMetrics.avg_latency_ms || 0}ms`, color: var(--primary) },
+                { label: 'Avg Latency', value: `${llmMetrics.avg_latency_ms || 0}ms`, color: 'var(--primary)' },
               ].map((m, i) => (
                 <div key={i} className="p-4" className="glass-card">
                   <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: 'var(--muted-foreground)' }}>{m.label}</p>
@@ -236,7 +236,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
       value: selectedAnalysis.score_breakdown?.impact_metrics
           || selectedAnalysis.score_breakdown?.impact
           || 0,
-      max: 35, color: var(--primary)
+      max: 35, color: 'var(--primary)'
     },
   ] : [];
 
@@ -267,7 +267,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
               onDrop={handleDrop}
             >
               <input type="file" accept=".pdf" className="hidden" onChange={handleFileChange} />
-              <UploadCloud className="w-5 h-5 shrink-0" style={{ color: var(--primary) }} />
+              <UploadCloud className="w-5 h-5 shrink-0" style={{ color: 'var(--primary)' }} />
               <span style={{ color: file ? '#fff' : '#555' }}>{file ? file.name : 'Drop PDF or click to upload'}</span>
             </label>
             <button
@@ -286,7 +286,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
             className="mb-5 flex items-center justify-between p-3 shrink-0"
             className="glass-card"
           >
-            <span className="text-xs font-black uppercase tracking-widest" style={{ color: var(--primary) }}>Evolution Timeline</span>
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--primary)' }}>Evolution Timeline</span>
             <select
               value={selectedIndex}
               onChange={e => setSelectedIndex(Number(e.target.value))}
@@ -312,7 +312,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
               <div className="h-full flex flex-col items-center justify-center gap-2 p-4" style={{ color: 'var(--muted-foreground)' }}>
                 <FileText className="w-8 h-8" />
                 <p className="text-sm font-bold">PDF preview unavailable in this browser.</p>
-                <a href={pdfUrl} download className="text-xs font-black" style={{ color: var(--primary) }}>Download PDF</a>
+                <a href={pdfUrl} download className="text-xs font-black" style={{ color: 'var(--primary)' }}>Download PDF</a>
               </div>
             </object>
           ) : selectedAnalysis ? (
@@ -332,7 +332,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
         className="w-full lg:w-1/2 p-6 lg:p-8 overflow-y-auto"
         style={{ background: '#fff' }}
       >
-        <h2 className="text-3xl font-black uppercase mb-6" style={{ letterSpacing: '-0.02em', color: var(--primary) }}>Diagnostics & Fixes</h2>
+        <h2 className="text-3xl font-black uppercase mb-6" style={{ letterSpacing: '-0.02em', color: 'var(--primary)' }}>Diagnostics & Fixes</h2>
 
         {!selectedAnalysis ? (
           <div
@@ -378,7 +378,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
                         </div>
                         {rewrittenBullets[i] ? (
                           <div className="mt-3 p-3 text-sm" style={{ background: 'rgba(0,119,255,0.06)', borderLeft: '3px solid hsl(24,100%,50%)', color: 'var(--muted-foreground)' }}>
-                            <span className="text-xs font-black uppercase block mb-1" style={{ color: var(--primary) }}>AI Rewrite:</span>
+                            <span className="text-xs font-black uppercase block mb-1" style={{ color: 'var(--primary)' }}>AI Rewrite:</span>
                             {rewrittenBullets[i]}
                           </div>
                         ) : (
@@ -386,7 +386,7 @@ function ResumeWorkspace({ history, fetchHistory, isAnalyzing, setIsAnalyzing })
                             onClick={() => handleRewrite(s, i)}
                             disabled={rewritingIndex === i}
                             className="mt-2 text-xs font-black uppercase px-4 py-2 transition-colors"
-                            style={{ background: rewritingIndex === i ? '#222' : var(--primary), color: rewritingIndex === i ? '#555' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', cursor: rewritingIndex === i ? 'not-allowed' : 'pointer' }}
+                            style={{ background: rewritingIndex === i ? '#222' : 'var(--primary)', color: rewritingIndex === i ? '#555' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', cursor: rewritingIndex === i ? 'not-allowed' : 'pointer' }}
                           >
                             {rewritingIndex === i ? 'Generating...' : 'Rewrite Bullet →'}
                           </button>
@@ -420,7 +420,7 @@ function JobTracker() {
   const [activeView, setActiveView] = useState('discover');
 
   const STAGES = ['wishlist', 'applied', 'interview', 'offer', 'rejected'];
-  const STAGE_COLORS = { wishlist: '#6b7280', applied: var(--primary), interview: '#3b82f6', offer: '#22c55e', rejected: '#ef4444' };
+  const STAGE_COLORS = { wishlist: '#6b7280', applied: 'var(--primary)', interview: '#3b82f6', offer: '#22c55e', rejected: '#ef4444' };
 
   useEffect(() => { fetchApps(); fetchJobs(); }, []);
 
@@ -514,9 +514,9 @@ function JobTracker() {
               onClick={() => setActiveView(view)}
               className="px-3 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
               style={{
-                background: activeView === view ? var(--primary) : 'transparent',
+                background: activeView === view ? 'var(--primary)' : 'transparent',
                 color: activeView === view ? '#111' : '#666',
-                border: `2px solid ${activeView === view ? var(--primary) : '#333'}`,
+                border: `2px solid ${activeView === view ? 'var(--primary)' : '#333'}`,
               }}
             >
               {view === 'discover' ? <><Search className="w-3.5 h-3.5" /> Discover</> : <><LayoutDashboard className="w-3.5 h-3.5" /> Pipeline {apps.length > 0 && `(${apps.length})`}</>}
@@ -553,7 +553,7 @@ function JobTracker() {
               {STAGES.map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
             </select>
           </div>
-          <button type="submit" className="px-6 py-2.5 font-black uppercase text-sm" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', height: 42 }}>Save</button>
+          <button type="submit" className="px-6 py-2.5 font-black uppercase text-sm" style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', height: 42 }}>Save</button>
         </form>
       )}
 
@@ -568,11 +568,11 @@ function JobTracker() {
               style={{ ...inputStyle, flex: 1 }}
               placeholder="Search role (e.g. backend engineer, ML engineer)"
             />
-            <button onClick={() => fetchJobs(jobSearch)} className="px-6 font-black uppercase text-sm" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Search</button>
+            <button onClick={() => fetchJobs(jobSearch)} className="px-6 font-black uppercase text-sm" style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Search</button>
           </div>
 
           {jobsLoading ? (
-            <div className="text-center font-bold animate-pulse py-12" style={{ color: var(--primary), background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Fetching live jobs...</div>
+            <div className="text-center font-bold animate-pulse py-12" style={{ color: 'var(--primary)', background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Fetching live jobs...</div>
           ) : jobs.length === 0 ? (
             <div className="text-center font-bold py-12" style={{ color: '#444', background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>No jobs found — try a different role</div>
           ) : (
@@ -598,7 +598,7 @@ function JobTracker() {
                     </div>
                   )}
                   <div className="flex gap-2 mt-auto pt-3" style={{ borderTop: '1px dashed #1f1f1f' }}>
-                    <button onClick={() => handleMatchResume(job)} className="flex-1 text-xs font-black uppercase py-2 flex items-center justify-center gap-1 transition-colors" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
+                    <button onClick={() => handleMatchResume(job)} className="flex-1 text-xs font-black uppercase py-2 flex items-center justify-center gap-1 transition-colors" style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
                       <BarChart2 className="w-3.5 h-3.5" /> AI Match
                     </button>
                     <button onClick={() => saveJobToTracker(job)} className="flex-1 text-xs font-black uppercase py-2 transition-colors" style={{ background: 'transparent', color: 'var(--muted-foreground)', border: '2px solid #333' }}>+ Track</button>
@@ -685,7 +685,7 @@ function JobTracker() {
               <button onClick={() => { setMatchModal(null); setMatchResult(null); }} className="text-xs font-black uppercase px-3 py-1.5" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>✕ Close</button>
             </div>
 
-            {matchLoading && <div className="text-center py-10 font-bold animate-pulse" style={{ color: var(--primary) }}>Analyzing resume fit...</div>}
+            {matchLoading && <div className="text-center py-10 font-bold animate-pulse" style={{ color: 'var(--primary)' }}>Analyzing resume fit...</div>}
 
             {matchResult && !matchResult.error && (
               <div className="space-y-5">
@@ -695,7 +695,7 @@ function JobTracker() {
                 >
                   <div
                     className="text-5xl font-black"
-                    style={{ color: matchResult.match_score >= 70 ? '#22c55e' : matchResult.match_score >= 50 ? var(--primary) : '#ef4444', fontFamily: 'Playfair Display, serif' }}
+                    style={{ color: matchResult.match_score >= 70 ? '#22c55e' : matchResult.match_score >= 50 ? 'var(--primary)' : '#ef4444', fontFamily: 'Playfair Display, serif' }}
                   >
                     {matchResult.match_score}%
                   </div>
@@ -716,11 +716,11 @@ function JobTracker() {
 
                 {matchResult.resume_tweaks?.length > 0 && (
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: var(--primary) }}>Resume Fixes</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--primary)' }}>Resume Fixes</p>
                     <div className="space-y-2">
                       {matchResult.resume_tweaks.map((t, i) => (
                         <div key={i} className="p-3 text-sm" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>
-                          <span className="text-xs font-black uppercase" style={{ color: var(--primary) }}>{t.section}: </span>{t.action}
+                          <span className="text-xs font-black uppercase" style={{ color: 'var(--primary)' }}>{t.section}: </span>{t.action}
                         </div>
                       ))}
                     </div>
@@ -740,7 +740,7 @@ function JobTracker() {
                   </div>
                 )}
 
-                <button onClick={() => saveJobToTracker(matchModal)} className="w-full py-3 font-black uppercase text-sm flex items-center justify-center gap-2" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
+                <button onClick={() => saveJobToTracker(matchModal)} className="w-full py-3 font-black uppercase text-sm flex items-center justify-center gap-2" style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
                   <CheckCircle2 className="w-4 h-4" /> Save to My Pipeline
                 </button>
               </div>
@@ -756,168 +756,9 @@ function JobTracker() {
 }
 
 /* ── Resource Hub ─────────────────────────────────────────── */
-function CareerCommsLab({ onClose }) {
-  const [jd, setJd] = useState('');
-  const [targetRole, setTargetRole] = useState('Software Engineer');
-  const [company, setCompany] = useState('');
-  const [loadingKey, setLoadingKey] = useState('');
-  const [outputs, setOutputs] = useState({});
-
-  const inputStyle = { background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)', padding: '10px 14px', fontFamily: 'inherit', fontSize: 13, outline: 'none', width: '100%' };
-  const authHeaders = { Authorization: `Bearer ${getAuthToken()}` };
-
-  const setToolOutput = (key, payload) => {
-    setOutputs(prev => ({ ...prev, [key]: payload }));
-  };
-
-  const postFormTool = async (key, url, fields = {}, mapResult = (data) => data) => {
-    setLoadingKey(key);
-    try {
-      const formData = new FormData();
-      Object.entries(fields).forEach(([field, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(field, value);
-        }
-      });
-      const res = await axios.post(url, formData, { headers: authHeaders });
-      setToolOutput(key, { value: mapResult(res.data), error: '' });
-    } catch (err) {
-      setToolOutput(key, { value: null, error: err.response?.data?.detail || 'Request failed.' });
-    } finally {
-      setLoadingKey('');
-    }
-  };
-
-  const runLanguageAudit = async () => {
-    setLoadingKey('language');
-    try {
-      const res = await axios.post(`${API_BASE}/comms/language-audit`, null, { headers: authHeaders });
-      setToolOutput('language', { value: res.data, error: '' });
-    } catch (err) {
-      setToolOutput('language', { value: null, error: err.response?.data?.detail || 'Request failed.' });
-    } finally {
-      setLoadingKey('');
-    }
-  };
-
-  const renderOutput = (key) => {
-    const output = outputs[key];
-    if (!output) return null;
-    if (output.error) {
-      return <div className="mt-3 p-3 text-xs font-bold" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid #7f1d1d', color: '#fca5a5' }}>{output.error}</div>;
-    }
-    const value = output.value;
-    if (typeof value === 'string') {
-      return <div className="mt-3 p-3 text-sm whitespace-pre-wrap" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>{value}</div>;
-    }
-    if (Array.isArray(value)) {
-      return (
-        <div className="mt-3 space-y-2">
-          {value.map((item, idx) => (
-            <div key={`${key}-${idx}`} className="p-3 text-sm" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>
-              {typeof item === 'string' ? item : JSON.stringify(item)}
-            </div>
-          ))}
-        </div>
-      );
-    }
-    return (
-      <div className="mt-3 p-3 text-sm" style={{ background: '#fdfbf7', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', color: 'var(--foreground)' }}>
-        {value?.overall_feedback && <p className="mb-3">{value.overall_feedback}</p>}
-        {value?.overall_score !== undefined && <p className="mb-3"><strong>Overall Score:</strong> {value.overall_score}</p>}
-        {value?.overall_match_pct !== undefined && <p className="mb-3"><strong>Match:</strong> {value.overall_match_pct}%</p>}
-        {value?.action_verb_score !== undefined && <p className="mb-2"><strong>Action Verb Score:</strong> {value.action_verb_score}</p>}
-        {value?.quantification_score !== undefined && <p className="mb-2"><strong>Quantification Score:</strong> {value.quantification_score}</p>}
-        {value?.headlines && (
-          <div className="space-y-2">
-            {value.headlines.map((headline, idx) => <div key={idx}>{headline}</div>)}
-          </div>
-        )}
-        {value?.critical_missing && (
-          <div className="space-y-2">
-            <p><strong>Critical Missing:</strong> {value.critical_missing.join(', ') || 'None'}</p>
-            <p><strong>Strong Matches:</strong> {(value.strong_matches || []).join(', ') || 'None'}</p>
-          </div>
-        )}
-        {value?.fixes && (
-          <div className="space-y-2">
-            {value.fixes.slice(0, 4).map((fix, idx) => (
-              <div key={idx}>
-                <strong>{fix.original}</strong>
-                <div>{fix.rewrite}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const cards = [
-    { key: 'cover', title: 'Cover Letter', description: 'Generate a tailored letter from your latest analyzed resume.', action: () => postFormTool('cover', `${API_BASE}/generate-cover-letter`, { jd }, data => data.cover_letter || ''), requiresJd: true },
-    { key: 'interview', title: 'Interview Prep', description: 'Create targeted questions and answer angles from the same JD.', action: () => postFormTool('interview', `${API_BASE}/generate-interview-prep`, { jd }, data => data.interview_prep || ''), requiresJd: true },
-    { key: 'language', title: 'Language Audit', description: 'Score tone, verbs, and quantification quality across your latest resume.', action: runLanguageAudit },
-    { key: 'pitch', title: 'Elevator Pitch', description: 'Generate a crisp intro for networking and interviews.', action: () => postFormTool('pitch', `${API_BASE}/comms/elevator-pitch`, { target_role: targetRole }, data => data.pitch || '') },
-    { key: 'headline', title: 'LinkedIn Headlines', description: 'Get 3 headline options tied to your target role.', action: () => postFormTool('headline', `${API_BASE}/comms/linkedin-headline`, { target_role: targetRole }, data => ({ headlines: data.headlines || [] })) },
-    { key: 'cold', title: 'Cold Email', description: 'Write a recruiter outreach email grounded in your resume.', action: () => postFormTool('cold', `${API_BASE}/comms/cold-email`, { company, role: targetRole }, data => data.email || ''), requiresCompany: true },
-    { key: 'heatmap', title: 'Keyword Heatmap', description: 'See critical missing ATS keywords for a target JD.', action: () => postFormTool('heatmap', `${API_BASE}/resume/keyword-heatmap`, { jd }, data => data), requiresJd: true },
-  ];
-
-  return (
-    <div className="absolute inset-0 z-10 p-6 overflow-y-auto" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}>
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-start mb-6">
-          <div>
-            <h3 className="text-2xl font-black uppercase" style={{ color: var(--primary) }}>Career Comms Lab</h3>
-            <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)', maxWidth: 620 }}>These tools run against your latest analyzed resume, so the writing layer stays connected to your actual resume data.</p>
-          </div>
-          <button onClick={onClose} className="px-4 py-2 text-xs font-black uppercase" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Close</button>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          <div className="lg:col-span-2">
-            <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Target Job Description</label>
-            <textarea value={jd} onChange={e => setJd(e.target.value)} style={{ ...inputStyle, minHeight: 120 }} placeholder="Paste a target JD here for cover letters, interview prep, and keyword heatmaps." />
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Target Role</label>
-              <input value={targetRole} onChange={e => setTargetRole(e.target.value)} style={inputStyle} placeholder="Software Engineer" />
-            </div>
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest block mb-2" style={{ color: 'var(--muted-foreground)' }}>Company</label>
-              <input value={company} onChange={e => setCompany(e.target.value)} style={inputStyle} placeholder="Google, Stripe, etc." />
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {cards.map(card => {
-            const disabled = loadingKey === card.key || (card.requiresJd && !jd.trim()) || (card.requiresCompany && !company.trim());
-            return (
-              <div key={card.key} className="p-5 flex flex-col" className="glass-card">
-                <h4 className="font-black text-sm uppercase text-[#111]">{card.title}</h4>
-                <p className="text-xs mt-2 flex-1" style={{ color: 'var(--muted-foreground)' }}>{card.description}</p>
-                <button
-                  onClick={card.action}
-                  disabled={disabled}
-                  className="mt-4 py-2 text-xs font-black uppercase"
-                  style={{ background: disabled ? '#222' : var(--primary), color: disabled ? '#444' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', cursor: disabled ? 'not-allowed' : 'pointer' }}
-                >
-                  {loadingKey === card.key ? 'Running...' : `Run ${card.title}`}
-                </button>
-                {renderOutput(card.key)}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 const CATEGORIES = [
-  { id: 'dsa', label: 'DSA', color: var(--primary), resources: [
+  { id: 'dsa', label: 'DSA', color: 'var(--primary)', resources: [
     { name: 'Striver A2Z', desc: 'The industry-standard A2Z roadmap for SDE roles', url: 'https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/', tag: '450+ problems' },
     { name: 'NeetCode 150', desc: 'Most important LeetCode patterns for FAANG', url: 'https://neetcode.io/practice', tag: '150 curated' },
     { name: 'Love Babbar 450', desc: 'Popular DSA sheet cracked by thousands', url: 'https://450dsa.com', tag: '450 problems' },
@@ -970,7 +811,6 @@ function ResourceHub() {
   const [activeCategory, setActiveCategory] = useState('dsa');
   const [showHolisticTracker, setShowHolisticTracker] = useState(false);
   const [showDsaTracker, setShowDsaTracker] = useState(false);
-  const [showCommsLab, setShowCommsLab] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showRoadmap, setShowRoadmap] = useState(false);
   const [targetRole, setTargetRole] = useState('');
@@ -1023,7 +863,6 @@ function ResourceHub() {
             <BarChart2 className="w-3.5 h-3.5" /> Holistic Tracker
           </button>
           <button
-            onClick={() => setShowCommsLab(true)}
             className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
             style={{ background: 'transparent', color: 'var(--muted-foreground)', border: '2px solid #2a2a2a' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = '#555'; e.currentTarget.style.color = '#ccc'; }}
@@ -1034,7 +873,7 @@ function ResourceHub() {
           <button
             onClick={() => { setShowForm(true); setShowRoadmap(false); }}
             className="px-4 py-2 text-xs font-black uppercase flex items-center gap-1.5 transition-all"
-            style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}
+            style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}
           >
             <BookOpen className="w-3.5 h-3.5" /> AI Roadmap
           </button>
@@ -1088,10 +927,10 @@ function ResourceHub() {
             >
               <div className="flex justify-between items-start">
                 <h4 className="font-black text-sm text-[#111]">Holistic Daily Tracker</h4>
-                <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(255,102,0,0.15)', color: var(--primary), border: '1px solid rgba(255,102,0,0.3)' }}>Built-in</span>
+                <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(255,102,0,0.15)', color: 'var(--primary)', border: '1px solid rgba(255,102,0,0.3)' }}>Built-in</span>
               </div>
               <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>Track daily progress across 6 categories: DSA, System Design, Projects, CS Core, Behavioral, and Apps.</p>
-              <p className="text-xs font-black" style={{ color: var(--primary) }}>Open Tracker →</p>
+              <p className="text-xs font-black" style={{ color: 'var(--primary)' }}>Open Tracker →</p>
             </div>
           )}
 
@@ -1119,16 +958,15 @@ function ResourceHub() {
             onMouseLeave={e => { e.currentTarget.style.borderColor = '#2a2a2a'; }}
           >
             <div className="flex justify-between items-start">
-              <h4 className="font-black text-sm" style={{ color: var(--primary) }}>Your AI Roadmap</h4>
-              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(0,119,255,0.1)', color: var(--primary), border: '1px solid rgba(255,102,0,0.2)' }}>AI</span>
+              <h4 className="font-black text-sm" style={{ color: 'var(--primary)' }}>Your AI Roadmap</h4>
+              <span className="text-[10px] font-black px-2 py-0.5" style={{ background: 'rgba(0,119,255,0.1)', color: 'var(--primary)', border: '1px solid rgba(255,102,0,0.2)' }}>AI</span>
             </div>
             <p className="text-xs flex-1" style={{ color: 'var(--muted-foreground)' }}>
               {roadmap ? `Plan for ${roadmap.role} @ ${roadmap.company} ready.` : '8-week personalized plan based on your resume + target role.'}
             </p>
-            <p className="text-xs font-black" style={{ color: var(--primary) }}>{roadmap ? 'View / Regenerate →' : 'Generate My Plan →'}</p>
+            <p className="text-xs font-black" style={{ color: 'var(--primary)' }}>{roadmap ? 'View / Regenerate →' : 'Generate My Plan →'}</p>
           </div>
           <div
-            onClick={() => setShowCommsLab(true)}
             className="p-5 flex flex-col gap-3 transition-transform hover:-translate-y-1 cursor-pointer"
             style={{ background: '#fdfbf7', border: '2px dashed #2a2a2a' }}
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.45)'; }}
@@ -1169,7 +1007,7 @@ function ResourceHub() {
         <div className="absolute inset-0 z-10 flex items-center justify-center p-6" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}>
           <div className="w-full max-w-lg p-8" style={{ background: '#fdfbf7', border: '2px solid #222', boxShadow: '8px 8px 0 hsl(24,100%,50%)' }}>
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-2xl font-black uppercase" style={{ color: var(--primary) }}>Generate My Plan</h3>
+              <h3 className="text-2xl font-black uppercase" style={{ color: 'var(--primary)' }}>Generate My Plan</h3>
               <button onClick={() => setShowForm(false)} className="text-xs font-black uppercase px-3 py-1" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>✕</button>
             </div>
             <p className="text-xs mb-6" style={{ color: 'var(--muted-foreground)' }}>AI analyzes your resume and builds a targeted 8-week roadmap. Upload a resume in Resume Lab first.</p>
@@ -1183,7 +1021,7 @@ function ResourceHub() {
                 <input required value={targetCompany} onChange={e => setTargetCompany(e.target.value)} style={inputStyle} placeholder="e.g. Google, Amazon, Microsoft" />
               </div>
               {error && <div className="p-3 text-xs font-bold" style={{ background: 'rgba(239,68,68,0.08)', border: '2px solid #7f1d1d', color: '#fca5a5' }}>{error}</div>}
-              <button type="submit" disabled={isGenerating} className="w-full py-3 font-black uppercase text-sm" style={{ background: isGenerating ? '#222' : var(--primary), color: isGenerating ? '#444' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', cursor: isGenerating ? 'not-allowed' : 'pointer' }}>
+              <button type="submit" disabled={isGenerating} className="w-full py-3 font-black uppercase text-sm" style={{ background: isGenerating ? '#222' : 'var(--primary)', color: isGenerating ? '#444' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', cursor: isGenerating ? 'not-allowed' : 'pointer' }}>
                 {isGenerating ? 'Generating...' : 'Generate My 8-Week Plan'}
               </button>
             </form>
@@ -1196,11 +1034,11 @@ function ResourceHub() {
         <div className="absolute inset-0 z-10 p-6 flex flex-col overflow-y-auto" style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(4px)' }}>
           <div className="flex justify-between items-start mb-8" style={{ borderBottom: '1px solid var(--border)', paddingBottom: '1.5rem' }}>
             <div>
-              <h3 className="text-2xl font-black uppercase" style={{ color: var(--primary) }}>{roadmap.role} @ {roadmap.company}</h3>
+              <h3 className="text-2xl font-black uppercase" style={{ color: 'var(--primary)' }}>{roadmap.role} @ {roadmap.company}</h3>
               <p className="text-sm mt-1" style={{ color: 'var(--muted-foreground)', maxWidth: 560 }}>{roadmap.summary}</p>
             </div>
             <div className="flex gap-2 shrink-0 ml-4">
-              <button onClick={() => { setShowForm(true); setShowRoadmap(false); }} className="px-4 py-2 text-xs font-black uppercase" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Regenerate</button>
+              <button onClick={() => { setShowForm(true); setShowRoadmap(false); }} className="px-4 py-2 text-xs font-black uppercase" style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Regenerate</button>
               <button onClick={() => setShowRoadmap(false)} className="px-4 py-2 text-xs font-black uppercase" style={{ color: 'var(--muted-foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Close</button>
             </div>
           </div>
@@ -1219,22 +1057,22 @@ function ResourceHub() {
               const isLast = i === roadmap.phases.length - 1;
               return (
                 <div key={i} className="flex gap-6 group">
-                  <div className="w-20 shrink-0 text-right font-black text-xs pt-4" style={{ color: var(--primary) }}>{phase.week_label}</div>
+                  <div className="w-20 shrink-0 text-right font-black text-xs pt-4" style={{ color: 'var(--primary)' }}>{phase.week_label}</div>
                   <div className="w-5 flex flex-col items-center">
-                    <div className="w-5 h-5 border-2 rounded-full mt-4 shrink-0 group-hover:scale-125 transition-transform z-10" style={{ background: var(--primary), borderColor: var(--primary) }} />
+                    <div className="w-5 h-5 border-2 rounded-full mt-4 shrink-0 group-hover:scale-125 transition-transform z-10" style={{ background: 'var(--primary)', borderColor: 'var(--primary)' }} />
                     {!isLast && <div className="w-px flex-1 -mt-1" style={{ background: '#eee' }} />}
                   </div>
                   <div className="flex-1 mb-6 p-5 hover:-translate-y-0.5 transition-transform" className="glass-card">
                     <div className="flex justify-between items-start mb-1">
                       <h4 className="font-black text-lg uppercase text-[#111]">{phase.title}</h4>
-                      <span className="text-[10px] font-black px-2 py-0.5 ml-2 shrink-0" style={{ background: 'rgba(255,102,0,0.15)', color: var(--primary) }}>{phase.resource_type}</span>
+                      <span className="text-[10px] font-black px-2 py-0.5 ml-2 shrink-0" style={{ background: 'rgba(255,102,0,0.15)', color: 'var(--primary)' }}>{phase.resource_type}</span>
                     </div>
-                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: var(--primary) }}>Focus: {phase.focus}</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: 'var(--primary)' }}>Focus: {phase.focus}</p>
                     <p className="text-sm mb-4" style={{ color: 'var(--muted-foreground)' }}>{phase.description}</p>
                     {phase.resource_url && (
-                      <a href={phase.resource_url} target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase px-3 py-1.5 inline-block transition-colors" style={{ border: '2px solid hsl(24,100%,50%)', color: var(--primary) }}
-                        onMouseEnter={e => { e.currentTarget.style.background = var(--primary); e.currentTarget.style.color = '#111'; }}
-                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = var(--primary); }}
+                      <a href={phase.resource_url} target="_blank" rel="noopener noreferrer" className="text-xs font-black uppercase px-3 py-1.5 inline-block transition-colors" style={{ border: '2px solid hsl(24,100%,50%)', color: 'var(--primary)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = 'var(--primary)'; e.currentTarget.style.color = '#111'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--primary)'; }}
                       >
                         {phase.resource_label} ↗
                       </a>
@@ -1309,9 +1147,9 @@ export default function DashboardPage() {
         <div className="hidden lg:flex" style={{ width: 240, minWidth: 240, background: '#fdfbf7', borderRight: '1px solid var(--border)' }} />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div className="text-sm font-black uppercase tracking-widest mb-3 animate-pulse" style={{ color: var(--primary) }}>Loading your dashboard...</div>
+            <div className="text-sm font-black uppercase tracking-widest mb-3 animate-pulse" style={{ color: 'var(--primary)' }}>Loading your dashboard...</div>
             <div className="flex gap-1.5 justify-center">
-              {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: var(--primary), animationDelay: `${i * 0.15}s` }} />)}
+              {[1, 2, 3].map(i => <div key={i} className="w-2 h-2 rounded-full animate-bounce" style={{ background: 'var(--primary)', animationDelay: `${i * 0.15}s` }} />)}
             </div>
           </div>
         </div>
