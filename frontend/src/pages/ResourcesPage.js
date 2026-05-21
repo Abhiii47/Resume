@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const CARD = { background: '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)', boxShadow: '4px 4px 0 #000' };
+const CARD = { background: '#fff', border: '1px solid var(--border)', boxShadow: '4px 4px 0 #000' };
 
 const CATEGORIES = [
-  { id: 'dsa', label: 'DSA', color: var(--primary), resources: [
+  { id: 'dsa', label: 'DSA', color: 'var(--primary)', resources: [
     { name: 'Striver A2Z', desc: 'Industry-standard A2Z roadmap for SDE roles', url: 'https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/', tag: '450+ problems' },
     { name: 'NeetCode 150', desc: 'Most important LeetCode patterns for FAANG', url: 'https://neetcode.io/practice', tag: '150 curated' },
     { name: 'Love Babbar 450', desc: 'Popular DSA sheet cracked by thousands', url: 'https://450dsa.com', tag: '450 problems' },
@@ -51,7 +51,7 @@ export default function ResourcesPage() {
       <header className="w-full" style={{ background: 'hsl(40,30%,92%)', borderBottom: '1px solid var(--border)' }}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: var(--primary), border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>SR</div>
+            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: 'var(--primary)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>SR</div>
             <span className="font-black text-lg" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>SmartResume</span>
           </div>
           <div className="hidden md:flex items-center gap-8 font-black text-sm uppercase tracking-widest" style={{ color: 'var(--foreground)' }}>
@@ -65,11 +65,11 @@ export default function ResourcesPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-20">
         <div className="flex items-center gap-3 mb-4">
-          <span style={{ width: 28, height: 2, background: var(--primary), display: 'inline-block' }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: var(--primary) }}>Career Resources</span>
+          <span style={{ width: 28, height: 2, background: 'var(--primary)', display: 'inline-block' }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--primary)' }}>Career Resources</span>
         </div>
         <h1 className="font-display-serif text-5xl mb-4" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>
-          Resource <span className="inline-block px-2" style={{ background: var(--primary), color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Hub</span>
+          Resource <span className="inline-block px-2" style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Hub</span>
         </h1>
         <p className="text-base mb-10" style={{ color: 'var(--muted-foreground)' }}>
           Curated, battle-tested resources used by engineers who cracked FAANG.
