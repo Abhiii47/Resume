@@ -18,15 +18,16 @@ logger = logging.getLogger(__name__)
 
 
 class MessageType(str, Enum):
-    REQUEST = "request"       # "Please do X"
-    RESPONSE = "response"     # "Here's the result of X"
-    HANDOFF = "handoff"       # "Routing this to agent Y"
-    INFO = "info"             # "FYI, context update"
+    REQUEST = "request"  # "Please do X"
+    RESPONSE = "response"  # "Here's the result of X"
+    HANDOFF = "handoff"  # "Routing this to agent Y"
+    INFO = "info"  # "FYI, context update"
 
 
 @dataclass
 class AgentMessage:
     """A single message between agents."""
+
     from_agent: str
     to_agent: str
     message_type: MessageType

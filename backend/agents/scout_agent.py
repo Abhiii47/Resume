@@ -10,12 +10,13 @@ from typing import Any
 
 import requests
 
-from .base_agent import BaseAgent, AgentTool, AgentContext
+from .base_agent import AgentContext, AgentTool, BaseAgent
 
 logger = logging.getLogger(__name__)
 
 
 # ── Helper: resolve resume text ──────────────────────────────────────────────
+
 
 def _get_resume_text(context: AgentContext) -> str:
     """Resolve resume text from context, falling back to latest DB analysis."""
@@ -107,9 +108,7 @@ class ScoutAgent(BaseAgent):
             ),
             AgentTool(
                 name="add_application",
-                description=(
-                    "Add a new job to the user's application tracker."
-                ),
+                description=("Add a new job to the user's application tracker."),
                 parameters={
                     "company": "Company name",
                     "role": "Role title",
@@ -145,9 +144,10 @@ class ScoutAgent(BaseAgent):
                 if "skills" in str(res).lower() and query == "software engineer":
                     response_text = str(res.get("response", ""))
                     import re
-                    skills_match = re.search(r'skills:\s*([a-zA-Z0-9,\s]+)', response_text, re.IGNORECASE)
+
+                    skills_match = re.search(r"skills:\s*([a-zA-Z0-9,\s]+)", response_text, re.IGNORECASE)
                     if skills_match:
-                        first_skill = skills_match.group(1).split(',')[0].strip()
+                        first_skill = skills_match.group(1).split(",")[0].strip()
                         if first_skill:
                             query = f"{first_skill} {query}"
 
@@ -177,21 +177,19 @@ class ScoutAgent(BaseAgent):
                     for job in results[:10]:
                         sal_min = job.get("salary_min")
                         sal_max = job.get("salary_max")
-                        salary = (
-                            f"${int(sal_min):,}–${int(sal_max):,}/yr"
-                            if sal_min and sal_max
-                            else None
+                        salary = f"${int(sal_min):,}–${int(sal_max):,}/yr" if sal_min and sal_max else None
+                        jobs.append(
+                            {
+                                "title": job.get("title", ""),
+                                "company": job.get("company", {}).get("display_name", "Unknown"),
+                                "location": job.get("location", {}).get("display_name", ""),
+                                "salary": salary,
+                                "url": job.get("redirect_url", ""),
+                                "description_snippet": (job.get("description", ""))[:300],
+                                "created": job.get("created", ""),
+                                "source": "adzuna",
+                            }
                         )
-                        jobs.append({
-                            "title": job.get("title", ""),
-                            "company": job.get("company", {}).get("display_name", "Unknown"),
-                            "location": job.get("location", {}).get("display_name", ""),
-                            "salary": salary,
-                            "url": job.get("redirect_url", ""),
-                            "description_snippet": (job.get("description", ""))[:300],
-                            "created": job.get("created", ""),
-                            "source": "adzuna",
-                        })
                     return {
                         "query": query,
                         "location": location,
@@ -213,12 +211,30 @@ class ScoutAgent(BaseAgent):
         skills_block = ""
         if resume_text:
             import re as _re
+
             skills_section = resume_text[:3000]
             # Extract top skills for context
             tech_keywords = [
-                "python", "javascript", "typescript", "react", "node", "java", "sql",
-                "aws", "docker", "kubernetes", "machine learning", "data science", "fastapi",
-                "django", "flask", "pytorch", "tensorflow", "scikit", "pandas", "spark"
+                "python",
+                "javascript",
+                "typescript",
+                "react",
+                "node",
+                "java",
+                "sql",
+                "aws",
+                "docker",
+                "kubernetes",
+                "machine learning",
+                "data science",
+                "fastapi",
+                "django",
+                "flask",
+                "pytorch",
+                "tensorflow",
+                "scikit",
+                "pandas",
+                "spark",
             ]
             found = [s for s in tech_keywords if s in skills_section.lower()]
             skills_block = f"Detected skills from resume: {', '.join(found[:10])}\n" if found else ""
@@ -315,9 +331,7 @@ Return JSON:
                 task="analysis_quality",
                 required_keys=["fit_score", "critical_gaps", "verdict"],
             )
-            return result if result else {
-                "error": "AI analysis unavailable. Try again shortly."
-            }
+            return result if result else {"error": "AI analysis unavailable. Try again shortly."}
 
         except Exception as exc:
             logger.error("match_resume_to_job failed: %s", exc)
@@ -366,14 +380,16 @@ Return JSON:
 
             application_list = []
             for a in apps:
-                application_list.append({
-                    "company": a.company,
-                    "role": a.role,
-                    "stage": a.stage,
-                    "url": a.job_url,
-                    "date_applied": a.date_applied.isoformat() if a.date_applied else None,
-                    "days_ago": (now - a.created_at).days,
-                })
+                application_list.append(
+                    {
+                        "company": a.company,
+                        "role": a.role,
+                        "stage": a.stage,
+                        "url": a.job_url,
+                        "date_applied": a.date_applied.isoformat() if a.date_applied else None,
+                        "days_ago": (now - a.created_at).days,
+                    }
+                )
 
             return {
                 "total": len(apps),
@@ -461,19 +477,15 @@ JOB POSTING TEXT:
                 prompt,
                 system="You are an expert data extractor. Respond in valid JSON.",
                 task="quick_copy",
-                required_keys=["company", "role"]
+                required_keys=["company", "role"],
             )
-            
+
             company = extraction.get("company", "Unknown")
             role = extraction.get("role", "Unknown")
 
             # 3. Auto-add to Kanban Tracker
             tracker_result = self._handle_add_application(
-                context=context,
-                company=company,
-                role=role,
-                stage="wishlist",
-                url=url
+                context=context, company=company, role=role, stage="wishlist", url=url
             )
 
             return {
@@ -482,10 +494,9 @@ JOB POSTING TEXT:
                 "scraped_role": role,
                 "url": url,
                 "tracker_update": tracker_result,
-                "job_description_snippet": scraped_text[:1000] # Return a snippet for context
+                "job_description_snippet": scraped_text[:1000],  # Return a snippet for context
             }
 
         except Exception as exc:
             logger.error("read_url failed: %s", exc)
             return {"error": f"Failed to scrape URL or extract data: {exc}"}
-

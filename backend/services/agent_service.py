@@ -3,6 +3,7 @@ Alex — SmartResume Career Mentor Agent
 A context-aware, tool-using career mentor that knows everything about the user
 and proactively tracks + supports their career journey.
 """
+
 import json
 import logging
 import re
@@ -17,7 +18,10 @@ from security_utils import decrypt_resume_text
 def _analysis_resume_text(analysis) -> str:
     if not analysis:
         return ""
-    return (decrypt_resume_text(getattr(analysis, "resume_text", "")) or getattr(analysis, "resume_preview", "") or "").strip()
+    return (
+        decrypt_resume_text(getattr(analysis, "resume_text", "")) or getattr(analysis, "resume_preview", "") or ""
+    ).strip()
+
 
 # ── Alex's Persona ────────────────────────────────────────────────────────────
 
@@ -41,20 +45,23 @@ Style rules:
 
 # ── Context Builder ───────────────────────────────────────────────────────────
 
+
 def build_user_context(user, db) -> Dict:
     """Load comprehensive user career context."""
-    from database import Analysis, DSATrack, JobApplication, GitHubProfile, CodingRoadmap
+    from database import Analysis, CodingRoadmap, DSATrack, GitHubProfile, JobApplication
 
     ctx = {
         "username": user.username,
         "member_since": user.created_at.strftime("%B %Y") if user.created_at else "recently",
-        "resume": None, "dsa": None, "jobs": None, "github": None, "roadmap": None,
+        "resume": None,
+        "dsa": None,
+        "jobs": None,
+        "github": None,
+        "roadmap": None,
     }
 
     # Resume
-    analysis = db.query(Analysis).filter(
-        Analysis.user_id == user.id
-    ).order_by(Analysis.created_at.desc()).first()
+    analysis = db.query(Analysis).filter(Analysis.user_id == user.id).order_by(Analysis.created_at.desc()).first()
 
     if analysis:
         ctx["resume"] = {
@@ -90,10 +97,13 @@ def build_user_context(user, db) -> Dict:
         }
 
     # Jobs
-    apps = db.query(JobApplication).filter(
-        JobApplication.user_id == user.id,
-        JobApplication.is_active == True
-    ).order_by(JobApplication.created_at.desc()).limit(10).all()
+    apps = (
+        db.query(JobApplication)
+        .filter(JobApplication.user_id == user.id, JobApplication.is_active == True)
+        .order_by(JobApplication.created_at.desc())
+        .limit(10)
+        .all()
+    )
 
     if apps:
         stale = [
@@ -123,9 +133,12 @@ def build_user_context(user, db) -> Dict:
         }
 
     # Roadmap
-    roadmap = db.query(CodingRoadmap).filter(
-        CodingRoadmap.user_id == user.id
-    ).order_by(CodingRoadmap.updated_at.desc()).first()
+    roadmap = (
+        db.query(CodingRoadmap)
+        .filter(CodingRoadmap.user_id == user.id)
+        .order_by(CodingRoadmap.updated_at.desc())
+        .first()
+    )
     if roadmap:
         ctx["roadmap"] = {
             "target": roadmap.target_role,
@@ -146,7 +159,9 @@ def _format_context(ctx: Dict) -> str:
         lines.append("RESUME:")
         lines.append(f"  Score: {r['score']}/100 (analyzed {r['days_ago']}d ago)")
         if bd:
-            lines.append(f"  Keywords: {bd.get('keyword_match', '?')}/35 | Format: {bd.get('format_readability', '?')}/30 | Impact: {bd.get('impact_metrics', '?')}/35")
+            lines.append(
+                f"  Keywords: {bd.get('keyword_match', '?')}/35 | Format: {bd.get('format_readability', '?')}/30 | Impact: {bd.get('impact_metrics', '?')}/35"
+            )
         if r["suggestions"]:
             lines.append(f"  Issues: {' | '.join(r['suggestions'][:2])}")
     else:
@@ -154,7 +169,9 @@ def _format_context(ctx: Dict) -> str:
 
     if ctx["dsa"]:
         d = ctx["dsa"]
-        lines.append(f"\nDSA: {d['total_completed']} solved | Streak: {d['current_streak']}d | Today: {d['done_today']} problems")
+        lines.append(
+            f"\nDSA: {d['total_completed']} solved | Streak: {d['current_streak']}d | Today: {d['done_today']} problems"
+        )
         if d["streak_at_risk"]:
             lines.append("  ⚠️ STREAK AT RISK — nothing solved today!")
     else:
@@ -197,7 +214,7 @@ TOOL_DESCRIPTIONS = {
 
 def execute_tool(tool_name: str, args: Dict, user, db) -> str:
     from database import Analysis, JobApplication
-    from services.llm_service import rewrite_bullet_point, generate_cover_letter, generate_dynamic_roadmap
+    from services.llm_service import generate_cover_letter, generate_dynamic_roadmap, rewrite_bullet_point
 
     try:
         if tool_name == "get_user_status":
@@ -208,12 +225,15 @@ def execute_tool(tool_name: str, args: Dict, user, db) -> str:
             a = db.query(Analysis).filter(Analysis.user_id == user.id).order_by(Analysis.created_at.desc()).first()
             if not a:
                 return "No resume analyzed yet. Go to Resume Lab and upload your PDF."
-            return json.dumps({
-                "score": a.ats_score,
-                "breakdown": a.score_breakdown,
-                "top_issues": (a.suggestions or [])[:5],
-                "jd_used": bool(a.jd_used),
-            }, indent=2)
+            return json.dumps(
+                {
+                    "score": a.ats_score,
+                    "breakdown": a.score_breakdown,
+                    "top_issues": (a.suggestions or [])[:5],
+                    "jd_used": bool(a.jd_used),
+                },
+                indent=2,
+            )
 
         elif tool_name == "rewrite_bullet":
             bullet = args.get("bullet", "")
@@ -237,7 +257,9 @@ def execute_tool(tool_name: str, args: Dict, user, db) -> str:
             if not company or not role:
                 return "Missing company or role name."
             app = JobApplication(
-                user_id=user.id, company=company, role=role,
+                user_id=user.id,
+                company=company,
+                role=role,
                 stage=args.get("stage", "applied"),
                 job_url=args.get("url") or None,
                 date_applied=datetime.utcnow(),
@@ -268,14 +290,29 @@ def execute_tool(tool_name: str, args: Dict, user, db) -> str:
 
 # ── Intent Detection ──────────────────────────────────────────────────────────
 
+
 def _extract_company(msg: str) -> str:
-    known = ["google", "amazon", "microsoft", "meta", "apple", "netflix", "uber",
-             "airbnb", "stripe", "openai", "flipkart", "infosys", "tcs", "wipro"]
+    known = [
+        "google",
+        "amazon",
+        "microsoft",
+        "meta",
+        "apple",
+        "netflix",
+        "uber",
+        "airbnb",
+        "stripe",
+        "openai",
+        "flipkart",
+        "infosys",
+        "tcs",
+        "wipro",
+    ]
     ml = msg.lower()
     for c in known:
         if c in ml:
             return c.capitalize()
-    for pat in [r'at\s+([A-Z][a-zA-Z]+)', r'for\s+([A-Z][a-zA-Z]+)', r'@\s*([A-Z][a-zA-Z]+)']:
+    for pat in [r"at\s+([A-Z][a-zA-Z]+)", r"for\s+([A-Z][a-zA-Z]+)", r"@\s*([A-Z][a-zA-Z]+)"]:
         m = re.search(pat, msg)
         if m:
             return m.group(1)
@@ -283,8 +320,18 @@ def _extract_company(msg: str) -> str:
 
 
 def _extract_role(msg: str) -> str:
-    roles = ["sde", "software engineer", "backend engineer", "frontend engineer",
-             "full stack", "data scientist", "ml engineer", "product manager", "devops", "swe"]
+    roles = [
+        "sde",
+        "software engineer",
+        "backend engineer",
+        "frontend engineer",
+        "full stack",
+        "data scientist",
+        "ml engineer",
+        "product manager",
+        "devops",
+        "swe",
+    ]
     ml = msg.lower()
     for r in roles:
         if r in ml:
@@ -296,8 +343,20 @@ def _pick_tools(message: str) -> List[Dict]:
     ml = message.lower()
     tools = []
 
-    status_kw = ["how am i", "what should i", "today", "progress", "status", "summary",
-                 "hi", "hello", "hey", "overview", "check in", "update"]
+    status_kw = [
+        "how am i",
+        "what should i",
+        "today",
+        "progress",
+        "status",
+        "summary",
+        "hi",
+        "hello",
+        "hey",
+        "overview",
+        "check in",
+        "update",
+    ]
     if any(k in ml for k in status_kw):
         tools.append({"tool": "get_user_status", "args": {}})
 
@@ -309,23 +368,34 @@ def _pick_tools(message: str) -> List[Dict]:
         tools.append({"tool": "rewrite_bullet", "args": {"bullet": message, "role": _extract_role(message)}})
 
     if "cover letter" in ml or "cover email" in ml:
-        tools.append({"tool": "generate_cover_letter", "args": {
-            "company": _extract_company(message), "role": _extract_role(message)
-        }})
+        tools.append(
+            {
+                "tool": "generate_cover_letter",
+                "args": {"company": _extract_company(message), "role": _extract_role(message)},
+            }
+        )
 
     add_kw = ["add", "track", "applied to", "applied at", "apply to", "log this"]
     job_kw = ["job", "role", "position", "application", "internship", "offer"]
     if any(k in ml for k in add_kw) and any(k in ml for k in job_kw):
-        tools.append({"tool": "add_job_application", "args": {
-            "company": _extract_company(message), "role": _extract_role(message)
-        }})
+        tools.append(
+            {
+                "tool": "add_job_application",
+                "args": {"company": _extract_company(message), "role": _extract_role(message)},
+            }
+        )
 
     roadmap_kw = ["roadmap", "plan", "prepare for", "get into", "land at", "study plan"]
     if any(k in ml for k in roadmap_kw):
-        tools.append({"tool": "generate_roadmap", "args": {
-            "company": _extract_company(message) or "Top Tech Company",
-            "role": _extract_role(message),
-        }})
+        tools.append(
+            {
+                "tool": "generate_roadmap",
+                "args": {
+                    "company": _extract_company(message) or "Top Tech Company",
+                    "role": _extract_role(message),
+                },
+            }
+        )
 
     # Deduplicate
     seen, unique = set(), []
@@ -338,6 +408,7 @@ def _pick_tools(message: str) -> List[Dict]:
 
 
 # ── Main Agent Loop ───────────────────────────────────────────────────────────
+
 
 def run_agent(
     user_message: str,
@@ -367,10 +438,13 @@ def run_agent(
         tool_results.append(f"[{tc['tool']}]:\n{result}")
 
     # Build history string (last 8 turns)
-    history_str = "\n".join(
-        f"{'User' if m['role'] == 'user' else 'Alex'}: {m['content'][:400]}"
-        for m in conversation_history[-8:]
-    ) if conversation_history else "No previous messages."
+    history_str = (
+        "\n".join(
+            f"{'User' if m['role'] == 'user' else 'Alex'}: {m['content'][:400]}" for m in conversation_history[-8:]
+        )
+        if conversation_history
+        else "No previous messages."
+    )
 
     tool_block = "\n\n".join(tool_results) if tool_results else ""
 
@@ -408,7 +482,7 @@ Respond as Alex. Be specific — reference real numbers from the data. If a tool
 
     response = _call_llm(
         prompt,
-        system="You are Alex, an elite career mentor. Always use the user's real data. Be direct, specific, never generic."
+        system="You are Alex, an elite career mentor. Always use the user's real data. Be direct, specific, never generic.",
     )
 
     if not response:

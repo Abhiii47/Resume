@@ -309,7 +309,6 @@ export default function MentorChat() {
         setIsLoadingHistory(false);
       }
     })();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const triggerInit = useCallback(async () => {
@@ -395,7 +394,9 @@ export default function MentorChat() {
       });
       setMessages([]);
       await triggerInit();
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const isEmpty = messages.length === 0 && !isLoadingHistory && !isThinking;

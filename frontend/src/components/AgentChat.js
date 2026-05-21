@@ -179,7 +179,9 @@ export default function AgentChat({ onAnalysisRefresh }) {
       await fetch(`${API_BASE}/agents/history`, { method: "DELETE", headers: { Authorization: `Bearer ${getAuthToken()}` } });
       setMessages([]);
       setTrace([]);
-    } catch {}
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const empty = !messages.length && !loading && !streaming;

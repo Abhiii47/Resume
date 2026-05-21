@@ -6,12 +6,13 @@ Creative, persuasive writing specialist who masters STAR format and ATS optimiza
 import logging
 from typing import Any
 
-from .base_agent import BaseAgent, AgentTool, AgentContext
+from .base_agent import AgentContext, AgentTool, BaseAgent
 
 logger = logging.getLogger(__name__)
 
 
 # ── Helper: resolve resume text ──────────────────────────────────────────────
+
 
 def _get_resume_text(context: AgentContext) -> str:
     """Resolve resume text from context, falling back to latest DB analysis."""
@@ -124,8 +125,7 @@ class WriterAgent(BaseAgent):
             AgentTool(
                 name="generate_elevator_pitch",
                 description=(
-                    "Generate a compelling 30-second professional elevator pitch "
-                    "tailored to a target role."
+                    "Generate a compelling 30-second professional elevator pitch " "tailored to a target role."
                 ),
                 parameters={
                     "role": "The target role (e.g. 'Full Stack Developer')",
@@ -134,10 +134,7 @@ class WriterAgent(BaseAgent):
             ),
             AgentTool(
                 name="generate_linkedin_headline",
-                description=(
-                    "Generate 3 distinct, keyword-rich LinkedIn headline options "
-                    "for a target role."
-                ),
+                description=("Generate 3 distinct, keyword-rich LinkedIn headline options " "for a target role."),
                 parameters={
                     "role": "The target role (e.g. 'Data Scientist')",
                 },
@@ -193,6 +190,7 @@ class WriterAgent(BaseAgent):
     def _handle_generate_cover_letter(self, **kwargs) -> Any:
         """Generate a tailored cover letter with real user data filled in."""
         import re as _re
+
         context: AgentContext = kwargs["context"]
         resume_text = _get_resume_text(context)
 
@@ -209,15 +207,15 @@ class WriterAgent(BaseAgent):
                 break
 
         # Email
-        email_match = _re.search(r'[\w.+-]+@[\w-]+\.[\w.]+', resume_text)
+        email_match = _re.search(r"[\w.+-]+@[\w-]+\.[\w.]+", resume_text)
         email = email_match.group(0) if email_match else ""
 
         # Phone
-        phone_match = _re.search(r'[\+]?[\d\s\-\(\)]{10,15}', resume_text)
+        phone_match = _re.search(r"[\+]?[\d\s\-\(\)]{10,15}", resume_text)
         phone = phone_match.group(0).strip() if phone_match else ""
 
         # LinkedIn
-        linkedin_match = _re.search(r'linkedin\.com/in/[\w\-]+', resume_text, _re.IGNORECASE)
+        linkedin_match = _re.search(r"linkedin\.com/in/[\w\-]+", resume_text, _re.IGNORECASE)
         linkedin = linkedin_match.group(0) if linkedin_match else ""
 
         # ── Get company/role from kwargs OR Scout's shared context ────────
@@ -231,11 +229,15 @@ class WriterAgent(BaseAgent):
                 response_text = str(res.get("response", ""))
                 # Look for job title and company patterns in Scout's response
                 if not company:
-                    company_match = _re.search(r'at\s+([A-Z][a-zA-Z\s]+?)[\.,\n]', response_text)
+                    company_match = _re.search(r"at\s+([A-Z][a-zA-Z\s]+?)[\.,\n]", response_text)
                     if company_match:
                         company = company_match.group(1).strip()
                 if not role:
-                    role_match = _re.search(r'(Machine Learning|Software|Data|Backend|Frontend|Full.?Stack|ML|AI)\s+(?:Engineer|Scientist|Developer|Analyst)', response_text, _re.IGNORECASE)
+                    role_match = _re.search(
+                        r"(Machine Learning|Software|Data|Backend|Frontend|Full.?Stack|ML|AI)\s+(?:Engineer|Scientist|Developer|Analyst)",
+                        response_text,
+                        _re.IGNORECASE,
+                    )
                     if role_match:
                         role = role_match.group(0).strip()
 
@@ -369,10 +371,11 @@ class WriterAgent(BaseAgent):
 
         try:
             from services.github_service import fetch_user_repos
+
             repos = fetch_user_repos(github_username)
             if not repos:
                 return {"message": f"No public repositories found for {github_username}."}
-            
+
             # Use LLM to draft bullet points for the top 3 repos
             drafts = []
             for repo in repos[:3]:
@@ -383,26 +386,24 @@ class WriterAgent(BaseAgent):
                 Primary Language: {repo['language']}
                 Stars: {repo['stars']}
                 """
-                
+
                 # Use existing _call_llm utility
                 bullets = self._llm._call_llm(
-                    prompt, 
+                    prompt,
                     system="You are an expert resume writer. Return only the bullet points, starting with a strong action verb.",
-                    task="quick_copy"
+                    task="quick_copy",
                 )
-                
-                drafts.append({
-                    "project_name": repo['name'],
-                    "language": repo['language'],
-                    "url": repo['url'],
-                    "drafted_bullets": bullets.strip()
-                })
-                
-            return {
-                "github_username": github_username,
-                "suggested_projects": drafts
-            }
+
+                drafts.append(
+                    {
+                        "project_name": repo["name"],
+                        "language": repo["language"],
+                        "url": repo["url"],
+                        "drafted_bullets": bullets.strip(),
+                    }
+                )
+
+            return {"github_username": github_username, "suggested_projects": drafts}
         except Exception as exc:
             logger.error("draft_missing_projects failed: %s", exc)
             return {"error": f"Failed to draft projects: {exc}"}
-

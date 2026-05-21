@@ -66,7 +66,7 @@ function ToastItem({ item, onRemove }) {
       timerRef.current = setTimeout(() => dismiss(), item.duration);
     }
     return () => clearTimeout(timerRef.current);
-  }, []); // eslint-disable-line
+  }, []);
 
   const dismiss = () => {
     setVisible(false);

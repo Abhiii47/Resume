@@ -2,10 +2,10 @@
 
 import asyncio
 import json
+import logging
 import re
 import time
 import uuid
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
@@ -25,6 +25,7 @@ class AgentStatus(str, Enum):
 @dataclass
 class AgentTool:
     """A tool/capability available to an agent."""
+
     name: str
     description: str
     parameters: dict
@@ -41,6 +42,7 @@ class AgentTool:
 @dataclass
 class ToolCall:
     """A request to execute a tool."""
+
     tool_name: str
     arguments: dict
     call_id: str = field(default_factory=lambda: uuid.uuid4().hex[:8])
@@ -49,6 +51,7 @@ class ToolCall:
 @dataclass
 class ToolResult:
     """Result from a tool execution."""
+
     call_id: str
     tool_name: str
     success: bool
@@ -59,6 +62,7 @@ class ToolResult:
 @dataclass
 class AgentContext:
     """All context passed to an agent for a single request."""
+
     user_id: int
     user_message: str
     conversation_history: list = field(default_factory=list)
@@ -75,6 +79,7 @@ class AgentContext:
 @dataclass
 class SSEEvent:
     """A Server-Sent Event for streaming agent responses to the UI."""
+
     event: str
     data: dict
 
@@ -125,8 +130,7 @@ class BaseAgent(ABC):
     @property
     def system_prompt(self) -> str:
         tools_block = "\n".join(
-            f"  - {t.name}: {t.description}  Parameters: {json.dumps(t.parameters)}"
-            for t in self.tools
+            f"  - {t.name}: {t.description}  Parameters: {json.dumps(t.parameters)}" for t in self.tools
         )
         return f"""You are {self.name}, the {self.role} in the SmartResume career placement team.
 
@@ -152,9 +156,7 @@ class BaseAgent(ABC):
         if not self._llm:
             raise RuntimeError(f"Agent {self.name} not configured with LLM service")
 
-        system_msg = next(
-            (m["content"] for m in messages if m["role"] == "system"), ""
-        )
+        system_msg = next((m["content"] for m in messages if m["role"] == "system"), "")
         conversation = [m for m in messages if m["role"] != "system"]
 
         parts = []
@@ -163,14 +165,10 @@ class BaseAgent(ABC):
             parts.append(f"{label}: {msg['content']}")
         prompt = "\n\n".join(parts)
 
-        result = await asyncio.to_thread(
-            self._llm._call_llm, prompt, system_msg, task
-        )
+        result = await asyncio.to_thread(self._llm._call_llm, prompt, system_msg, task)
         return result or ""
 
-    async def _call_llm_json(
-        self, messages: list[dict], task: str = "structured_extract"
-    ) -> dict:
+    async def _call_llm_json(self, messages: list[dict], task: str = "structured_extract") -> dict:
         raw = await self._call_llm(messages, task)
         return self._extract_json(raw)
 
@@ -196,16 +194,16 @@ class BaseAgent(ABC):
         i = 0
         candidates = []
         while i < len(text):
-            if text[i] == '{':
+            if text[i] == "{":
                 depth = 0
                 start = i
                 for j in range(i, len(text)):
-                    if text[j] == '{':
+                    if text[j] == "{":
                         depth += 1
-                    elif text[j] == '}':
+                    elif text[j] == "}":
                         depth -= 1
                         if depth == 0:
-                            candidates.append(text[start:j + 1])
+                            candidates.append(text[start : j + 1])
                             i = j + 1
                             break
                 else:
@@ -241,7 +239,7 @@ class BaseAgent(ABC):
         # Remove bare tool_call JSON objects
         text = re.sub(r'\{\s*"tool_call"\s*:[\s\S]*?\}\s*', "", text)
         # Remove any remaining standalone JSON object blocks
-        text = re.sub(r'\n\{[\s\S]{0,2000}?\}\n', "\n", text)
+        text = re.sub(r"\n\{[\s\S]{0,2000}?\}\n", "\n", text)
         return text.strip()
 
     def _parse_tool_call(self, response: str) -> Optional[ToolCall]:
@@ -254,9 +252,7 @@ class BaseAgent(ABC):
             )
         return None
 
-    async def _execute_tool(
-        self, tool: AgentTool, arguments: dict, context: AgentContext
-    ) -> Any:
+    async def _execute_tool(self, tool: AgentTool, arguments: dict, context: AgentContext) -> Any:
         kwargs = {**arguments, "context": context}
         if asyncio.iscoroutinefunction(tool.handler):
             return await tool.handler(**kwargs)
@@ -268,19 +264,13 @@ class BaseAgent(ABC):
         messages = [{"role": "system", "content": self.system_prompt}]
 
         for msg in context.conversation_history[-10:]:
-            messages.append(
-                {"role": msg.get("role", "user"), "content": msg.get("content", "")}
-            )
+            messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
 
         user_parts = [context.user_message]
         if context.resume_text:
-            user_parts.append(
-                f"\n\n[RESUME TEXT (excerpt)]:\n{context.resume_text[:3000]}"
-            )
+            user_parts.append(f"\n\n[RESUME TEXT (excerpt)]:\n{context.resume_text[:3000]}")
         if context.job_description:
-            user_parts.append(
-                f"\n\n[JOB DESCRIPTION]:\n{context.job_description[:1500]}"
-            )
+            user_parts.append(f"\n\n[JOB DESCRIPTION]:\n{context.job_description[:1500]}")
         if context.shared_context:
             user_parts.append(
                 f"\n\n[CONTEXT FROM OTHER AGENTS]:\n"
@@ -288,8 +278,7 @@ class BaseAgent(ABC):
             )
         if context.user_state:
             user_parts.append(
-                f"\n\n[YOUR CAREER DATA]:\n"
-                f"{json.dumps(context.user_state, indent=2, default=str)[:1000]}"
+                f"\n\n[YOUR CAREER DATA]:\n" f"{json.dumps(context.user_state, indent=2, default=str)[:1000]}"
             )
         messages.append({"role": "user", "content": "\n".join(user_parts)})
 
@@ -320,10 +309,7 @@ class BaseAgent(ABC):
                         "agent": self.name,
                         "emoji": self.emoji,
                         "color": self.color,
-                        "content": (
-                            f"I hit a snag: {exc}. "
-                            "Let me try a different approach or ask a teammate."
-                        ),
+                        "content": (f"I hit a snag: {exc}. " "Let me try a different approach or ask a teammate."),
                     },
                 )
                 break
@@ -360,9 +346,7 @@ class BaseAgent(ABC):
                 )
 
                 try:
-                    result = await self._execute_tool(
-                        tool, tool_call.arguments, context
-                    )
+                    result = await self._execute_tool(tool, tool_call.arguments, context)
                     tr = ToolResult(
                         call_id=tool_call.call_id,
                         tool_name=tool_call.tool_name,
@@ -419,14 +403,16 @@ class BaseAgent(ABC):
                     # The response was ONLY JSON (tool_call without args)
                     # — push it back to the LLM for a proper final answer
                     messages.append({"role": "assistant", "content": response})
-                    messages.append({
-                        "role": "user",
-                        "content": (
-                            "Your previous response contained only JSON. "
-                            "Please write your final answer as plain text — "
-                            "no JSON, just a helpful, clear summary for the user."
-                        ),
-                    })
+                    messages.append(
+                        {
+                            "role": "user",
+                            "content": (
+                                "Your previous response contained only JSON. "
+                                "Please write your final answer as plain text — "
+                                "no JSON, just a helpful, clear summary for the user."
+                            ),
+                        }
+                    )
                     continue
                 yield SSEEvent(
                     event="agent_message",
@@ -443,9 +429,7 @@ class BaseAgent(ABC):
 
         self.status = AgentStatus.STANDBY
 
-    async def handle_direct_message(
-        self, context: AgentContext
-    ) -> AsyncGenerator[SSEEvent, None]:
+    async def handle_direct_message(self, context: AgentContext) -> AsyncGenerator[SSEEvent, None]:
         async for event in self.run(context):
             yield event
 

@@ -34,7 +34,7 @@ def decrypt_resume_text(value: Optional[str]) -> str:
         return ""
     if not value.startswith(RESUME_CIPHERTEXT_PREFIX):
         return value
-    token = value[len(RESUME_CIPHERTEXT_PREFIX):]
+    token = value[len(RESUME_CIPHERTEXT_PREFIX) :]
     try:
         return _FERNET.decrypt(token.encode("utf-8")).decode("utf-8")
     except InvalidToken:

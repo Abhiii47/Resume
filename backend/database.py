@@ -29,12 +29,14 @@ if settings.DATABASE_URL.startswith("sqlite"):
 else:
     # PostgreSQL (Neon) production settings
     connect_args = {"connect_timeout": 30}
-    engine_kwargs.update({
-        "pool_size": 5,
-        "max_overflow": 10,
-        "pool_pre_ping": True,         # Detect stale connections
-        "pool_recycle": 300,           # Recycle connections every 5 min
-    })
+    engine_kwargs.update(
+        {
+            "pool_size": 5,
+            "max_overflow": 10,
+            "pool_pre_ping": True,  # Detect stale connections
+            "pool_recycle": 300,  # Recycle connections every 5 min
+        }
+    )
 
 engine = create_engine(
     settings.DATABASE_URL,
@@ -240,6 +242,7 @@ class DailyLog(Base):
 # Multi-Agent System Tables
 class AgentConversation(Base):
     """Individual messages in multi-agent conversations."""
+
     __tablename__ = "agent_conversations"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -260,6 +263,7 @@ class AgentConversation(Base):
 
 class AgentTrace(Base):
     """Full trace of a multi-agent collaboration."""
+
     __tablename__ = "agent_traces"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -298,6 +302,7 @@ class LLMCallLog(Base):
             f"<LLMCallLog(task='{self.task}', provider='{self.provider}', "
             f"model='{self.model}', success={self.success})>"
         )
+
 
 class LLMCache(Base):
     __tablename__ = "llm_cache"
@@ -341,22 +346,17 @@ def _ensure_schema_migrations():
               AND resume_preview IS NOT NULL
               AND resume_preview <> ''
         """))
-        analysis_rows = connection.execute(
-            text("""
+        analysis_rows = connection.execute(text("""
                 SELECT id, resume_text, resume_preview
                 FROM analyses
                 WHERE resume_text IS NOT NULL
                   AND resume_text <> ''
-            """)
-        ).mappings().all()
+            """)).mappings().all()
         for row in analysis_rows:
             decrypted_text = decrypt_resume_text(row["resume_text"])
             encrypted_text = encrypt_resume_text(decrypted_text)
             updated_preview = decrypted_text[:200] if decrypted_text else (row["resume_preview"] or "")
-            if (
-                row["resume_text"] != encrypted_text
-                or (row["resume_preview"] or "") != updated_preview
-            ):
+            if row["resume_text"] != encrypted_text or (row["resume_preview"] or "") != updated_preview:
                 connection.execute(
                     text("""
                         UPDATE analyses
