@@ -1,32 +1,44 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ResumeBuilder from "../components/ResumeBuilder";
-import { HomeIcon } from "../components/ui/Sidebar"; // Re-using an icon
+import { HomeIcon } from "../components/ui/Sidebar";
+import AppLayout from "../components/AppLayout";
 
 export default function ResumeBuilderPage() {
   const navigate = useNavigate();
 
-  return (
-    <div className="h-screen flex flex-col bg-background">
-      <header className="flex-shrink-0 border-b-2 border-border bg-card p-4 flex justify-between items-center z-10">
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-sm font-mono font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors border-2 border-transparent hover:border-border px-3 py-1"
-          >
-            <HomeIcon className="w-5 h-5" />
-            Back to Dashboard
-          </button>
-        </div>
-        <div>
-          <span className="text-xl font-black uppercase tracking-tight">SmartResume Builder</span>
-        </div>
-        <div className="w-32"></div> {/* Spacer for center alignment */}
-      </header>
-      
-      <main className="flex-1 overflow-hidden relative">
-        <ResumeBuilder />
-      </main>
+  const left = (
+    <>
+      <button
+        onClick={() => navigate("/dashboard")}
+        className="mb-4 text-[11px] font-semibold tracking-[0.18em] uppercase text-slate-400 hover:text-slate-100 inline-flex items-center gap-2"
+      >
+        <HomeIcon className="w-4 h-4" />
+        Back to dashboard
+      </button>
+      <div className="hero-badge">
+        <span className="hero-badge-dot" />
+        <span>Resume builder</span>
+      </div>
+      <h1 className="hero-title">
+        Design a <span>resume</span> that actually passes screening.
+      </h1>
+      <p className="hero-subtitle">
+        Edit sections, tweak bullets, and export a clean PDF that lines up with the roles you care about.
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2 text-[11px] text-slate-400">
+        <span>✓ Live preview</span>
+        <span>✓ Export‑ready layout</span>
+        <span>✓ Built for ATS</span>
+      </div>
+    </>
+  );
+
+  const right = (
+    <div className="w-full h-full overflow-hidden rounded-2xl border border-slate-800 bg-slate-950/60">
+      <ResumeBuilder />
     </div>
   );
+
+  return <AppLayout left={left} right={right} />;
 }
