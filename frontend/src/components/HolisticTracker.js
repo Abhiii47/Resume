@@ -3,7 +3,7 @@ import axios from "axios";
 import { API_BASE, getAuthToken } from "../utils";
 
 const CATEGORIES = [
-  { id: "dsa", label: "DSA", icon: "💻", color: "var(--primary)" },
+  { id: "dsa", label: "DSA", icon: "💻", color: "hsl(var(--accent-500))" },
   { id: "system_design", label: "System Design", icon: "🏗️", color: "#3b82f6" },
   { id: "cs_fundamentals", label: "CS Core", icon: "📚", color: "#8b5cf6" },
   { id: "behavioral", label: "Behavioral", icon: "🤝", color: "#f59e0b" },

@@ -181,7 +181,7 @@ function Navbar({ onLogin, onSignup }) {
     <header className="fixed top-0 w-full z-50" style={{ background: "hsl(40,30%,92%)", borderBottom: "2px solid #000", boxShadow: scrolled ? "0 4px 0 #000" : "none", transition: "box-shadow 0.2s" }}>
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm shadow-soft-sm" style={{ background: "hsl(24,100%,50%)", border: "2px solid #000", transition: "transform 0.15s" }} onMouseEnter={e => e.currentTarget.style.transform = "rotate(-4deg) scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "rotate(0) scale(1)"}>
+          <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm shadow-[2px_2px_0_#000]" style={{ background: "hsl(24,100%,50%)", border: "2px solid #000", transition: "transform 0.15s" }} onMouseEnter={e => e.currentTarget.style.transform = "rotate(-4deg) scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "rotate(0) scale(1)"}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 12h6M9 16h4M7 4H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V6a2 2 0 00-2-2h-2M7 4a2 2 0 012-2h6a2 2 0 012 2M7 4h10" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
           </div>
           <span className="font-black text-lg" style={{ color: "#111", letterSpacing: "-0.03em", fontFamily: "monospace" }}>SMARTRESUME</span>
@@ -196,7 +196,7 @@ function Navbar({ onLogin, onSignup }) {
         </div>
         <div className="flex items-center gap-3">
           <button onClick={onLogin} className="text-sm font-bold px-4 py-2" style={{ color: "#555", fontFamily: "monospace", letterSpacing: "0.1em" }}>[ LOG_IN ]</button>
-          <MagBtn onClick={onSignup} className="modern-btn-primary px-5 py-2 text-sm shadow-soft-sm" style={{ fontFamily: "monospace", letterSpacing: "0.05em" }}>SYS.START</MagBtn>
+          <MagBtn onClick={onSignup} className="brutal-btn px-5 py-2 text-sm shadow-[2px_2px_0_#000]" style={{ fontFamily: "monospace", letterSpacing: "0.05em" }}>SYS.START</MagBtn>
         </div>
       </div>
     </header>
@@ -487,7 +487,7 @@ export default function LandingPage() {
             <SectionLabel>001.SYSTEM_STATUS</SectionLabel>
             <h2 className="font-display-serif text-4xl md:text-5xl text-center mb-16" style={{ color: "#111", letterSpacing: "-0.03em" }}>
               The{" "}<span style={{ textDecoration: "line-through", opacity: 0.35 }}>joy</span>{" "}
-              <span className="inline-block px-2 shadow-soft" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}>pain</span>
+              <span className="inline-block px-2 shadow-[4px_4px_0_#000]" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}>pain</span>
               {" "}of manually editing resumes.
             </h2>
           </div>
@@ -503,11 +503,11 @@ export default function LandingPage() {
         <h2 className="font-display-serif text-5xl md:text-7xl mb-6" style={{ color: "#111", letterSpacing: "-0.03em" }}>
           <span style={{ textDecoration: "line-through", opacity: 0.25, fontStyle: "italic" }}>Manually Editing</span>
           <br />
-          <span className="inline-block px-4 py-1 shadow-soft" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}>Automation!!</span>
+          <span className="inline-block px-4 py-1 shadow-[4px_4px_0_#000]" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid #000" }}>Automation!!</span>
         </h2>
         <p className="text-lg max-w-xl mx-auto mb-8" style={{ color: "#666" }}>
           Introducing{" "}
-          <span className="inline-block px-3 py-0.5 font-black shadow-soft-sm" style={{ background: "#111", color: "#fff", border: "2px solid #000" }}>SmartResume</span>
+          <span className="inline-block px-3 py-0.5 font-black shadow-[2px_2px_0_#000]" style={{ background: "#111", color: "#fff", border: "2px solid #000" }}>SmartResume</span>
           {" "}— an open-source tool that analyzes job descriptions to beat the ATS.
         </p>
         <p className="text-base" style={{ color: "#999" }}>Stop guessing what recruiters want. Tailor every application in seconds and get the interview.</p>
@@ -527,7 +527,7 @@ export default function LandingPage() {
         <div className="max-w-3xl mx-auto">
           <div className="sr">
             <SectionLabel>free instant check</SectionLabel>
-            <div className="p-8 lg:p-12 shadow-soft" style={{ background: "#fff", border: "2px solid #000" }}>
+            <div className="p-8 lg:p-12 shadow-[4px_4px_0_#000]" style={{ background: "#fff", border: "2px solid #000" }}>
               <h2 className="font-display-serif text-3xl md:text-4xl mb-2" style={{ color: "#111", letterSpacing: "-0.03em" }}>
                 Drop your resume.{" "}<span style={{ color: "hsl(24,100%,50%)" }}>We&apos;ll be honest.</span>
               </h2>
@@ -548,18 +548,18 @@ export default function LandingPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#555" }}>Paste Job Description (optional)</label>
-                  <textarea rows={4} className="modern-input resize-none" placeholder="Paste the job description here for a better match score..." value={jd} onChange={e => setJd(e.target.value)} />
+                  <textarea rows={4} className="brutal-input resize-none" placeholder="Paste the job description here for a better match score..." value={jd} onChange={e => setJd(e.target.value)} />
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#555" }}>Years of Experience</label>
-                  <input type="number" min="0" className="modern-input" placeholder="e.g. 2" value={years} onChange={e => setYears(e.target.value)} />
+                  <input type="number" min="0" className="brutal-input" placeholder="e.g. 2" value={years} onChange={e => setYears(e.target.value)} />
                 </div>
               </div>
               {error && <div className="mb-4 px-4 py-3 text-sm font-semibold" style={{ background: "#FEE2E2", border: "2px solid #FECACA", color: "#991B1B" }}>{error}</div>}
               <MagBtn
                 onClick={handleGuestAnalyze}
                 disabled={loading || !file}
-                className="w-full py-4 text-base font-bold shadow-soft"
+                className="w-full py-4 text-base font-bold shadow-[4px_4px_0_#000]"
                 style={{ background: loading || !file ? "#999" : "#111", color: "#fff", border: "2px solid #000", cursor: loading || !file ? "not-allowed" : "pointer", fontFamily: "monospace", letterSpacing: "0.05em" }}
               >
                 {loading ? "> ANALYZING..." : "> CHECK_MY_SCORE"}
@@ -574,7 +574,7 @@ export default function LandingPage() {
                     <div className="flex-1">
                       <p className="font-bold text-lg mb-1" style={{ color: "#111" }}>Scan complete.</p>
                       <p className="text-sm mb-4" style={{ color: "#888" }}>Create a free account to see the full breakdown — keyword gaps, formatting issues, and AI fix suggestions.</p>
-                      <MagBtn onClick={openSignup} className="modern-btn-primary px-6 py-2.5 text-sm shadow-soft-sm" style={{ fontFamily: "monospace" }}>See Full Report — free →</MagBtn>
+                      <MagBtn onClick={openSignup} className="brutal-btn px-6 py-2.5 text-sm shadow-[2px_2px_0_#000]" style={{ fontFamily: "monospace" }}>See Full Report — free →</MagBtn>
                     </div>
                   </div>
                 </div>
@@ -594,7 +594,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
             <StepsConnector />
             {STEPS.map((s, i) => (
-              <TiltCard key={s.n} strength={6} className={`sr glass-card p-8 text-center relative z-10`} style={{ transitionDelay: `${i * 100}ms` }}>
+              <TiltCard key={s.n} strength={6} className={`sr brutal-card p-8 text-center relative z-10`} style={{ transitionDelay: `${i * 100}ms` }}>
                 <div className="flex justify-center mb-4">{s.svg}</div>
                 <div className="w-12 h-12 flex items-center justify-center mx-auto mb-4 font-black text-lg" style={{ border: "2px solid hsl(24,100%,50%)", color: "hsl(24,100%,50%)", background: "#fff", fontFamily: "monospace" }}>{s.n}</div>
                 <h3 className="font-bold text-base mb-2 uppercase tracking-tight" style={{ color: "#111" }}>{s.title}</h3>
@@ -628,7 +628,7 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {FEATURES.map((f, i) => (
-              <TiltCard key={f.num} strength={9} className={`sr ${f.cls} p-7 shadow-soft`} style={{ transitionDelay: `${i * 80}ms` }}>
+              <TiltCard key={f.num} strength={9} className={`sr ${f.cls} p-7 shadow-[4px_4px_0_#000]`} style={{ transitionDelay: `${i * 80}ms` }}>
                 <div className="mb-4">{f.svg}</div>
                 <div className="text-xs font-bold uppercase tracking-widest mb-3 opacity-50" style={{ fontFamily: "monospace" }}>{f.num}</div>
                 <h3 className="font-black text-xl mb-3" style={{ letterSpacing: "-0.03em" }}>{f.title}</h3>
@@ -637,7 +637,7 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="text-center mt-10">
-            <MagBtn onClick={openSignup} className="modern-btn-primary px-10 py-4 text-base shadow-soft" style={{ fontFamily: "monospace", letterSpacing: "0.05em" }}>GET_FULL_ACCESS →</MagBtn>
+            <MagBtn onClick={openSignup} className="brutal-btn px-10 py-4 text-base shadow-[4px_4px_0_#000]" style={{ fontFamily: "monospace", letterSpacing: "0.05em" }}>GET_FULL_ACCESS →</MagBtn>
           </div>
         </div>
       </section>
@@ -659,11 +659,11 @@ export default function LandingPage() {
           <h2 className="font-display-serif text-5xl md:text-7xl mb-6" style={{ color: "#fff", letterSpacing: "-0.03em" }}>
             Try SmartResume
             <br />
-            <span className="inline-block px-3 py-1 shadow-soft" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid hsl(24,100%,50%)", fontSize: "0.7em" }}>it&apos;s free</span>
+            <span className="inline-block px-3 py-1 shadow-[4px_4px_0_#000]" style={{ background: "hsl(24,100%,50%)", color: "#111", border: "2px solid hsl(24,100%,50%)", fontSize: "0.7em" }}>it&apos;s free</span>
           </h2>
           <MagBtn
             onClick={openSignup}
-            className="px-12 py-5 text-lg font-bold shadow-soft mb-10"
+            className="px-12 py-5 text-lg font-bold shadow-[4px_4px_0_#000] mb-10"
             style={{ background: "#fff", color: "#111", border: "2px solid #fff", fontFamily: "monospace", letterSpacing: "0.05em" }}
           >
             SYS.START →

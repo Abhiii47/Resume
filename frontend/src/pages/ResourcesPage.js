@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const CARD = { background: '#fff', border: '1px solid var(--border)', boxShadow: '4px 4px 0 #000' };
+const CARD = { background: '#fff', border: '1px solid #000', boxShadow: '4px 4px 0 #000' };
 
 const CATEGORIES = [
-  { id: 'dsa', label: 'DSA', color: 'var(--primary)', resources: [
+  { id: 'dsa', label: 'DSA', color: 'hsl(var(--accent-500))', resources: [
     { name: 'Striver A2Z', desc: 'Industry-standard A2Z roadmap for SDE roles', url: 'https://takeuforward.org/strivers-a2z-dsa-course/strivers-a2z-dsa-course-sheet-2/', tag: '450+ problems' },
     { name: 'NeetCode 150', desc: 'Most important LeetCode patterns for FAANG', url: 'https://neetcode.io/practice', tag: '150 curated' },
     { name: 'Love Babbar 450', desc: 'Popular DSA sheet cracked by thousands', url: 'https://450dsa.com', tag: '450 problems' },
@@ -48,10 +48,10 @@ export default function ResourcesPage() {
 
   return (
     <div className="min-h-screen" style={{ background: 'hsl(40,30%,92%)' }}>
-      <header className="w-full" style={{ background: 'hsl(40,30%,92%)', borderBottom: '1px solid var(--border)' }}>
+      <header className="w-full" style={{ background: 'hsl(40,30%,92%)', borderBottom: '1px solid #000' }}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: 'var(--primary)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>SR</div>
+            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: 'hsl(var(--accent-500))', border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>SR</div>
             <span className="font-black text-lg" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>SmartResume</span>
           </div>
           <div className="hidden md:flex items-center gap-8 font-black text-sm uppercase tracking-widest" style={{ color: 'var(--foreground)' }}>
@@ -65,11 +65,11 @@ export default function ResourcesPage() {
 
       <div className="max-w-5xl mx-auto px-6 py-20">
         <div className="flex items-center gap-3 mb-4">
-          <span style={{ width: 28, height: 2, background: 'var(--primary)', display: 'inline-block' }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--primary)' }}>Career Resources</span>
+          <span style={{ width: 28, height: 2, background: 'hsl(var(--accent-500))', display: 'inline-block' }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(var(--accent-500))' }}>Career Resources</span>
         </div>
         <h1 className="font-display-serif text-5xl mb-4" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>
-          Resource <span className="inline-block px-2" style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Hub</span>
+          Resource <span className="inline-block px-2" style={{ background: 'hsl(var(--accent-500))', color: 'var(--foreground)', border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>Hub</span>
         </h1>
         <p className="text-base mb-10" style={{ color: 'var(--muted-foreground)' }}>
           Curated, battle-tested resources used by engineers who cracked FAANG.
@@ -81,11 +81,11 @@ export default function ResourcesPage() {
             <button
               key={c.id}
               onClick={() => setActive(c.id)}
-              className="px-4 py-2 text-xs font-black uppercase transition-all shadow-soft-sm"
+              className="px-4 py-2 text-xs font-black uppercase transition-all shadow-[2px_2px_0_#000]"
               style={{
                 background: active === c.id ? c.color : '#fff',
                 color: active === c.id ? (c.color === '#111' || c.color === '#8b5cf6' || c.color === '#2563EB' || c.color === '#16A34A' || c.color === '#ec4899' ? '#fff' : '#111') : '#555',
-                border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)',
+                border: '1px solid #000', boxShadow: '4px 4px 0 #000',
               }}
             >
               {c.label}
@@ -98,13 +98,13 @@ export default function ResourcesPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {cat.resources.map((r, i) => (
               <a key={i} href={r.url} target="_blank" rel="noopener noreferrer"
-                className="p-5 flex flex-col gap-2 transition-transform hover:-translate-y-1 group shadow-soft" style={CARD}>
+                className="p-5 flex flex-col gap-2 transition-transform hover:-translate-y-1 group shadow-[4px_4px_0_#000]" style={CARD}>
                 <div className="flex justify-between items-start">
                   <h3 className="font-black text-base group-hover:underline" style={{ color: 'var(--foreground)' }}>{r.name}</h3>
                   <span className="text-xs" style={{ color: 'var(--muted-foreground)' }}>↗</span>
                 </div>
                 <p className="text-sm" style={{ color: 'var(--muted-foreground)' }}>{r.desc}</p>
-                <span className="text-[10px] font-bold px-2 py-0.5 self-start mt-auto shadow-soft-sm" style={{ background: cat.color, color: cat.color === '#111' || cat.color === '#8b5cf6' || cat.color === '#2563EB' || cat.color === '#16A34A' || cat.color === '#ec4899' ? '#fff' : '#111', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
+                <span className="text-[10px] font-bold px-2 py-0.5 self-start mt-auto shadow-[2px_2px_0_#000]" style={{ background: cat.color, color: cat.color === '#111' || cat.color === '#8b5cf6' || cat.color === '#2563EB' || cat.color === '#16A34A' || cat.color === '#ec4899' ? '#fff' : '#111', border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>
                   {r.tag}
                 </span>
               </a>
@@ -113,7 +113,7 @@ export default function ResourcesPage() {
         )}
 
         <div className="text-center mt-16">
-          <button onClick={() => navigate("/signup")} className="modern-btn-primary px-10 py-4 text-base shadow-soft">
+          <button onClick={() => navigate("/signup")} className="brutal-btn px-10 py-4 text-base shadow-[4px_4px_0_#000]">
             Start Your Journey →
           </button>
         </div>

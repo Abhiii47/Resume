@@ -53,7 +53,7 @@ export function RoadmapSkeleton() {
             <div className="w-6 h-6 rounded-full bg-border/40 animate-pulse mt-4 shrink-0" />
             {i < 4 && <div className="w-0.5 bg-border/40 flex-1 mt-1 min-h-16" />}
           </div>
-          <div className="glass-card bg-card p-6 flex-1 mb-8 space-y-3">
+          <div className="brutal-card bg-card p-6 flex-1 mb-8 space-y-3">
             <SkeletonBlock className="h-5 w-40" />
             <SkeletonBlock className="h-3 w-24" />
             <SkeletonBlock className="h-3 w-full" />
@@ -73,7 +73,7 @@ export function PageSkeleton() {
       <SkeletonBlock className="h-8 w-64 mb-6" />
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="glass-card p-6 space-y-3">
+          <div key={i} className="brutal-card p-6 space-y-3">
             <SkeletonBlock className="h-5 w-32" />
             <SkeletonBlock className="h-3 w-full" />
             <SkeletonBlock className="h-3 w-4/5" />

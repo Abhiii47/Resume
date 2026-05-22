@@ -265,8 +265,8 @@ export default function AgentMessage({ message: m }) {
     return (
       <div style={{
         padding: "14px 20px", marginBottom: 12,
-        background: "var(--primary)", border: "none", borderRadius: "1rem", borderBottomRightRadius: "0.25rem",
-        boxShadow: "var(--shadow-soft)", color: "var(--primary-foreground)",
+        background: "hsl(var(--accent-500))", border: "none", borderRadius: "0px", borderBottomRightRadius: "0.25rem",
+        boxShadow: "4px 4px 0 #000", color: "var(--primary-foreground)",
         alignSelf: "flex-end", maxWidth: "85%", marginLeft: "auto",
       }}>
         <p style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.6, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
@@ -290,15 +290,15 @@ export default function AgentMessage({ message: m }) {
   return (
     <div style={{
       padding: "18px 22px", marginBottom: 12,
-      background: "var(--card)", border: "1px solid var(--border)", borderRadius: "0.75rem",
+      background: "#fff", border: "1px solid #000", borderRadius: "0.75rem",
       borderLeft: `4px solid ${agentColor}`,
-      boxShadow: "var(--shadow-soft)",
+      boxShadow: "4px 4px 0 #000",
     }}>
       {/* Agent header */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <span style={{
           width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center",
-          background: agentColor, border: "none", borderRadius: "0.5rem", fontSize: 13, flexShrink: 0,
+          background: agentColor, border: "none", borderRadius: "0px", fontSize: 13, flexShrink: 0,
         }}>{m.emoji || "🤖"}</span>
         <span style={{ fontWeight: 900, fontSize: 11, textTransform: "uppercase", letterSpacing: ".04em", color: agentColor }}>
           {m.agent || "Agent"}

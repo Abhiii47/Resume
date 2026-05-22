@@ -66,15 +66,15 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
 
   return (
     <aside
-      className="flex flex-col h-full z-20 w-full glass-card border-r-0 rounded-none"
+      className="flex flex-col h-full z-20 w-full brutal-card border-r-0 rounded-none"
     >
       {/* Logo */}
       <div
-        className="flex items-center gap-3 px-5 py-5 cursor-pointer group border-b border-border"
+        className="flex items-center gap-3 px-5 py-5 cursor-pointer group border-b-2 border-black"
         onClick={() => { setActiveTab('overview'); onClose?.(); }}
       >
         <div
-          className="w-9 h-9 flex items-center justify-center shrink-0 font-black text-sm text-white rounded-lg ocean-gradient shadow-soft"
+          className="w-9 h-9 flex items-center justify-center shrink-0 font-black text-sm text-white rounded-lg bg-[hsl(var(--accent-500))] text-white border-2 border-black shadow-[4px_4px_0_#000]"
         >
           SR
         </div>
@@ -129,7 +129,7 @@ function SidebarContent({ activeTab, setActiveTab, onLogout, onClose }) {
       </nav>
 
       {/* Footer */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t-2 border-black">
         <button
           onClick={onLogout}
           className="flex items-center gap-3 w-full px-3 py-2.5 text-sm font-bold transition-all text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg"
@@ -149,7 +149,7 @@ export default function Sidebar({ activeTab, setActiveTab, onLogout }) {
       {/* Mobile hamburger */}
       <button
         onClick={() => setMobileOpen(true)}
-        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 flex items-center justify-center glass-card text-foreground rounded-lg"
+        className="lg:hidden fixed top-4 left-4 z-40 w-10 h-10 flex items-center justify-center brutal-card text-foreground rounded-lg"
         aria-label="Open menu"
       >
         <MenuIcon className="w-5 h-5" />

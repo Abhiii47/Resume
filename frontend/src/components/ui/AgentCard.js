@@ -41,8 +41,8 @@ export default function AgentCard({ agent, isActive, onClick }) {
 
       {hovered && (
         <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
-          style={{ position: "absolute", left: "calc(100% + 12px)", top: "50%", transform: "translateY(-50%)", background: "var(--card)", border: "1px solid var(--border)", padding: "10px 14px", minWidth: 200, maxWidth: 260, zIndex: 100, borderRadius: "0.5rem", boxShadow: "var(--shadow-soft-lg)" }}>
-          <div style={{ position: "absolute", left: -5, top: "50%", transform: "translateY(-50%) rotate(45deg)", width: 10, height: 10, background: "var(--card)", borderLeft: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }} />
+          style={{ position: "absolute", left: "calc(100% + 12px)", top: "50%", transform: "translateY(-50%)", background: "#fff", border: "1px solid #000", padding: "10px 14px", minWidth: 200, maxWidth: 260, zIndex: 100, borderRadius: "0px", boxShadow: "6px 6px 0 #000" }}>
+          <div style={{ position: "absolute", left: -5, top: "50%", transform: "translateY(-50%) rotate(45deg)", width: 10, height: 10, background: "#fff", borderLeft: "1px solid #000", borderBottom: "1px solid #000" }} />
           <div style={{ fontSize: 12, fontWeight: 700, color: ac, marginBottom: 4 }}>{agent.emoji} {agent.name}</div>
           <div style={{ fontSize: 11, color: "hsl(0 0% 65%)", lineHeight: 1.5, marginBottom: 6 }}>{agent.description || agent.role}</div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

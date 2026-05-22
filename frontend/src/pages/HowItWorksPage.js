@@ -1,13 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-const CARD = { background: '#fff', border: '1px solid var(--border)', boxShadow: '4px 4px 0 #000' };
+const CARD = { background: '#fff', border: '1px solid #000', boxShadow: '4px 4px 0 #000' };
 
 export default function HowItWorksPage() {
   const navigate = useNavigate();
 
   const steps = [
-    { num: '01', title: 'Upload Your Resume', desc: 'Drop any PDF resume. Our parser extracts all text, skills, sections, and formatting signals in milliseconds using pdfminer.', color: 'var(--primary)' },
+    { num: '01', title: 'Upload Your Resume', desc: 'Drop any PDF resume. Our parser extracts all text, skills, sections, and formatting signals in milliseconds using pdfminer.', color: 'hsl(var(--accent-500))' },
     { num: '02', title: 'Heuristic Pre-Scan', desc: 'Free, instant analysis: keyword matching against the JD, section detection, bullet counting, action verb scoring, and quantification metrics. Zero API cost.', color: '#2563EB' },
     { num: '03', title: 'AI Deep Evaluation', desc: 'One single LLM call (Groq or Gemini) evaluates impact, relevance, and writing quality. Returns 7-dimension scores with reasoning and 5 prioritized fixes.', color: '#8b5cf6' },
     { num: '04', title: 'Full Diagnostic Report', desc: 'You get: score breakdown with explanations, keyword heatmap, AI bullet rewrites, interview questions, and a cover letter draft — all in one report.', color: '#16A34A' },
@@ -24,10 +24,10 @@ export default function HowItWorksPage() {
   return (
     <div className="min-h-screen" style={{ background: 'hsl(40,30%,92%)' }}>
       {/* Nav */}
-      <header className="w-full" style={{ background: 'hsl(40,30%,92%)', borderBottom: '1px solid var(--border)' }}>
+      <header className="w-full" style={{ background: 'hsl(40,30%,92%)', borderBottom: '1px solid #000' }}>
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: 'var(--primary)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>SR</div>
+            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: 'hsl(var(--accent-500))', border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>SR</div>
             <span className="font-black text-lg" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>SmartResume</span>
           </div>
           <div className="hidden md:flex items-center gap-8 font-black text-sm uppercase tracking-widest" style={{ color: 'var(--foreground)' }}>
@@ -41,11 +41,11 @@ export default function HowItWorksPage() {
 
       <div className="max-w-4xl mx-auto px-6 py-20">
         <div className="flex items-center gap-3 mb-4">
-          <span style={{ width: 28, height: 2, background: 'var(--primary)', display: 'inline-block' }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--primary)' }}>How It Works</span>
+          <span style={{ width: 28, height: 2, background: 'hsl(var(--accent-500))', display: 'inline-block' }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(var(--accent-500))' }}>How It Works</span>
         </div>
         <h1 className="font-display-serif text-5xl md:text-6xl mb-6" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>
-          5 Steps to a<br /><span className="inline-block px-2" style={{ background: 'var(--primary)', color: 'var(--foreground)', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>Perfect Resume</span>
+          5 Steps to a<br /><span className="inline-block px-2" style={{ background: 'hsl(var(--accent-500))', color: 'var(--foreground)', border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>Perfect Resume</span>
         </h1>
         <p className="text-lg mb-16 max-w-2xl" style={{ color: '#555' }}>
           From PDF upload to a complete diagnostic report — here's exactly what happens under the hood.
@@ -54,9 +54,9 @@ export default function HowItWorksPage() {
         {/* Steps */}
         <div className="space-y-5 mb-20">
           {steps.map((step, i) => (
-            <div key={i} className="flex gap-6 p-6 shadow-soft transition-transform hover:-translate-y-0.5" style={CARD}>
+            <div key={i} className="flex gap-6 p-6 shadow-[4px_4px_0_#000] transition-transform hover:-translate-y-0.5" style={CARD}>
               <div className="flex flex-col items-center shrink-0">
-                <div className="w-12 h-12 flex items-center justify-center font-black text-lg shadow-soft-sm" style={{ background: step.color, color: step.color === 'var(--primary)' || step.color === '#f59e0b' ? '#111' : '#fff', border: '1px solid var(--border)', boxShadow: 'var(--shadow-soft)' }}>
+                <div className="w-12 h-12 flex items-center justify-center font-black text-lg shadow-[2px_2px_0_#000]" style={{ background: step.color, color: step.color === 'hsl(var(--accent-500))' || step.color === '#f59e0b' ? '#111' : '#fff', border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>
                   {step.num}
                 </div>
                 {i < steps.length - 1 && <div className="w-0.5 flex-1 mt-2" style={{ background: '#ccc' }} />}
@@ -71,12 +71,12 @@ export default function HowItWorksPage() {
 
         {/* FAQ */}
         <div className="flex items-center gap-3 mb-6">
-          <span style={{ width: 28, height: 2, background: 'var(--primary)', display: 'inline-block' }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'var(--primary)' }}>Frequently Asked</span>
+          <span style={{ width: 28, height: 2, background: 'hsl(var(--accent-500))', display: 'inline-block' }} />
+          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(var(--accent-500))' }}>Frequently Asked</span>
         </div>
         <div className="space-y-4 mb-16">
           {faqs.map((faq, i) => (
-            <div key={i} className="p-5 shadow-soft" style={CARD}>
+            <div key={i} className="p-5 shadow-[4px_4px_0_#000]" style={CARD}>
               <p className="font-black text-sm uppercase mb-2" style={{ color: 'var(--foreground)' }}>{faq.q}</p>
               <p className="text-sm" style={{ color: 'var(--muted-foreground)', lineHeight: 1.6 }}>{faq.a}</p>
             </div>
@@ -84,7 +84,7 @@ export default function HowItWorksPage() {
         </div>
 
         <div className="text-center">
-          <button onClick={() => navigate("/signup")} className="modern-btn-primary px-10 py-4 text-base shadow-soft">
+          <button onClick={() => navigate("/signup")} className="brutal-btn px-10 py-4 text-base shadow-[4px_4px_0_#000]">
             Try It Free →
           </button>
         </div>

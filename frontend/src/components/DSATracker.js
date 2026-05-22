@@ -289,7 +289,7 @@ export default function DSATracker({ roadmap = null }) {
                     return (
                       <div
                         key={problem.id}
-                        className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 border-b border-border/50 last:border-b-0 hover:bg-background/50 transition-colors ${isDone ? "opacity-70" : ""}`}
+                        className={`flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 border-b-2 border-black/50 last:border-b-0 hover:bg-background/50 transition-colors ${isDone ? "opacity-70" : ""}`}
                       >
                         <div className="flex items-start gap-4">
                           <button

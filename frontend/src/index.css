@@ -1,33 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600;1,700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Petrona:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Azeret+Mono:wght@400;600&display=swap');
 @import 'tailwindcss';
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* soft slate-50 */
-    --foreground: 222 47% 11%;
+    --background: 0 0% 100%; /* Pure white */
+    --foreground: 0 0% 0%;   /* Pure black */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 0%;
     
-    /* Ocean Blue Theme */
-    --primary: 200 90% 45%; 
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 200 90% 45%;
-    --accent-foreground: 210 40% 98%;
+    /* Neobrutalist Theme Variables */
+    --primary: 0 0% 0%; 
+    --primary-foreground: 0 0% 100%;
     
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 200 90% 45%;
+    /* Vibrant highlight colors based on Resume Matcher */
+    --accent-500: 221 83% 53%; /* Blue */
+    --warning-500: 45 93% 47%; /* Yellow */
+    --success-500: 142 71% 45%; /* Green */
+    --danger-500: 0 84% 60%; /* Red */
+
+    --border: 0 0% 0%; /* Black borders */
+    --input: 0 0% 0%;
+    --ring: 0 0% 0%;
     
-    --radius: 1rem; /* rounded corners */
+    --radius: 0px; /* Sharp corners */
     --sidebar-width: 260px;
+    
+    --shadow-ink: #000; /* Solid black shadow */
   }
 }
 
@@ -39,19 +39,16 @@
   --color-foreground: hsl(var(--foreground));
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-destructive: hsl(var(--destructive));
-  --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --font-display: 'Outfit', sans-serif;
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  
+  --color-accent-500: hsl(var(--accent-500));
+  --color-warning-500: hsl(var(--warning-500));
+  --color-success-500: hsl(var(--success-500));
+  --color-danger-500: hsl(var(--danger-500));
+  
+  --font-display: 'Petrona', serif;
+  --font-sans: 'Source Sans 3', sans-serif;
+  --font-mono: 'Azeret Mono', monospace;
+  --font-label: 'Azeret Mono', monospace;
 }
 
 @layer base {
@@ -65,155 +62,158 @@
     -moz-osx-font-smoothing: grayscale;
   }
   h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; }
-  ::-webkit-scrollbar { width: 8px; height: 8px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: hsl(var(--border)); border-radius: 4px; }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--muted-foreground)); }
-}
-
-/* ── Scroll Reveal ──────────────────────────────────────────── */
-.sr {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.sr-visible {
-  opacity: 1;
-  transform: translateY(0);
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: transparent; border-left: 2px solid #000; }
+  ::-webkit-scrollbar-thumb { background: #000; }
+  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--accent-500)); }
 }
 
 /* ── Animations ─────────────────────────────────────────────── */
 @keyframes fadeIn    { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-@keyframes fadeInUp  { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-@keyframes float     { 0% { transform: translateY(0px); } 50% { transform: translateY(-8px); } 100% { transform: translateY(0px); } }
-@keyframes shimmer   { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
 
 @layer utilities {
   .animate-fade-in      { animation: fadeIn 0.4s ease-out both; }
-  .animate-fade-in-up   { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
-  .animate-float        { animation: float 6s ease-in-out infinite; }
 
-  /* Ocean Blue Gradient Backgrounds */
-  .ocean-gradient {
-    background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  /* Neobrutalist Cards */
+  .brutal-card {
+    background: white;
+    color: black;
+    border: 2px solid black;
+    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
+    transition: all 0.2s ease-in-out;
   }
-  .ocean-gradient-text {
-    background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  
-  /* Soft Modern Shadows */
-  .shadow-soft {
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 0 3px rgba(0,0,0,0.02);
-  }
-  .shadow-soft-lg {
-    box-shadow: 0 10px 40px -5px rgba(0, 0, 0, 0.08), 0 0 4px rgba(0,0,0,0.03);
-  }
-  .shadow-glow-ocean {
-    box-shadow: 0 8px 30px -4px rgba(59, 130, 246, 0.25);
+  .brutal-card:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px 0px var(--shadow-ink);
   }
 
-  /* Glassmorphism Cards */
-  .glass-card {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: var(--radius);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  /* Variant Cards for Highlights */
+  .brutal-card-warning {
+    background: hsl(var(--warning-500));
+    color: black;
+    border: 2px solid black;
+    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
+    transition: all 0.2s ease-in-out;
   }
-  .glass-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 40px -8px rgba(0, 0, 0, 0.08);
+  .brutal-card-warning:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px 0px var(--shadow-ink);
   }
 
-  /* Modern Buttons */
-  .modern-btn-primary {
-    background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+  .brutal-card-accent {
+    background: hsl(var(--accent-500));
     color: white;
-    font-family: var(--font-sans);
+    border: 2px solid black;
+    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
+    transition: all 0.2s ease-in-out;
+  }
+  .brutal-card-accent:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 8px 8px 0px 0px var(--shadow-ink);
+  }
+
+  /* Neobrutalist Buttons */
+  .brutal-btn {
+    background: hsl(var(--accent-500));
+    color: white;
+    font-family: var(--font-label);
+    text-transform: uppercase;
     font-weight: 600;
-    border-radius: 9999px; /* Pill shape */
-    padding: 0.6rem 1.5rem;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 15px -3px rgba(59, 130, 246, 0.3);
-    border: none;
+    border: 2px solid black;
+    box-shadow: 4px 4px 0px 0px var(--shadow-ink);
+    padding: 0.75rem 1.5rem;
+    transition: all 0.15s ease-out;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    cursor: pointer;
   }
-  .modern-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px -4px rgba(59, 130, 246, 0.4);
-    opacity: 0.95;
+  .brutal-btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
   }
-  .modern-btn-primary:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 10px -2px rgba(59, 130, 246, 0.3);
-  }
-  
-  .modern-btn-outline {
-    background: rgba(255, 255, 255, 0.5);
-    color: hsl(var(--foreground));
-    border: 1px solid hsl(var(--border));
-    font-family: var(--font-sans); 
-    font-weight: 600; 
-    border-radius: 9999px;
-    padding: 0.6rem 1.5rem;
-    transition: all 0.2s ease;
-    display: inline-flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 0.5rem;
-    backdrop-filter: blur(8px);
-  }
-  .modern-btn-outline:hover { 
-    background: white; 
-    transform: translateY(-2px); 
-    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.05);
-    border-color: #cbd5e1;
+  .brutal-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
   }
 
-  /* Inputs */
-  .modern-input {
+  .brutal-btn-warning {
+    background: hsl(var(--warning-500));
+    color: black;
+    font-family: var(--font-label);
+    text-transform: uppercase;
+    font-weight: 600;
+    border: 2px solid black;
+    box-shadow: 4px 4px 0px 0px var(--shadow-ink);
+    padding: 0.75rem 1.5rem;
+    transition: all 0.15s ease-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .brutal-btn-warning:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
+  }
+  .brutal-btn-warning:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  .brutal-btn-white {
+    background: white;
+    color: black;
+    font-family: var(--font-label);
+    text-transform: uppercase;
+    font-weight: 600;
+    border: 2px solid black;
+    box-shadow: 4px 4px 0px 0px var(--shadow-ink);
+    padding: 0.75rem 1.5rem;
+    transition: all 0.15s ease-out;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .brutal-btn-white:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
+  }
+  .brutal-btn-white:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  /* Neobrutalist Inputs */
+  .brutal-input {
     width: 100%; 
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid hsl(var(--border));
-    border-radius: 0.75rem; 
-    color: hsl(var(--foreground));
-    font-family: var(--font-sans); 
+    background: white;
+    border: 2px solid black;
+    color: black;
+    font-family: var(--font-mono); 
     font-size: 0.95rem;
     padding: 0.75rem 1.25rem; 
     outline: none;
     transition: all 0.2s ease;
-    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.01);
+    box-shadow: 4px 4px 0px 0px var(--shadow-ink);
   }
-  .modern-input:focus { 
-    border-color: #3b82f6; 
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); 
-    background: white;
+  .brutal-input:focus { 
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0px 0px var(--shadow-ink);
+    border-color: hsl(var(--accent-500));
   }
-  .modern-input::placeholder { color: hsl(var(--muted-foreground)); }
+  .brutal-input::placeholder { color: #666; }
 
-  /* Background mesh/grid patterns for depth */
-  .mesh-bg {
-    background-color: hsl(var(--background));
+  /* Background Grid Patterns */
+  .brutal-grid-bg {
+    background-color: white;
     background-image: 
-      radial-gradient(at 0% 0%, hsla(200,90%,90%,0.4) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(217,90%,90%,0.4) 0px, transparent 50%);
-  }
-  .soft-grid-bg {
-    background-image: linear-gradient(to right, hsl(var(--border)/0.5) 1px, transparent 1px), linear-gradient(to bottom, hsl(var(--border)/0.5) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
-
-  /* Underline nav hover effect */
-  .group:hover .group-hover\:w-full { width: 100% !important; }
-
-  @media (max-width: 1023px) {
-    body { overflow-x: hidden; cursor: auto; }
-    a, button { cursor: pointer; }
+      linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), 
+      linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
   }
 }

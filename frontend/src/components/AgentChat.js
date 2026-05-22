@@ -190,7 +190,7 @@ export default function AgentChat({ onAnalysisRefresh }) {
   return (
     <div
       className="flex flex-col h-full"
-      className="glass-card"
+      className="brutal-card"
     >
       <style>{`
         @keyframes agentPulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
@@ -203,14 +203,14 @@ export default function AgentChat({ onAnalysisRefresh }) {
       `}</style>
 
       {/* header */}
-      <div style={{ padding: "16px 28px", borderBottom: "1px solid var(--border)", background: "var(--background)", flexShrink: 0 }}>
+      <div style={{ padding: "16px 28px", borderBottom: "1px solid #000", background: "#fff", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{
               width: 44, height: 44,
-              background: "var(--primary)", border: "none", borderRadius: "0.5rem",
+              background: "hsl(var(--accent-500))", border: "none", borderRadius: "0px",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 22, boxShadow: "var(--shadow-soft)", flexShrink: 0,
+              fontSize: 22, boxShadow: "4px 4px 0 #000", flexShrink: 0,
             }}>🧠</div>
             <div>
               <p className="text-xs font-black uppercase tracking-widest" style={{ color: "hsl(24,100%,50%)", fontFamily: "var(--font-mono)", marginBottom: 2 }}>Agent Team</p>
@@ -268,7 +268,7 @@ export default function AgentChat({ onAnalysisRefresh }) {
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", paddingTop: 48, gap: 28, maxWidth: 560, margin: "0 auto" }}>
             <div style={{
               width: 80, height: 80,
-              background: "var(--primary)", border: "none", borderRadius: "0.5rem",
+              background: "hsl(var(--accent-500))", border: "none", borderRadius: "0px",
               display: "flex", alignItems: "center", justifyContent: "center",
               fontSize: 36, boxShadow: "6px 6px 0 #000",
             }}>🧠</div>
@@ -285,14 +285,14 @@ export default function AgentChat({ onAnalysisRefresh }) {
               {agents.map(a => (
                 <span key={a.name} style={{
                   fontSize: 12, padding: "4px 12px", fontWeight: 700,
-                  background: `${a.color}15`, color: a.color, border: `1px solid ${a.color}30`, borderRadius: "0.5rem",
+                  background: `${a.color}15`, color: a.color, border: `1px solid ${a.color}30`, borderRadius: "0px",
                   display: "inline-flex", alignItems: "center", gap: 5,
                 }}>{a.emoji} {a.name} <span style={{ opacity: .6, fontSize: 10 }}>· {a.role}</span></span>
               ))}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, width: "100%", maxWidth: 480, marginTop: 8 }}>
               {QUICK_ACTIONS.map((w, i) => (
-                <button key={i} className="glass-card p-[18px] text-left cursor-pointer transition-all hover:-translate-y-1 group" onClick={() => send(w.msg)}>
+                <button key={i} className="brutal-card p-[18px] text-left cursor-pointer transition-all hover:-translate-y-1 group" onClick={() => send(w.msg)}>
                   <div style={{
                     width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center",
                     background: w.color, color: w.color === "#111" ? "#fff" : (w.color === "hsl(24,100%,50%)" ? "#111" : "#fff"),
@@ -310,7 +310,7 @@ export default function AgentChat({ onAnalysisRefresh }) {
         {streaming && messages.length > 0 && !messages.some(m => m.event_type === "agent_thinking") && (
           <div style={{
             display: "flex", alignItems: "center", gap: 10, padding: "12px 18px", marginBottom: 16,
-            background: "var(--card)", border: "1px solid var(--border)", borderRadius: "0.5rem",
+            background: "#fff", border: "1px solid #000", borderRadius: "0px",
           }}>
             <span style={{ fontSize: 16 }}>🧠</span>
             <span className="text-xs font-black uppercase tracking-widest" style={{ color: "#777", fontFamily: "var(--font-mono)" }}>Coordinating agents</span>
@@ -326,10 +326,10 @@ export default function AgentChat({ onAnalysisRefresh }) {
       {trace.length > 0 && <TraceViewer messages={trace} isOpen={traceOpen} onToggle={() => setTraceOpen(p => !p)} />}
 
       {/* input */}
-      <div style={{ padding: "16px 28px", borderTop: "1px solid var(--border)", background: "var(--background)", flexShrink: 0 }}>
+      <div style={{ padding: "16px 28px", borderTop: "1px solid #000", background: "#fff", flexShrink: 0 }}>
         <div style={{
           display: "flex", gap: 12, alignItems: "flex-end",
-          background: "var(--card)", border: "1px solid var(--border)", borderRadius: "0.5rem",
+          background: "#fff", border: "1px solid #000", borderRadius: "0px",
           padding: "12px 16px", transition: "all .15s",
         }}
           onFocusCapture={e => { e.currentTarget.style.borderColor = "hsl(24,100%,50%)"; e.currentTarget.style.boxShadow = "4px 4px 0 hsl(24,100%,50%,0.3)"; e.currentTarget.style.transform = "translate(-2px,-2px)"; }}
@@ -342,12 +342,12 @@ export default function AgentChat({ onAnalysisRefresh }) {
           <button onClick={() => send()} disabled={!input.trim() || streaming} style={{
             width: 40, height: 40,
             background: input.trim() && !streaming ? "hsl(24,100%,50%)" : "#222",
-            border: "none", borderRadius: "0.5rem",
+            border: "none", borderRadius: "0px",
             cursor: input.trim() && !streaming ? "pointer" : "not-allowed",
             display: "flex", alignItems: "center", justifyContent: "center",
             color: input.trim() && !streaming ? "#111" : "#555",
             flexShrink: 0, transition: "all .15s",
-            boxShadow: input.trim() && !streaming ? "var(--shadow-soft)" : "none",
+            boxShadow: input.trim() && !streaming ? "4px 4px 0 #000" : "none",
           }}><SendIcon /></button>
         </div>
       </div>
