@@ -1,219 +1,271 @@
-@import url('https://fonts.googleapis.com/css2?family=Petrona:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Azeret+Mono:wght@400;600&display=swap');
-@import 'tailwindcss';
+:root {
+  --bg: #050814;
+  --bg-alt: #070b1f;
+  --accent: #f97316;
+  --accent-soft: rgba(249, 115, 22, 0.35);
+  --text-main: #f9fafb;
+  --text-muted: #9ca3af;
+  --border-subtle: rgba(148, 163, 184, 0.18);
+}
 
-@layer base {
-  :root {
-    --background: 0 0% 100%; /* Pure white */
-    --foreground: 0 0% 0%;   /* Pure black */
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-    
-    /* Neobrutalist Theme Variables */
-    --primary: 0 0% 0%; 
-    --primary-foreground: 0 0% 100%;
-    
-    /* Vibrant highlight colors based on Resume Matcher */
-    --accent-500: 221 83% 53%; /* Blue */
-    --warning-500: 45 93% 47%; /* Yellow */
-    --success-500: 142 71% 45%; /* Green */
-    --danger-500: 0 84% 60%; /* Red */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
-    --border: 0 0% 0%; /* Black borders */
-    --input: 0 0% 0%;
-    --ring: 0 0% 0%;
-    
-    --radius: 0px; /* Sharp corners */
-    --sidebar-width: 260px;
-    
-    --shadow-ink: #000; /* Solid black shadow */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Inter", sans-serif;
+  background: radial-gradient(circle at top left, #111827 0, var(--bg) 40%, #020617 100%);
+  color: var(--text-main);
+  min-height: 100vh;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.12;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg width='160' height='160' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='noStitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.9'/%3E%3C/svg%3E");
+  z-index: -1;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 24px;
+}
+
+.app-shell {
+  width: 100%;
+  max-width: 1120px;
+  border-radius: 32px;
+  border: 1px solid var(--border-subtle);
+  background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.08), transparent 55%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.95), rgba(3, 7, 18, 0.98));
+  box-shadow:
+    0 20px 60px rgba(15, 23, 42, 0.9),
+    0 0 0 1px rgba(15, 23, 42, 0.8);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr);
+  gap: 28px;
+  padding: 28px 28px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.app-shell::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  border: 1px solid rgba(249, 115, 22, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  animation: glow-pulse 4.5s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  45% {
+    opacity: 1;
   }
 }
 
-@theme {
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-primary: hsl(var(--primary));
-  --color-primary-foreground: hsl(var(--primary-foreground));
-  
-  --color-accent-500: hsl(var(--accent-500));
-  --color-warning-500: hsl(var(--warning-500));
-  --color-success-500: hsl(var(--success-500));
-  --color-danger-500: hsl(var(--danger-500));
-  
-  --font-display: 'Petrona', serif;
-  --font-sans: 'Source Sans 3', sans-serif;
-  --font-mono: 'Azeret Mono', monospace;
-  --font-label: 'Azeret Mono', monospace;
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  justify-content: center;
+  padding: 4px 8px 8px 8px;
 }
 
-@layer base {
-  * { box-sizing: border-box; }
-  body {
-    font-family: var(--font-sans);
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    overflow-x: hidden;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  h1, h2, h3, h4, h5, h6 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; }
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: transparent; border-left: 2px solid #000; }
-  ::-webkit-scrollbar-thumb { background: #000; }
-  ::-webkit-scrollbar-thumb:hover { background: hsl(var(--accent-500)); }
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
 }
 
-/* ── Animations ─────────────────────────────────────────────── */
-@keyframes fadeIn    { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+.hero-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 24px var(--accent-soft);
+}
 
-@layer utilities {
-  .animate-fade-in      { animation: fadeIn 0.4s ease-out both; }
+.hero-title {
+  font-size: clamp(32px, 4vw, 44px);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
 
-  /* Neobrutalist Cards */
-  .brutal-card {
-    background: white;
-    color: black;
-    border: 2px solid black;
-    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
-    transition: all 0.2s ease-in-out;
+.hero-title span {
+  color: var(--accent);
+}
+
+.hero-subtitle {
+  max-width: 420px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.btn-primary {
+  position: relative;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: radial-gradient(circle at 0% 0%, #f97316, #ec4899);
+  color: #020617;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow:
+    0 12px 36px rgba(248, 113, 113, 0.45),
+    0 0 0 1px rgba(15, 23, 42, 0.6);
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(248, 250, 252, 0.7), transparent 60%);
+  mix-blend-mode: soft-light;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 18px 50px rgba(248, 113, 113, 0.6),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+}
+
+.btn-primary:hover::after {
+  opacity: 1;
+}
+
+.btn-ghost {
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(15, 23, 42, 0.7);
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.btn-ghost:hover {
+  background: rgba(15, 23, 42, 1);
+  border-color: rgba(249, 115, 22, 0.6);
+  color: var(--text-main);
+}
+
+.hero-preview {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-orbit {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  border: 1px dashed rgba(148, 163, 184, 0.4);
+  opacity: 0.7;
+  animation: orbit-spin 22s linear infinite;
+}
+
+@keyframes orbit-spin {
+  to {
+    transform: rotate(360deg);
   }
-  .brutal-card:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0px 0px var(--shadow-ink);
+}
+
+.hero-preview-card {
+  position: relative;
+  border-radius: 24px;
+  padding: 16px 14px;
+  width: 280px;
+  background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.2), transparent 55%),
+    linear-gradient(145deg, #020617, #0f172a);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.95),
+    0 0 0 1px rgba(15, 23, 42, 0.9);
+  transform: rotate(-4deg) translateY(2px);
+  transform-origin: center;
+  animation: float-card 5.8s ease-in-out infinite;
+}
+
+@keyframes float-card {
+  0%,
+  100% {
+    transform: rotate(-4deg) translateY(2px);
+  }
+  50% {
+    transform: rotate(-2deg) translateY(-6px);
+  }
+}
+
+@media (max-width: 768px) {
+  #root {
+    padding: 16px;
   }
 
-  /* Variant Cards for Highlights */
-  .brutal-card-warning {
-    background: hsl(var(--warning-500));
-    color: black;
-    border: 2px solid black;
-    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
-    transition: all 0.2s ease-in-out;
-  }
-  .brutal-card-warning:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0px 0px var(--shadow-ink);
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 20px;
+    gap: 20px;
   }
 
-  .brutal-card-accent {
-    background: hsl(var(--accent-500));
-    color: white;
-    border: 2px solid black;
-    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
-    transition: all 0.2s ease-in-out;
-  }
-  .brutal-card-accent:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 8px 8px 0px 0px var(--shadow-ink);
-  }
-
-  /* Neobrutalist Buttons */
-  .brutal-btn {
-    background: hsl(var(--accent-500));
-    color: white;
-    font-family: var(--font-label);
-    text-transform: uppercase;
-    font-weight: 600;
-    border: 2px solid black;
-    box-shadow: 4px 4px 0px 0px var(--shadow-ink);
-    padding: 0.75rem 1.5rem;
-    transition: all 0.15s ease-out;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-  }
-  .brutal-btn:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
-  }
-  .brutal-btn:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-
-  .brutal-btn-warning {
-    background: hsl(var(--warning-500));
-    color: black;
-    font-family: var(--font-label);
-    text-transform: uppercase;
-    font-weight: 600;
-    border: 2px solid black;
-    box-shadow: 4px 4px 0px 0px var(--shadow-ink);
-    padding: 0.75rem 1.5rem;
-    transition: all 0.15s ease-out;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-  }
-  .brutal-btn-warning:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
-  }
-  .brutal-btn-warning:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-
-  .brutal-btn-white {
-    background: white;
-    color: black;
-    font-family: var(--font-label);
-    text-transform: uppercase;
-    font-weight: 600;
-    border: 2px solid black;
-    box-shadow: 4px 4px 0px 0px var(--shadow-ink);
-    padding: 0.75rem 1.5rem;
-    transition: all 0.15s ease-out;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    cursor: pointer;
-  }
-  .brutal-btn-white:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 6px 6px 0px 0px var(--shadow-ink);
-  }
-  .brutal-btn-white:active {
-    transform: translate(2px, 2px);
-    box-shadow: none;
-  }
-
-  /* Neobrutalist Inputs */
-  .brutal-input {
-    width: 100%; 
-    background: white;
-    border: 2px solid black;
-    color: black;
-    font-family: var(--font-mono); 
-    font-size: 0.95rem;
-    padding: 0.75rem 1.25rem; 
-    outline: none;
-    transition: all 0.2s ease;
-    box-shadow: 4px 4px 0px 0px var(--shadow-ink);
-  }
-  .brutal-input:focus { 
-    transform: translate(-1px, -1px);
-    box-shadow: 5px 5px 0px 0px var(--shadow-ink);
-    border-color: hsl(var(--accent-500));
-  }
-  .brutal-input::placeholder { color: #666; }
-
-  /* Background Grid Patterns */
-  .brutal-grid-bg {
-    background-color: white;
-    background-image: 
-      linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px), 
-      linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
+  .hero-preview {
+    order: -1;
   }
 }
