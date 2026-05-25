@@ -51,7 +51,7 @@ WORKFLOW_TEMPLATES = {
                 "task": "Search for top matching jobs based on the user's skills and compare the resume against the best job",
             },
             {
-                "agent": "maaya",
+                "agent": "alex",
                 "task": "Generate a personalized learning roadmap to bridge the skill gap between the resume and the target job found",
             },
         ],
@@ -140,7 +140,7 @@ Rules:
                     {"role": "system", "content": "You are an intent classifier. Respond ONLY in valid JSON."},
                     {"role": "user", "content": prompt},
                 ],
-                task="quick_copy",
+                task="agent_routing",
             )
             if "agents" in result or "direct_response" in result:
                 return result
@@ -353,6 +353,12 @@ Rules:
                         "response": agent_response[:1000],
                     }
                 )
+
+        if not agents_used:
+            yield SSEEvent(
+                event="error",
+                data={"message": f"No matching agents found for keys: {agent_keys}. Available agents: {list(self._team.keys())}"},
+            )
 
         # Done event
         yield SSEEvent(

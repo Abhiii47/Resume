@@ -3,7 +3,7 @@ import React from "react";
 /* ── Client-side content sanitizer ────────────────────────────────────────
    Last-resort defence: strip raw {"tool_call":...} JSON blobs that survive
    the backend filter. Also cleans markdown code fences containing JSON.
-──────────────────────────────────────────────────────────────────────────── */
+   ──────────────────────────────────────────────────────────────────────────── */
 function sanitizeContent(text) {
   if (!text) return "";
   // Remove ```json ... ``` fences that hold tool_call objects
@@ -14,11 +14,12 @@ function sanitizeContent(text) {
   text = text.replace(/^\s*\{[\s\S]{0,3000}?\}\s*$/gm, "");
   return text.trim();
 }
+
 /* ── Lightweight Markdown → React renderer ─────────────────────────────────
    Handles: **bold**, *italic*, `code`, # headings, - / * bullet lists,
    numbered lists, > blockquotes, --- separators, [link](url).
    No external dependencies.
-──────────────────────────────────────────────────────────────────────────── */
+   ──────────────────────────────────────────────────────────────────────────── */
 function renderMarkdown(text) {
   if (!text) return null;
 
@@ -45,12 +46,12 @@ function renderMarkdown(text) {
         <div key={key++} style={{
           fontSize: sizes[level],
           fontWeight: 900,
-          color: "#e5e5e5",
-          marginBottom: 6,
-          marginTop: level === 1 ? 10 : 6,
+          color: "var(--text-primary)",
+          marginBottom: 8,
+          marginTop: level === 1 ? 14 : 10,
           letterSpacing: "-0.01em",
-          borderBottom: level === 1 ? "1px solid #2a2a2a" : "none",
-          paddingBottom: level === 1 ? 6 : 0,
+          borderBottom: level === 1 ? "2px solid var(--border-muted)" : "none",
+          paddingBottom: level === 1 ? 4 : 0,
         }}>
           {inlineMarkdown(hMatch[2])}
         </div>
@@ -61,7 +62,7 @@ function renderMarkdown(text) {
 
     // Horizontal rule
     if (/^[-*_]{3,}$/.test(line.trim())) {
-      elements.push(<div key={key++} style={{ borderTop: "1px solid #2a2a2a", margin: "10px 0" }} />);
+      elements.push(<div key={key++} style={{ borderTop: "2px solid var(--border-muted)", margin: "14px 0" }} />);
       i++;
       continue;
     }
@@ -70,10 +71,10 @@ function renderMarkdown(text) {
     if (line.startsWith(">")) {
       elements.push(
         <div key={key++} style={{
-          borderLeft: "3px solid hsl(24,100%,50%)",
-          paddingLeft: 10,
-          marginBottom: 6,
-          color: "#888",
+          borderLeft: "3px solid var(--accent)",
+          paddingLeft: 12,
+          marginBottom: 8,
+          color: "var(--text-secondary)",
           fontSize: 13,
           fontStyle: "italic",
         }}>
@@ -92,13 +93,13 @@ function renderMarkdown(text) {
         i++;
       }
       elements.push(
-        <ul key={key++} style={{ margin: "6px 0", paddingLeft: 0, listStyle: "none" }}>
+        <ul key={key++} style={{ margin: "8px 0", paddingLeft: 0, listStyle: "none" }}>
           {bulletItems.map((item, idx) => (
             <li key={idx} style={{
               display: "flex", alignItems: "flex-start", gap: 8,
-              marginBottom: 4, fontSize: 13.5, color: "#ddd", lineHeight: 1.6,
+              marginBottom: 5, fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.65,
             }}>
-              <span style={{ color: "hsl(24,100%,50%)", fontWeight: 700, marginTop: 2, flexShrink: 0 }}>▸</span>
+              <span style={{ color: "var(--accent)", fontWeight: 700, marginTop: 2, flexShrink: 0 }}>▸</span>
               <span>{inlineMarkdown(item)}</span>
             </li>
           ))}
@@ -110,21 +111,20 @@ function renderMarkdown(text) {
     // Numbered list
     if (/^\d+\.\s+/.test(line)) {
       const numItems = [];
-
       while (i < lines.length && /^\d+\.\s+/.test(lines[i])) {
         numItems.push(lines[i].replace(/^\d+\.\s+/, ""));
         i++;
       }
       elements.push(
-        <ol key={key++} style={{ margin: "6px 0", paddingLeft: 0, listStyle: "none" }}>
+        <ol key={key++} style={{ margin: "8px 0", paddingLeft: 0, listStyle: "none" }}>
           {numItems.map((item, idx) => (
             <li key={idx} style={{
               display: "flex", alignItems: "flex-start", gap: 8,
-              marginBottom: 4, fontSize: 13.5, color: "#ddd", lineHeight: 1.6,
+              marginBottom: 5, fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.65,
             }}>
               <span style={{
-                color: "hsl(24,100%,50%)", fontWeight: 900, fontFamily: "var(--font-mono)",
-                fontSize: 11, minWidth: 20, textAlign: "right", marginTop: 2, flexShrink: 0,
+                color: "var(--accent)", fontWeight: 800, fontFamily: "var(--font-mono)",
+                fontSize: 11, minWidth: 18, textAlign: "right", marginTop: 2, flexShrink: 0,
               }}>{idx + 1}.</span>
               <span>{inlineMarkdown(item)}</span>
             </li>
@@ -145,10 +145,12 @@ function renderMarkdown(text) {
       i++; // skip closing ```
       elements.push(
         <pre key={key++} style={{
-          background: "#0d0d0d", border: "1px solid #1f1f1f",
-          padding: "10px 14px", fontSize: 11, fontFamily: "var(--font-mono)",
-          color: "#10b981", overflowX: "auto", marginBottom: 8,
+          background: "var(--bg-elevated)", border: "var(--border-brutal)",
+          borderRadius: "var(--radius-sm)",
+          padding: "12px 16px", fontSize: 12, fontFamily: "var(--font-mono)",
+          color: "var(--text-primary)", overflowX: "auto", marginBottom: 12,
           lineHeight: 1.7, whiteSpace: "pre-wrap", wordBreak: "break-all",
+          boxShadow: "2px 2px 0 var(--text-primary)",
         }}>
           {codeLines.join("\n")}
         </pre>
@@ -159,8 +161,8 @@ function renderMarkdown(text) {
     // Regular paragraph
     elements.push(
       <p key={key++} style={{
-        fontSize: 13.5, color: "#ddd", lineHeight: 1.7,
-        marginBottom: 6, wordBreak: "break-word",
+        fontSize: 13.5, color: "var(--text-secondary)", lineHeight: 1.7,
+        marginBottom: 8, wordBreak: "break-word",
       }}>
         {inlineMarkdown(line)}
       </p>
@@ -168,26 +170,26 @@ function renderMarkdown(text) {
     i++;
   }
 
-  return elements.length > 0 ? elements : <span style={{ color: "#ddd" }}>{text}</span>;
+  return elements.length > 0 ? elements : <span style={{ color: "var(--text-secondary)" }}>{text}</span>;
 }
 
 /* Inline markdown: **bold**, *italic*, `code`, [link](url) */
 function inlineMarkdown(text) {
   if (!text) return null;
-  // Split on markdown tokens while preserving them
   const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g);
   return parts.map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={i} style={{ color: "#fff", fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
+      return <strong key={i} style={{ color: "var(--text-primary)", fontWeight: 800 }}>{part.slice(2, -2)}</strong>;
     }
     if (part.startsWith("*") && part.endsWith("*")) {
-      return <em key={i} style={{ color: "#ccc" }}>{part.slice(1, -1)}</em>;
+      return <em key={i} style={{ color: "var(--text-secondary)" }}>{part.slice(1, -1)}</em>;
     }
     if (part.startsWith("`") && part.endsWith("`")) {
       return (
         <code key={i} style={{
-          background: "#1a1a1a", color: "#10b981", padding: "1px 5px",
-          fontFamily: "var(--font-mono)", fontSize: 12, border: "1px solid #2a2a2a",
+          background: "var(--bg-elevated)", color: "var(--accent-dark)", padding: "2px 6px",
+          fontFamily: "var(--font-mono)", fontSize: 12, border: "1px solid var(--border-muted)",
+          borderRadius: "var(--radius-sm)",
         }}>
           {part.slice(1, -1)}
         </code>
@@ -198,7 +200,7 @@ function inlineMarkdown(text) {
       const url = encodeURI(linkMatch[2]);
       return (
         <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-          style={{ color: "hsl(24,100%,50%)", textDecoration: "underline" }}>
+          style={{ color: "var(--accent-dark)", fontWeight: 700, textDecoration: "underline" }}>
           {linkMatch[1]}
         </a>
       );
@@ -207,20 +209,8 @@ function inlineMarkdown(text) {
   });
 }
 
-/* ── Message type styles ────────────────────────────────────────────────── */
-const BG = {
-  user:           { bg: "hsl(24,100%,50%)", text: "#111",    border: "#000" },
-  agent_message:  { bg: "#161616",          text: "#e5e5e5", border: "#222" },
-  agent_thinking: { bg: "transparent",      text: "#555",    border: "#1a1a1a" },
-  agent_handoff:  { bg: "transparent",      text: "#666",    border: "#1a1a1a" },
-  tool_call:      { bg: "#0d0d0d",          text: "#8b5cf6", border: "#1a1a1a" },
-  tool_result:    { bg: "#0d0d0d",          text: "#10b981", border: "#1a1a1a" },
-  error:          { bg: "#1a0000",          text: "#ef4444", border: "#3b1111" },
-};
-
 export default function AgentMessage({ message: m }) {
   const type = m.event_type || "agent_message";
-  const s = BG[type] || BG.agent_message;
 
   // tool_call and tool_result are now hidden from main chat (shown in TraceViewer only)
   if (type === "tool_call" || type === "tool_result") return null;
@@ -228,12 +218,17 @@ export default function AgentMessage({ message: m }) {
   // thinking — minimal indicator
   if (type === "agent_thinking") {
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", marginBottom: 4, color: "#444", fontSize: 12, fontFamily: "var(--font-mono)" }}>
+      <div style={{ 
+        display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 14px", marginBottom: 12, 
+        color: "var(--text-secondary)", fontSize: 12, fontFamily: "var(--font-mono)",
+        background: "var(--bg-elevated)", border: "1px dashed var(--border-muted)",
+        borderRadius: "var(--radius-sm)"
+      }}>
         <span>{m.emoji || "🧠"}</span>
-        <span style={{ fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em" }}>{m.agent || "Agent"}</span>
-        <span style={{ opacity: .6 }}>thinking</span>
+        <span style={{ fontWeight: 800, textTransform: "uppercase", letterSpacing: ".06em" }}>{m.agent || "Agent"}</span>
+        <span style={{ opacity: .8 }}>thinking</span>
         <div style={{ display: "flex", gap: 3 }}>
-          {[0,1,2].map(i => <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: "hsl(24,100%,50%)", animation: "agentPulse 1.4s ease-in-out infinite", animationDelay: `${i * .2}s` }} />)}
+          {[0,1,2].map(i => <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--accent)", animation: "agentPulse 1.4s ease-in-out infinite", animationDelay: `${i * .2}s` }} />)}
         </div>
       </div>
     );
@@ -243,16 +238,17 @@ export default function AgentMessage({ message: m }) {
   if (type === "agent_handoff") {
     return (
       <div style={{
-        display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", marginBottom: 8,
-        fontSize: 11, fontFamily: "var(--font-mono)", color: "#444",
-        background: "#111", border: "1px solid #1a1a1a",
+        display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 14px", marginBottom: 12,
+        fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-secondary)",
+        background: "var(--bg-elevated)", border: "var(--border-brutal)", borderRadius: "var(--radius-sm)",
+        boxShadow: "2px 2px 0 var(--text-primary)",
       }}>
-        <span style={{ color: "#333" }}>↳</span>
-        <span style={{ color: "#555" }}>{m.data?.from_emoji || "🤖"} {m.data?.from_agent || "Agent"}</span>
-        <span style={{ color: "#333" }}>→</span>
-        <span style={{ color: "#ec4899", fontWeight: 700 }}>{m.data?.to_emoji || "🤖"} {m.data?.to_agent || "Agent"}</span>
+        <span style={{ color: "var(--text-muted)" }}>↳</span>
+        <span style={{ fontWeight: 700 }}>{m.data?.from_emoji || "🤖"} {m.data?.from_agent || "Agent"}</span>
+        <span style={{ color: "var(--text-muted)" }}>→</span>
+        <span style={{ color: "var(--accent-dark)", fontWeight: 800 }}>{m.data?.to_emoji || "🤖"} {m.data?.to_agent || "Agent"}</span>
         {m.data?.task && (
-          <span style={{ color: "#333", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginLeft: 4 }}>
+          <span style={{ color: "var(--text-muted)", maxWidth: 260, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginLeft: 4 }}>
             · {m.data.task}
           </span>
         )}
@@ -265,11 +261,11 @@ export default function AgentMessage({ message: m }) {
     return (
       <div style={{
         padding: "14px 20px", marginBottom: 12,
-        background: "hsl(var(--accent-500))", border: "none", borderRadius: "0px", borderBottomRightRadius: "0.25rem",
-        boxShadow: "4px 4px 0 #000", color: "var(--primary-foreground)",
-        alignSelf: "flex-end", maxWidth: "85%", marginLeft: "auto",
+        background: "var(--accent-light)", border: "var(--border-brutal)", borderRadius: "var(--radius-sm)",
+        boxShadow: "var(--shadow-brutal)", color: "var(--text-primary)",
+        alignSelf: "flex-end", maxWidth: "80%", marginLeft: "auto",
       }}>
-        <p style={{ fontSize: 14, fontWeight: 600, lineHeight: 1.6, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+        <p style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.6, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
           {m.content}
         </p>
       </div>
@@ -279,39 +275,46 @@ export default function AgentMessage({ message: m }) {
   // error
   if (type === "error") {
     return (
-      <div style={{ padding: "12px 18px", marginBottom: 12, background: s.bg, border: `2px solid ${s.border}`, color: s.text, fontSize: 12, fontFamily: "var(--font-mono)" }}>
-        <span style={{ fontWeight: 700 }}>Error:</span> {m.data?.error || m.content || "Something went wrong"}
+      <div style={{ 
+        padding: "12px 18px", marginBottom: 12, 
+        background: "rgba(220, 38, 38, 0.06)", border: "2px solid var(--color-error)", 
+        color: "var(--color-error)", fontSize: 12.5, fontFamily: "var(--font-mono)",
+        borderRadius: "var(--radius-sm)", boxShadow: "2px 2px 0 var(--text-primary)"
+      }}>
+        <span style={{ fontWeight: 800 }}>Error:</span> {m.data?.error || m.content || "Something went wrong"}
       </div>
     );
   }
 
   // agent_message — main response with markdown
-  const agentColor = m.color || "#f97316";
+  const agentColor = m.color || "var(--accent)";
   return (
     <div style={{
-      padding: "18px 22px", marginBottom: 12,
-      background: "#fff", border: "1px solid #000", borderRadius: "0.75rem",
-      borderLeft: `4px solid ${agentColor}`,
-      boxShadow: "4px 4px 0 #000",
+      padding: "20px 24px", marginBottom: 16,
+      background: "var(--bg-surface)", border: "var(--border-brutal)", borderRadius: "var(--radius-sm)",
+      borderLeft: `5px solid ${agentColor}`,
+      boxShadow: "var(--shadow-brutal)",
     }}>
       {/* Agent header */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <span style={{
-          width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center",
-          background: agentColor, border: "none", borderRadius: "0px", fontSize: 13, flexShrink: 0,
-        }}>{m.emoji || "🤖"}</span>
-        <span style={{ fontWeight: 900, fontSize: 11, textTransform: "uppercase", letterSpacing: ".04em", color: agentColor }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, borderBottom: "1px dashed var(--border-muted)", paddingBottom: 10 }}>
+        <div style={{
+          width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center",
+          background: agentColor, border: "var(--border-brutal)", borderRadius: "var(--radius-sm)", fontSize: 14, flexShrink: 0,
+          boxShadow: "2px 2px 0 var(--text-primary)",
+        }}>{m.emoji || "🤖"}</div>
+        <span style={{ fontWeight: 800, fontSize: 13, textTransform: "uppercase", letterSpacing: ".04em", color: "var(--text-primary)" }}>
           {m.agent || "Agent"}
         </span>
         {m.data?.role && (
-          <span style={{ fontSize: 10, color: "#444", fontFamily: "var(--font-mono)" }}>
+          <span style={{ fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontWeight: 500 }}>
             · {m.data.role}
           </span>
         )}
         {m.tools_used?.length > 0 && (
           <span style={{
-            marginLeft: "auto", fontSize: 9, color: "#333", fontFamily: "var(--font-mono)",
-            background: "#0d0d0d", padding: "2px 6px", border: "1px solid #1a1a1a",
+            marginLeft: "auto", fontSize: 10, color: "var(--text-primary)", fontFamily: "var(--font-mono)",
+            background: "var(--accent-light)", padding: "2px 8px", border: "var(--border-brutal)",
+            boxShadow: "1px 1px 0 var(--text-primary)", fontWeight: 700, borderRadius: "var(--radius-sm)"
           }}>
             ⚡ {m.tools_used.length} tool{m.tools_used.length > 1 ? "s" : ""}
           </span>
@@ -319,7 +322,7 @@ export default function AgentMessage({ message: m }) {
       </div>
 
       {/* Markdown-rendered content */}
-      <div style={{ lineHeight: 1.7 }}>
+      <div style={{ lineHeight: 1.75 }}>
         {renderMarkdown(sanitizeContent(m.content))}
       </div>
     </div>

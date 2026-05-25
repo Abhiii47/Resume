@@ -271,7 +271,6 @@ Make jobs realistic and specific. Use real companies (Google, Amazon, Meta, Stri
                 prompt,
                 system="You are a job market expert. Respond only in valid JSON.",
                 task="analysis_quality",
-                required_keys=["jobs"],
             )
             jobs = result.get("jobs", [])
             if jobs:

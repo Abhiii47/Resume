@@ -16,235 +16,196 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }) {
     const modalRef = useRef(null);
     const navigate = useNavigate();
 
-    // GSAP Animations
     useEffect(() => {
         if (isOpen) {
-            // Enter animation
             if (overlayRef.current && modalRef.current) {
                 gsap.set(overlayRef.current, { opacity: 0 });
-                gsap.set(modalRef.current, { y: 20, opacity: 0, scale: 0.95 });
-
-                gsap.to(overlayRef.current, {
-                    opacity: 1,
-                    duration: 0.3,
-                    ease: "power2.out"
-                });
-
-                gsap.to(modalRef.current, {
-                    y: 0,
-                    opacity: 1,
-                    scale: 1,
-                    duration: 0.4,
-                    ease: "back.out(1.2)",
-                    delay: 0.1
-                });
+                gsap.set(modalRef.current, { y: 24, opacity: 0, scale: 0.96 });
+                gsap.to(overlayRef.current, { opacity: 1, duration: 0.25, ease: "power2.out" });
+                gsap.to(modalRef.current, { y: 0, opacity: 1, scale: 1, duration: 0.4, ease: "back.out(1.4)", delay: 0.05 });
             }
         }
     }, [isOpen]);
 
     const handleClose = () => {
         if (overlayRef.current && modalRef.current) {
-            // Exit animation
-            gsap.to(overlayRef.current, {
-                opacity: 0,
-                duration: 0.2,
-                ease: "power2.in"
-            });
-
-            gsap.to(modalRef.current, {
-                y: 10,
-                opacity: 0,
-                scale: 0.98,
-                duration: 0.2,
-                ease: "power2.in",
-                onComplete: onClose
-            });
-        } else {
-            onClose();
-        }
+            gsap.to(overlayRef.current, { opacity: 0, duration: 0.18, ease: "power2.in" });
+            gsap.to(modalRef.current, { y: 12, opacity: 0, scale: 0.97, duration: 0.18, ease: "power2.in", onComplete: onClose });
+        } else { onClose(); }
     };
 
     useEffect(() => {
-        setView(initialView);
-        setError("");
-        setEmail("");
-        setPassword("");
-        setUsername("");
+        setView(initialView); setError(""); setEmail(""); setPassword(""); setUsername("");
     }, [initialView, isOpen]);
 
     if (!isOpen) return null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError("");
-        setLoading(true);
-
+        setError(""); setLoading(true);
         try {
             if (view === "login") {
                 const params = new URLSearchParams();
-                params.append("username", email);
-                params.append("password", password);
-
+                params.append("username", email); params.append("password", password);
                 const { data } = await axios.post(`${API_BASE}/login`, params, {
                     headers: { "Content-Type": "application/x-www-form-urlencoded" }
                 });
-
-                setAuthToken(data.access_token);
-                navigate("/dashboard");
-                handleClose();
+                setAuthToken(data.access_token); navigate("/dashboard"); handleClose();
             } else {
-                // Signup
-                const formData = new FormData();
-                formData.append("email", email);
-                formData.append("username", username);
-                formData.append("password", password);
-
-                const { data } = await axios.post(`${API_BASE}/signup`, formData, {
+                const fd = new FormData();
+                fd.append("email", email); fd.append("username", username); fd.append("password", password);
+                const { data } = await axios.post(`${API_BASE}/signup`, fd, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
-
                 if (data.success) {
-                    // Auto login after signup
                     const params = new URLSearchParams();
-                    params.append("username", email);
-                    params.append("password", password);
-
-                    const { data: loginData } = await axios.post(`${API_BASE}/login`, params, {
+                    params.append("username", email); params.append("password", password);
+                    const { data: ld } = await axios.post(`${API_BASE}/login`, params, {
                         headers: { "Content-Type": "application/x-www-form-urlencoded" }
                     });
-
-                    setAuthToken(loginData.access_token);
-                    navigate("/dashboard");
-                    handleClose();
+                    setAuthToken(ld.access_token); navigate("/dashboard"); handleClose();
                 }
             }
         } catch (err) {
-            const apiDetail = err?.response?.data?.detail;
-            setError(typeof apiDetail === "string" ? apiDetail : "Authentication failed. Please try again.");
-
-            // Shake animation on error
+            const d = err?.response?.data?.detail;
+            setError(typeof d === "string" ? d : "Authentication failed. Please try again.");
             if (modalRef.current) {
-                gsap.fromTo(modalRef.current,
-                    { x: -5 },
-                    { x: 5, duration: 0.05, repeat: 5, yoyo: true, ease: "sine.inOut", onComplete: () => gsap.set(modalRef.current, { x: 0 }) }
+                gsap.fromTo(modalRef.current, { x: -6 },
+                    { x: 6, duration: 0.06, repeat: 5, yoyo: true, ease: "sine.inOut", onComplete: () => gsap.set(modalRef.current, { x: 0 }) }
                 );
             }
-        } finally {
-            setLoading(false);
-        }
+        } finally { setLoading(false); }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-hidden">
+        <div style={{
+            position: "fixed", inset: 0, zIndex: 200,
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+        }}>
             {/* Backdrop */}
             <div
                 ref={overlayRef}
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                style={{
+                    position: "absolute", inset: 0,
+                    background: "rgba(28,25,23,0.35)",
+                    backdropFilter: "blur(2px)",
+                    WebkitBackdropFilter: "blur(2px)",
+                }}
                 onClick={handleClose}
-            ></div>
+            />
 
-            {/* Modal Content - Shadcn Style */}
+            {/* Modal */}
             <div
                 ref={modalRef}
-                className="relative w-full max-w-[400px] bg-background border border-border rounded-xl shadow-lg overflow-hidden"
+                className="modal-card"
+                style={{ position: "relative", zIndex: 1 }}
             >
-                {/* Close Button */}
+                {/* Close */}
                 <button
                     onClick={handleClose}
-                    className="absolute top-4 right-4 p-2 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors z-10 cursor-pointer"
-                >
-                    <svg className="w-4 h-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+                    id="auth-modal-close"
+                    style={{
+                        position: "absolute", top: 16, right: 16,
+                        width: 28, height: 28, borderRadius: "var(--radius-sm)",
+                        background: "var(--bg-surface)",
+                        border: "var(--border-brutal)",
+                        boxShadow: "2px 2px 0px var(--text-primary)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        cursor: "pointer", color: "var(--text-primary)",
+                        fontSize: 12,
+                    }}
+                >✕</button>
 
-                <div className="p-8 pb-10">
-                    <div className="text-center mb-8">
-                        <h2 className="text-2xl font-semibold tracking-tight text-foreground mb-2">
-                            {view === "login" ? "Welcome back" : "Create an account"}
-                        </h2>
-                        <p className="text-sm text-muted-foreground">
-                            {view === "login"
-                                ? "Enter your email to sign in to your account"
-                                : "Enter your email below to create your account"}
-                        </p>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        {view === "signup" && (
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Username</label>
-                                <input
-                                    type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    required
-                                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                    placeholder="johndoe"
-                                />
-                            </div>
-                        )}
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Email</label>
-                            <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                placeholder="name@example.com"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Password</label>
-                            <input
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                                placeholder="••••••••"
-                                minLength={6}
-                            />
-                        </div>
-
-                        {error && (
-                            <div className="text-sm font-medium text-destructive mt-2 text-center">
-                                {error}
-                            </div>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground shadow hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98] h-9 w-full mt-4 cursor-pointer"
-                        >
-                            {loading ? (
-                                <span className="flex items-center gap-2">
-                                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                    </svg>
-                                    Loading...
-                                </span>
-                            ) : (
-                                view === "login" ? "Sign In" : "Create Account"
-                            )}
-                        </button>
-                    </form>
-
-                    <div className="mt-4 text-center text-sm text-muted-foreground">
-                        {view === "login" ? "Don't have an account? " : "Already have an account? "}
-                        <button
-                            onClick={() => setView(view === "login" ? "signup" : "login")}
-                            className="underline underline-offset-4 hover:text-primary font-medium cursor-pointer"
-                        >
-                            {view === "login" ? "Sign up" : "Sign in"}
-                        </button>
-                    </div>
+                {/* Logo */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
+                    <div className="nav-logo-icon" style={{ width: 30, height: 30, fontSize: 11 }}>SR</div>
+                    <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 14, color: "var(--text-primary)" }}>SmartResume</span>
                 </div>
+
+                {/* Header */}
+                <div style={{ marginBottom: 24 }}>
+                    <h2 style={{
+                        fontFamily: "var(--font-display)", fontWeight: 800,
+                        fontSize: "1.4rem", letterSpacing: "-0.03em",
+                        color: "var(--text-primary)", marginBottom: 4,
+                    }}>
+                        {view === "login" ? "Welcome back" : "Create an account"}
+                    </h2>
+                    <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                        {view === "login"
+                            ? "Enter your credentials to sign in"
+                            : "Fill in the details below to get started"}
+                    </p>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                    {view === "signup" && (
+                        <div style={{ marginBottom: 14 }}>
+                            <label className="input-label">Username</label>
+                            <input
+                                id="modal-username"
+                                type="text" value={username}
+                                onChange={e => setUsername(e.target.value)}
+                                required className="input-field"
+                                placeholder="johndoe"
+                            />
+                        </div>
+                    )}
+
+                    <div style={{ marginBottom: 14 }}>
+                        <label className="input-label">Email</label>
+                        <input
+                            id="modal-email"
+                            type="email" value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            required className="input-field"
+                            placeholder="name@example.com"
+                        />
+                    </div>
+
+                    <div style={{ marginBottom: 20 }}>
+                        <label className="input-label">Password</label>
+                        <input
+                            id="modal-password"
+                            type="password" value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            required minLength={6}
+                            className="input-field"
+                            placeholder="••••••••"
+                        />
+                    </div>
+
+                    {error && (
+                        <div className="alert alert-error" style={{ marginBottom: 16, fontSize: 13 }}>
+                            <span>⚠</span> {error}
+                        </div>
+                    )}
+
+                    <button
+                        id="modal-submit-btn"
+                        type="submit"
+                        disabled={loading}
+                        className="btn btn-primary"
+                        style={{ width: "100%", justifyContent: "center", height: 44, fontSize: 14 }}
+                    >
+                        {loading ? "Loading…" : view === "login" ? "Sign In" : "Create Account"}
+                    </button>
+                </form>
+
+                <div className="divider" style={{ margin: "20px 0 16px" }} />
+                <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-muted)" }}>
+                    {view === "login" ? "Don't have an account? " : "Already have an account? "}
+                    <button
+                        onClick={() => setView(view === "login" ? "signup" : "login")}
+                        style={{
+                            background: "none", border: "none", cursor: "pointer",
+                            color: "var(--accent)", fontWeight: 700, fontSize: 13,
+                            fontFamily: "var(--font-body)",
+                        }}
+                    >
+                        {view === "login" ? "Sign up" : "Sign in"}
+                    </button>
+                </p>
             </div>
         </div>
     );

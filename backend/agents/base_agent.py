@@ -165,7 +165,7 @@ class BaseAgent(ABC):
             parts.append(f"{label}: {msg['content']}")
         prompt = "\n\n".join(parts)
 
-        result = await asyncio.to_thread(self._llm._call_llm, prompt, system_msg, task)
+        result = await asyncio.to_thread(self._llm._call_llm, prompt, system=system_msg, task=task)
         return result or ""
 
     async def _call_llm_json(self, messages: list[dict], task: str = "structured_extract") -> dict:

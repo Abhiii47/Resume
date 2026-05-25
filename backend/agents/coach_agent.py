@@ -6,7 +6,7 @@ Replaces the old 'Alex' mentor with a warmer, more data-driven approach.
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from .base_agent import AgentContext, AgentTool, BaseAgent
@@ -155,22 +155,185 @@ class CoachAgent(BaseAgent):
     # ── Tool Handlers ─────────────────────────────────────────────────────
 
     def _handle_get_career_status(self, **kwargs) -> Any:
-        """Pull full career dashboard context (reuses agent_service logic)."""
+        """Pull full career dashboard context using inline DB queries."""
         context: AgentContext = kwargs["context"]
 
         if not context.db or not context.user:
             return {"error": "Database session not available."}
 
         try:
-            from services.agent_service import _format_context, build_user_context
+            from database import Analysis, CodingRoadmap, DSATrack, GitHubProfile, JobApplication
+            from security_utils import decrypt_resume_text
 
-            ctx = build_user_context(context.user, context.db)
-            formatted = _format_context(ctx)
+            user = context.user
+            db = context.db
+
+            ctx: dict = {
+                "username": user.username,
+                "member_since": user.created_at.strftime("%B %Y") if user.created_at else "recently",
+                "resume": None,
+                "dsa": None,
+                "jobs": None,
+                "github": None,
+                "roadmap": None,
+            }
+
+            # ── Resume ────────────────────────────────────────────────────
+            analysis = (
+                db.query(Analysis)
+                .filter(Analysis.user_id == user.id)
+                .order_by(Analysis.created_at.desc())
+                .first()
+            )
+            if analysis:
+                resume_text = (
+                    decrypt_resume_text(getattr(analysis, "resume_text", ""))
+                    or getattr(analysis, "resume_preview", "")
+                    or ""
+                ).strip()
+                ctx["resume"] = {
+                    "score": analysis.ats_score,
+                    "breakdown": analysis.score_breakdown or {},
+                    "suggestions": (analysis.suggestions or [])[:3],
+                    "days_ago": (datetime.utcnow() - analysis.created_at).days,
+                    "jd_used": bool(analysis.jd_used),
+                    "resume_text_preview": resume_text[:800],
+                }
+
+            # ── DSA ───────────────────────────────────────────────────────
+            dsa_records = db.query(DSATrack).filter(DSATrack.user_id == user.id).all()
+            if dsa_records:
+                completed = [r for r in dsa_records if r.status == "done"]
+                today = datetime.utcnow().date()
+                calendar: dict = {}
+                for r in completed:
+                    if r.completed_at:
+                        k = r.completed_at.date().isoformat()
+                        calendar[k] = calendar.get(k, 0) + 1
+                streak = 0
+                cursor = today
+                while calendar.get(cursor.isoformat(), 0) > 0:
+                    streak += 1
+                    cursor -= timedelta(days=1)
+                yesterday = (today - timedelta(days=1)).isoformat()
+                ctx["dsa"] = {
+                    "total_completed": len(completed),
+                    "current_streak": streak,
+                    "done_today": calendar.get(today.isoformat(), 0),
+                    "streak_at_risk": streak == 0 and calendar.get(yesterday, 0) > 0,
+                }
+
+            # ── Jobs ──────────────────────────────────────────────────────
+            apps = (
+                db.query(JobApplication)
+                .filter(JobApplication.user_id == user.id, JobApplication.is_active == True)
+                .order_by(JobApplication.created_at.desc())
+                .limit(10)
+                .all()
+            )
+            if apps:
+                stale = [
+                    f"{a.company} ({a.role}) — {(datetime.utcnow() - a.created_at).days}d, stage: {a.stage}"
+                    for a in apps
+                    if (datetime.utcnow() - a.created_at).days > 14
+                    and a.stage not in ("offer", "rejected")
+                ]
+                stage_counts: dict = {}
+                for a in apps:
+                    stage_counts[a.stage] = stage_counts.get(a.stage, 0) + 1
+                ctx["jobs"] = {
+                    "total": len(apps),
+                    "by_stage": stage_counts,
+                    "stale": stale[:3],
+                    "recent": [{"company": a.company, "role": a.role, "stage": a.stage} for a in apps[:5]],
+                }
+
+            # ── GitHub ────────────────────────────────────────────────────
+            gh = db.query(GitHubProfile).filter(GitHubProfile.user_id == user.id).first()
+            if gh:
+                ctx["github"] = {
+                    "username": gh.github_username,
+                    "public_repos": gh.public_repos,
+                    "top_languages": list((gh.top_languages or {}).keys())[:4],
+                    "gaps": (gh.resume_gaps or [])[:3],
+                    "bonuses": (gh.github_bonuses or [])[:3],
+                }
+
+            # ── Roadmap ───────────────────────────────────────────────────
+            roadmap = (
+                db.query(CodingRoadmap)
+                .filter(CodingRoadmap.user_id == user.id)
+                .order_by(CodingRoadmap.updated_at.desc())
+                .first()
+            )
+            if roadmap:
+                ctx["roadmap"] = {
+                    "target": roadmap.target_role,
+                    "progress_pct": roadmap.progress_pct,
+                    "completed": len(roadmap.completed_topics or []),
+                    "total": roadmap.total_topics,
+                }
+
+            # ── Format summary string ─────────────────────────────────────
+            lines = [f"USER: @{ctx['username']} (joined {ctx['member_since']})\n"]
+
+            if ctx["resume"]:
+                r = ctx["resume"]
+                bd = r["breakdown"]
+                lines.append("RESUME:")
+                lines.append(f"  Score: {r['score']}/100 (analyzed {r['days_ago']}d ago)")
+                if bd:
+                    lines.append(
+                        f"  Keywords: {bd.get('keyword_match', '?')}/35 | "
+                        f"Format: {bd.get('format_readability', '?')}/30 | "
+                        f"Impact: {bd.get('impact_metrics', '?')}/35"
+                    )
+                if r["suggestions"]:
+                    lines.append(f"  Issues: {' | '.join(r['suggestions'][:2])}")
+            else:
+                lines.append("RESUME: ⚠️ None analyzed yet")
+
+            if ctx["dsa"]:
+                d = ctx["dsa"]
+                lines.append(
+                    f"\nDSA: {d['total_completed']} solved | Streak: {d['current_streak']}d | "
+                    f"Today: {d['done_today']} problems"
+                )
+                if d["streak_at_risk"]:
+                    lines.append("  ⚠️ STREAK AT RISK — nothing solved today!")
+            else:
+                lines.append("\nDSA: No problems tracked")
+
+            if ctx["jobs"]:
+                j = ctx["jobs"]
+                lines.append(f"\nJOBS: {j['total']} tracked | {j['by_stage']}")
+                if j["stale"]:
+                    lines.append(f"  ⚠️ Stale: {j['stale'][0]}")
+            else:
+                lines.append("\nJOBS: No applications tracked")
+
+            if ctx["github"]:
+                g = ctx["github"]
+                lines.append(f"\nGITHUB: @{g['username']} | {g['public_repos']} repos | {g['top_languages']}")
+                if g["gaps"]:
+                    lines.append(f"  Resume gaps: {g['gaps']}")
+                if g["bonuses"]:
+                    lines.append(f"  Hidden skills (add to resume!): {g['bonuses']}")
+
+            if ctx["roadmap"]:
+                rm = ctx["roadmap"]
+                lines.append(
+                    f"\nROADMAP: {rm['target']} — {rm['progress_pct']:.0f}% "
+                    f"({rm['completed']}/{rm['total']} topics)"
+                )
+
+            formatted = "\n".join(lines)
 
             return {
                 "raw": ctx,
                 "formatted": formatted,
             }
+
         except Exception as exc:
             logger.error("get_career_status failed: %s", exc)
             return {"error": f"Failed to load career status: {exc}"}

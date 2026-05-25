@@ -2255,8 +2255,10 @@ async def agents_chat_sse(
                 )
             )
             stream_db.commit()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.error(f"AgentTrace DB error: {e}")
+            import json as _json
+            yield f"event: error\ndata: {_json.dumps({'error': f'Failed to save trace: {e}'})}\n\n"
         finally:
             stream_db.close()
 

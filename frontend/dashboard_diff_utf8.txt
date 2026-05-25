@@ -1,0 +1,399 @@
+﻿diff --git a/frontend/src/pages/DashboardPage.js b/frontend/src/pages/DashboardPage.js
+index 1999a6d..7efda0d 100644
+--- a/frontend/src/pages/DashboardPage.js
++++ b/frontend/src/pages/DashboardPage.js
+@@ -35,193 +35,160 @@ function AnimatedScore({ value, className, style }) {
+   );
+ }
+ 
+-/* ΓöÇΓöÇ Overview Tab (funky shell inside content) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
++/* ΓöÇΓöÇ Overview Tab ΓÇö Warm Pearl ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */
+ function OverviewTab({ history, setActiveTab, navigate, llmMetrics, llmMetricsLoading, showLlmMetrics = false }) {
+   const latestScore =
+     history && history.length > 0
+       ? history[0].score_breakdown?.total_score ||
+         history[0].score_breakdown?.overall ||
+-        history[0].ats_score ||
+-        0
++        history[0].ats_score || 0
+       : 0;
+   const analysisCount = history ? history.length : 0;
+ 
+   const statCards = [
+-    {
+-      label: "Top ATS Score",
+-      value: latestScore,
+-      suffix: "/ 100",
+-      color: "#f97316",
+-    },
+-    {
+-      label: "Resumes Analyzed",
+-      value: analysisCount,
+-      suffix: " runs",
+-      color: "#38bdf8",
+-    },
+-    {
+-      label: "Tracker Categories",
+-      value: 6,
+-      suffix: " active",
+-      color: "#22c55e",
+-    },
++    { label: "Top ATS Score",      value: latestScore,    suffix: "/ 100", color: "var(--accent)",         bg: "var(--accent-light)" },
++    { label: "Resumes Analyzed",   value: analysisCount,  suffix: " runs", color: "#0284c7",               bg: "#dbeafe" },
++    { label: "Tracker Categories", value: 6,              suffix: " active", color: "var(--color-success)", bg: "#dcfce7" },
+   ];
+ 
+   const actionCards = [
+-    {
+-      label: "Open Resume Builder",
+-      desc: "Refine layout and export clean PDFs",
+-      icon: FileText,
+-      accent: "#38bdf8",
+-      onClick: () => navigate("/builder"),
+-    },
+-    {
+-      label: "Run Resume Lab",
+-      desc: "Analyze ATS fit and fix flaws",
+-      icon: UploadCloud,
+-      accent: "#f97316",
+-      onClick: () => setActiveTab("workspace"),
+-    },
+-    {
+-      label: "Job Tracker",
+-      desc: "Manage applications like a kanban",
+-      icon: CheckCircle2,
+-      accent: "#22c55e",
+-      onClick: () => setActiveTab("tracker"),
+-    },
+-    {
+-      label: "AI Copilot",
+-      desc: "Chat with an agentic career assistant",
+-      icon: BookOpen,
+-      accent: "#a855f7",
+-      onClick: () => setActiveTab("copilot"),
+-    },
++    { label: "Resume Builder", desc: "Create & export ATS-ready PDFs",      icon: "≡ƒôä", color: "#0284c7",               onClick: () => navigate("/builder") },
++    { label: "Resume Lab",     desc: "Analyze ATS fit and fix every flaw",  icon: "≡ƒôè", color: "var(--accent)",         onClick: () => setActiveTab("workspace") },
++    { label: "Job Tracker",    desc: "Kanban board for your applications",   icon: "≡ƒùé∩╕Å", color: "var(--color-success)",  onClick: () => setActiveTab("tracker") },
++    { label: "AI Copilot",     desc: "Chat with your agentic career team",  icon: "≡ƒñû", color: "#7c3aed",               onClick: () => setActiveTab("copilot") },
+   ];
+ 
+   return (
+-    <div
+-      className="min-h-screen w-full"
+-      style={{
+-        background:
+-          "radial-gradient(circle at top left, #111827 0, #020617 45%, #000 100%)",
+-        padding: "24px",
+-      }}
+-    >
+-      <div className="max-w-6xl mx-auto flex flex-col gap-6">
+-        <div className="flex flex-col gap-3">
+-          <div className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.24em] uppercase text-slate-400">
+-            <span
+-              style={{
+-                width: 8,
+-                height: 8,
+-                borderRadius: "999px",
+-                background: "#22c55e",
+-                boxShadow: "0 0 18px rgba(34,197,94,0.9)",
+-              }}
+-            />
+-            Agentic career hub
++    <div style={{ background: "var(--bg-surface)", minHeight: "100%", padding: "32px 28px" }}>
++      <div style={{ maxWidth: 1040, margin: "0 auto" }}>
++
++        {/* Header */}
++        <div style={{ marginBottom: 28 }}>
++          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
++            <span style={{
++              width: 8, height: 8, borderRadius: "50%",
++              background: "var(--color-success)",
++              boxShadow: "0 0 8px rgba(22,163,74,0.7)",
++              display: "inline-block",
++            }} />
++            <span style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", letterSpacing: "0.18em", textTransform: "uppercase" }}>
++              Agentic career hub
++            </span>
+           </div>
+-          <h1 className="text-3xl md:text-4xl font-semibold tracking-tight text-slate-50">
+-            <span className="text-slate-300">Dashboard ┬╖</span> Command center for your
+-            resume, jobs, and AI copilot.
++          <h1 style={{
++            fontFamily: "var(--font-display)", fontWeight: 800,
++            fontSize: "clamp(1.5rem, 3vw, 2rem)",
++            letterSpacing: "-0.03em", color: "var(--text-primary)",
++            lineHeight: 1.2, marginBottom: 8,
++          }}>
++            Dashboard <span style={{ color: "var(--text-muted)", fontWeight: 400 }}>┬╖</span> Your career command center.
+           </h1>
+-          <p className="text-sm text-slate-400 max-w-xl">
+-            See how your resume has evolved, jump into AI analysis, and manage job
+-            applications from one place.
++          <p style={{ fontSize: 14, color: "var(--text-secondary)", maxWidth: 500 }}>
++            Track your resume score, manage applications, and get AI coaching ΓÇö all from one place.
+           </p>
+         </div>
+ 
+-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+-          {statCards.map((card, i) => (
+-            <div
+-              key={card.label}
+-              className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 shadow-lg shadow-slate-950/40"
+-            >
+-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-400 mb-2">
+-                {card.label}
+-              </p>
+-              <div className="flex items-baseline gap-1">
++        {/* Stat Cards */}
++        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 24 }} className="dashboard-stats">
++          {statCards.map(card => (
++            <div key={card.label} className="stat-card">
++              <div className="stat-label">{card.label}</div>
++              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                 <AnimatedScore
+                   value={card.value}
+-                  className="text-3xl font-semibold"
+-                  style={{ color: card.color, fontFamily: "monospace" }}
++                  style={{ fontFamily: "var(--font-mono)", fontSize: "2.4rem", fontWeight: 700, color: card.color, lineHeight: 1 }}
+                 />
+-                <span className="text-xs text-slate-500">{card.suffix}</span>
++                <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{card.suffix}</span>
+               </div>
+             </div>
+           ))}
+         </div>
+ 
+-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+-          {actionCards.map((card) => (
+-            <button
+-              key={card.label}
+-              type="button"
+-              onClick={card.onClick}
+-              className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 text-left flex flex-col gap-3 hover:-translate-y-1 hover:border-slate-700 transition-transform duration-150"
+-            >
+-              <div
+-                className="w-9 h-9 rounded-xl flex items-center justify-center"
+-                style={{ background: `${card.accent}22`, color: card.accent }}
++        {/* Action Cards Bento Grid */}
++        <div style={{ marginBottom: 8 }}>
++          <div className="section-label" style={{ marginBottom: 16 }}>
++            <span className="section-label-text">Quick Actions</span>
++          </div>
++          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14 }} className="dashboard-actions">
++            {actionCards.map(card => (
++              <button
++                key={card.label}
++                type="button"
++                onClick={card.onClick}
++                className="card-premium"
++                id={`action-${card.label.toLowerCase().replace(/ /g, '-')}`}
++                style={{
++                  padding: "20px 18px",
++                  textAlign: "left",
++                  cursor: "pointer",
++                  width: "100%",
++                }}
+               >
+-                <card.icon className="w-4 h-4" />
+-              </div>
+-              <div>
+-                <p className="text-xs font-semibold tracking-[0.18em] uppercase text-slate-400 mb-1">
+-                  Quick action
+-                </p>
+-                <h3 className="text-sm font-semibold text-slate-50">
+-                  {card.label}
+-                </h3>
+-                <p className="text-[11px] text-slate-400 mt-1">{card.desc}</p>
+-              </div>
+-            </button>
+-          ))}
++                <div style={{
++                  width: 40, height: 40,
++                  borderRadius: "var(--radius-sm)",
++                  background: "var(--bg-page)",
++                  border: "var(--border-brutal)",
++                  boxShadow: "2px 2px 0 var(--text-primary)",
++                  display: "flex", alignItems: "center", justifyContent: "center",
++                  fontSize: 20, marginBottom: 14,
++                }}>
++                  {card.icon}
++                </div>
++                <div style={{
++                  fontFamily: "var(--font-display)", fontWeight: 800,
++                  fontSize: 14, color: "var(--text-primary)", marginBottom: 4,
++                }}>{card.label}</div>
++                <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5, fontWeight: 500 }}>{card.desc}</div>
++              </button>
++            ))}
++          </div>
+         </div>
+ 
++        {/* LLM Metrics (admin only) */}
+         {showLlmMetrics && (
+-          <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs text-slate-300">
+-            <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4 lg:col-span-3">
+-              {llmMetricsLoading ? (
+-                <p className="text-[11px] font-semibold text-amber-400">
+-                  Loading AI reliability metricsΓÇª
+-                </p>
+-              ) : !llmMetrics ? (
+-                <p className="text-[11px] text-slate-500">
+-                  No telemetry yet. Trigger a few AI actions first.
+-                </p>
+-              ) : (
+-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+-                  <div>
+-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
+-                      Total calls
+-                    </p>
+-                    <p className="text-xl font-semibold text-slate-50">
+-                      {llmMetrics.total_calls || 0}
+-                    </p>
+-                  </div>
+-                  <div>
+-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
+-                      Success rate
+-                    </p>
+-                    <p className="text-xl font-semibold text-emerald-400">
+-                      {llmMetrics.success_rate_pct || 0}%
+-                    </p>
+-                  </div>
+-                  <div>
+-                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500 mb-1">
+-                      Avg latency
+-                    </p>
+-                    <p className="text-xl font-semibold text-sky-400">
+-                      {llmMetrics.avg_latency_ms || 0}ms
+-                    </p>
+-                  </div>
+-                </div>
+-              )}
++          <div style={{
++            marginTop: 24,
++            background: "#fff",
++            border: "var(--border-brutal)",
++            borderRadius: "var(--radius-sm)",
++            boxShadow: "var(--shadow-brutal)",
++            padding: "20px 24px",
++          }}>
++            <div className="section-label" style={{ marginBottom: 16 }}>
++              <span className="section-label-text">AI Reliability Metrics</span>
+             </div>
++            {llmMetricsLoading ? (
++              <p style={{ fontSize: 13, color: "var(--accent-dark)", fontWeight: 800 }}>Loading metricsΓÇª</p>
++            ) : !llmMetrics ? (
++              <p style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500 }}>No telemetry yet. Trigger a few AI actions first.</p>
++            ) : (
++              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
++                {[
++                  { label: "Total Calls",    value: llmMetrics.total_calls || 0,         color: "var(--text-primary)" },
++                  { label: "Success Rate",   value: `${llmMetrics.success_rate_pct || 0}%`, color: "var(--color-success)" },
++                  { label: "Avg Latency",   value: `${llmMetrics.avg_latency_ms || 0}ms`,  color: "var(--color-info)" },
++                ].map(m => (
++                  <div key={m.label}>
++                    <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--text-muted)", marginBottom: 4 }}>{m.label}</div>
++                    <div style={{ fontFamily: "var(--font-mono)", fontSize: "1.4rem", fontWeight: 800, color: m.color }}>{m.value}</div>
++                  </div>
++                ))}
++              </div>
++            )}
+           </div>
+         )}
+       </div>
++
++      <style>{`
++        @media (max-width: 900px) {
++          .dashboard-stats { grid-template-columns: 1fr !important; }
++          .dashboard-actions { grid-template-columns: repeat(2, 1fr) !important; }
++        }
++        @media (max-width: 500px) {
++          .dashboard-actions { grid-template-columns: 1fr !important; }
++        }
++      `}</style>
+     </div>
+   );
+ }
+@@ -309,30 +276,19 @@ export default function DashboardPage() {
+ 
+   if (loading) {
+     return (
+-      <div className="min-h-screen flex">
+-        <div
+-          className="hidden lg:flex"
+-          style={{ width: 240, minWidth: 240, background: "#020617" }}
+-        />
+-        <div className="flex-1 flex items-center justify-center bg-slate-950">
+-          <div className="text-center">
+-            <div
+-              className="text-sm font-black uppercase tracking-widest mb-3 animate-pulse"
+-              style={{ color: "#f97316" }}
+-            >
+-              Loading your dashboard...
+-            </div>
+-            <div className="flex gap-1.5 justify-center">
+-              {[1, 2, 3].map((i) => (
+-                <div
+-                  key={i}
+-                  className="w-2 h-2 rounded-full animate-bounce"
+-                  style={{
+-                    background: "#f97316",
+-                    animationDelay: `${i * 0.15}s`,
+-                  }}
+-                />
+-              ))}
++      <div style={{ display: "flex", height: "100vh", background: "var(--bg-surface)" }}>
++        <div style={{ width: 248, background: "#fff", borderRight: "1px solid var(--border-subtle)" }} className="hidden-mobile" />
++        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
++          <div style={{ textAlign: "center" }}>
++            <div style={{
++              fontFamily: "var(--font-display)", fontWeight: 800,
++              fontSize: 14, letterSpacing: "0.15em", textTransform: "uppercase",
++              color: "var(--accent)", marginBottom: 20,
++            }}>Loading your dashboard</div>
++            <div className="loading-dots">
++              <div className="loading-dot" />
++              <div className="loading-dot" />
++              <div className="loading-dot" />
+             </div>
+           </div>
+         </div>
+@@ -378,7 +334,7 @@ export default function DashboardPage() {
+       break;
+     default:
+       Content = (
+-        <div className="p-6 text-sm font-bold" style={{ color: "#64748b" }}>
++        <div style={{ padding: 40, fontSize: 14, color: "var(--text-muted)" }}>
+           Module in development.
+         </div>
+       );
+@@ -386,21 +342,20 @@ export default function DashboardPage() {
+ 
+   return (
+     <>
+-      <div className="flex h-screen overflow-hidden bg-slate-950">
++      <div className="dashboard-layout">
+         <Sidebar
+           activeTab={activeTab}
+           setActiveTab={setActiveTab}
+           onLogout={handleLogout}
+         />
+-        <main className="flex-1 overflow-y-auto relative pt-16 lg:pt-0">
++        <main className="dashboard-main" style={{ paddingTop: 0 }}>
+           {isAnalyzing && (
+-            <div
+-              className="absolute inset-0 z-50 flex items-center justify-center"
+-              style={{
+-                background: "rgba(15,23,42,0.92)",
+-                backdropFilter: "blur(4px)",
+-              }}
+-            >
++            <div style={{
++              position: "absolute", inset: 0, zIndex: 50,
++              display: "flex", alignItems: "center", justifyContent: "center",
++              background: "rgba(255,253,247,0.85)",
++              backdropFilter: "blur(6px)",
++            }}>
+               <AnalysisLoader />
+             </div>
+           )}

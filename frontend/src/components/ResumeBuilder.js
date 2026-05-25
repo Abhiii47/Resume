@@ -39,6 +39,10 @@ export default function ResumeBuilder() {
   const [analyzingBuilder, setAnalyzingBuilder] = useState(false);
   const [builderAnalysis, setBuilderAnalysis] = useState(null);
 
+  // Parse template query parameter if present
+  const query = new URLSearchParams(window.location.search);
+  const [templateId, setTemplateId] = useState(query.get('template') || 'classic');
+
   const FONTS = [
     { label: 'Classic Serif',   value: 'Georgia, serif' },
     { label: 'Modern Sans',     value: 'Inter, Arial, sans-serif' },
@@ -50,6 +54,16 @@ export default function ResumeBuilder() {
   const LAYOUTS = [
     { label: 'Classic', value: 'classic' },
     { label: 'Compact', value: 'compact' }
+  ];
+
+  const TEMPLATES_LIST = [
+    { label: 'Classic Professional', value: 'classic' },
+    { label: 'Modern Developer',     value: 'modern' },
+    { label: 'Minimal Impact',       value: 'minimal' },
+    { label: 'Executive Two-Column', value: 'executive' },
+    { label: 'Creative Designer',    value: 'creative' },
+    { label: 'Academic Researcher',  value: 'academic' },
+    { label: 'Startup Specialist',   value: 'startup' },
   ];
 
   const [resumeData, setResumeData] = useState(DEFAULT_RESUME_DATA);
@@ -444,6 +458,163 @@ export default function ResumeBuilder() {
     }
   };
 
+  const toTitleCase = (str) => {
+    if (!str) return '';
+    return str.trim().toLowerCase().replace(/\b(\w)/g, s => s.toUpperCase());
+  };
+
+  const normalizeDateString = (str) => {
+    if (!str) return '';
+    let clean = str.trim();
+    if (/^present$/i.test(clean)) return 'Present';
+    
+    const months = [
+      { reg: /january/i, rep: 'January' }, { reg: /jan\.?/i, rep: 'Jan' },
+      { reg: /february/i, rep: 'February' }, { reg: /feb\.?/i, rep: 'Feb' },
+      { reg: /march/i, rep: 'March' }, { reg: /mar\.?/i, rep: 'Mar' },
+      { reg: /april/i, rep: 'April' }, { reg: /apr\.?/i, rep: 'Apr' },
+      { reg: /may/i, rep: 'May' },
+      { reg: /june/i, rep: 'June' }, { reg: /jun\.?/i, rep: 'Jun' },
+      { reg: /july/i, rep: 'July' }, { reg: /jul\.?/i, rep: 'Jul' },
+      { reg: /august/i, rep: 'August' }, { reg: /aug\.?/i, rep: 'Aug' },
+      { reg: /september/i, rep: 'September' }, { reg: /sept?\.?/i, rep: 'Sep' },
+      { reg: /october/i, rep: 'October' }, { reg: /oct\.?/i, rep: 'Oct' },
+      { reg: /november/i, rep: 'November' }, { reg: /nov\.?/i, rep: 'Nov' },
+      { reg: /december/i, rep: 'December' }, { reg: /dec\.?/i, rep: 'Dec' },
+    ];
+    
+    months.forEach(m => {
+      clean = clean.replace(m.reg, m.rep);
+    });
+    
+    return clean;
+  };
+
+  const normalizeDescriptionBullets = (text) => {
+    if (!text) return '';
+    return text
+      .split('\n')
+      .map(line => {
+        let cleaned = line.trim();
+        if (!cleaned) return '';
+        
+        // Remove leading bullets and numbering (e.g. -, *, •, +, 1., 2.)
+        cleaned = cleaned.replace(/^[-*•+\d\.\s]+/g, '').trim();
+        if (!cleaned) return '';
+        
+        // Capitalize first character
+        cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        
+        // Ensure ending punctuation
+        if (!/[.!?]$/.test(cleaned)) {
+          cleaned += '.';
+        }
+        
+        return `- ${cleaned}`;
+      })
+      .filter(Boolean)
+      .join('\n');
+  };
+
+  const normalizeSkillsString = (str) => {
+    if (!str) return '';
+    return str
+      .split(',')
+      .map(s => {
+        let val = s.trim();
+        if (!val) return '';
+        const lower = val.toLowerCase();
+        const techCapitalizations = {
+          'javascript': 'JavaScript', 'typescript': 'TypeScript', 'html': 'HTML',
+          'css': 'CSS', 'react': 'React', 'reactjs': 'React.js', 'vue': 'Vue',
+          'vuejs': 'Vue.js', 'nodejs': 'Node.js', 'node': 'Node.js', 'mongodb': 'MongoDB',
+          'postgresql': 'PostgreSQL', 'mysql': 'MySQL', 'aws': 'AWS', 'gcp': 'GCP',
+          'python': 'Python', 'java': 'Java', 'github': 'GitHub', 'git': 'Git',
+          'docker': 'Docker', 'kubernetes': 'Kubernetes', 'graphql': 'GraphQL',
+          'rest': 'REST API', 'restful': 'RESTful API', 'api': 'API', 'apis': 'APIs',
+          'sqlite': 'SQLite', 'django': 'Django', 'flask': 'Flask', 'angular': 'Angular',
+          'redux': 'Redux', 'nextjs': 'Next.js', 'sass': 'Sass', 'scss': 'SCSS',
+          'webpack': 'Webpack', 'vite': 'Vite', 'npm': 'npm', 'yarn': 'Yarn',
+          'firebase': 'Firebase', 'supabase': 'Supabase', 'redis': 'Redis',
+          'elastic': 'Elasticsearch', 'elasticsearch': 'Elasticsearch', 'ci/cd': 'CI/CD',
+          'cicd': 'CI/CD', 'jenkins': 'Jenkins', 'linux': 'Linux', 'windows': 'Windows', 'macos': 'macOS'
+        };
+        if (techCapitalizations[lower]) {
+          return techCapitalizations[lower];
+        }
+        return val.charAt(0).toUpperCase() + val.slice(1);
+      })
+      .filter(Boolean)
+      .join(', ');
+  };
+
+  const handleNormalizeAll = () => {
+    setResumeData(prev => {
+      const next = { ...prev };
+      
+      // Personal Details
+      next.personal = {
+        name: toTitleCase(prev.personal.name),
+        email: (prev.personal.email || '').trim().toLowerCase(),
+        phone: (prev.personal.phone || '').trim(),
+        linkedin: (prev.personal.linkedin || '').trim().replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, ''),
+        github: (prev.personal.github || '').trim().replace(/^https?:\/\/(www\.)?github\.com\//, '')
+      };
+      
+      // Professional Summary
+      if (prev.summary) {
+        let cleanSummary = prev.summary.trim().replace(/\s+/g, ' ');
+        cleanSummary = cleanSummary.replace(/(^\s*|[.!?]\s+)([a-z])/g, (m, p1, p2) => p1 + p2.toUpperCase());
+        if (cleanSummary && !/[.!?]$/.test(cleanSummary)) {
+          cleanSummary += '.';
+        }
+        next.summary = cleanSummary;
+      }
+      
+      // Work Experience
+      if (Array.isArray(prev.experience)) {
+        next.experience = prev.experience.map(exp => ({
+          ...exp,
+          company: toTitleCase(exp.company),
+          title: toTitleCase(exp.title),
+          startDate: normalizeDateString(exp.startDate),
+          endDate: normalizeDateString(exp.endDate),
+          description: normalizeDescriptionBullets(exp.description)
+        }));
+      }
+      
+      // Projects
+      if (Array.isArray(prev.projects)) {
+        next.projects = prev.projects.map(proj => ({
+          ...proj,
+          name: toTitleCase(proj.name),
+          technologies: normalizeSkillsString(proj.technologies),
+          description: normalizeDescriptionBullets(proj.description)
+        }));
+      }
+      
+      // Education
+      if (Array.isArray(prev.education)) {
+        next.education = prev.education.map(edu => ({
+          ...edu,
+          school: toTitleCase(edu.school),
+          degree: toTitleCase(edu.degree),
+          year: normalizeDateString(edu.year)
+        }));
+      }
+      
+      // Skills stack
+      next.skills = {
+        languages: normalizeSkillsString(prev.skills.languages),
+        frameworks: normalizeSkillsString(prev.skills.frameworks),
+        tools: normalizeSkillsString(prev.skills.tools)
+      };
+      
+      return next;
+    });
+    setSaveStatus('dirty');
+  };
+
   const completionScore = (() => {
     const checks = [
       resumeData.personal.name,
@@ -460,20 +631,730 @@ export default function ResumeBuilder() {
   })();
 
   if (loading) {
-    return <div className="p-6 font-mono text-muted-foreground animate-pulse">[ LOADING_BUILDER... ]</div>;
+    return (
+      <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center", minHeight: "200px" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 13, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--accent)", marginBottom: 12 }}>Loading builder Profile</div>
+          <div className="loading-dots"><div className="loading-dot" /><div className="loading-dot" /><div className="loading-dot" /></div>
+        </div>
+      </div>
+    );
   }
 
+  // ── Template Rendering Code ──────────────────────────────────────────
+  
+  const ClassicTemplate = () => (
+    <>
+      <header style={{ borderBottom: "2px solid #000", paddingBottom: 16, marginBottom: 16, textAlign: "center" }}>
+        <h1 style={{ fontFamily, fontSize: resumeData.personal.name ? (layoutMode === 'compact' ? '1.5rem' : '1.8rem') : '1.3rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: resumeData.personal.name ? '#000' : '#aaa', margin: "0 0 8px" }}>
+          {resumeData.personal.name || 'Your Name Here'}
+        </h1>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 12px", fontSize: 11.5, fontFamily: "var(--font-body)", color: "var(--text-secondary)" }}>
+          {resumeData.personal.email && <span>{resumeData.personal.email}</span>}
+          {resumeData.personal.phone && <span>• {resumeData.personal.phone}</span>}
+          {resumeData.personal.linkedin && <span>• {resumeData.personal.linkedin}</span>}
+          {resumeData.personal.github && <span>• {resumeData.personal.github}</span>}
+        </div>
+      </header>
+
+      {resumeData.summary && (
+        <section style={{ marginBottom: 16, fontFamily: "var(--font-body)", fontSize: 12, textAlign: "justify", color: "#111", lineHeight: 1.6 }}>
+          {resumeData.summary}
+        </section>
+      )}
+
+      {resumeData.education.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontFamily, fontWeight: 700, borderBottom: "1px solid #000", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Education</h2>
+          {resumeData.education.map((edu, i) => (
+            <div key={i} style={{ marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontSize: 12, fontFamily: "var(--font-body)" }}>
+              <div>
+                <div style={{ fontWeight: 700 }}>{edu.school}</div>
+                <div style={{ fontStyle: "italic", color: "#333" }}>{edu.degree}</div>
+              </div>
+              <div style={{ textAlign: "right", fontWeight: 700 }}>
+                {edu.year}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {resumeData.experience.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontFamily, fontWeight: 700, borderBottom: "1px solid #000", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Experience</h2>
+          {resumeData.experience.map((exp, i) => (
+            <div key={i} style={{ marginBottom: 10, fontSize: 12, fontFamily: "var(--font-body)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontWeight: 700, marginBottom: 4 }}>
+                <div>{exp.company} <span style={{ fontStyle: "italic", fontWeight: 400, color: "#333" }}>| {exp.title}</span></div>
+                <div style={{ fontSize: 11, fontWeight: 600 }}>{exp.startDate} – {exp.endDate}</div>
+              </div>
+              <ul style={{ listStyle: "disc", paddingLeft: 18, margin: "4px 0 0", display: "flex", flexDirection: "column", gap: 3 }}>
+                {exp.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j}>{bullet.replace(/^- /, '')}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {resumeData.projects.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontFamily, fontWeight: 700, borderBottom: "1px solid #000", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Projects</h2>
+          {resumeData.projects.map((proj, i) => (
+            <div key={i} style={{ marginBottom: 8, fontSize: 12, fontFamily: "var(--font-body)" }}>
+              <div style={{ fontWeight: 700, marginBottom: 2 }}>
+                {proj.name} <span style={{ fontWeight: 400, fontStyle: "italic", color: "#333" }}>| {proj.technologies}</span>
+              </div>
+              <ul style={{ listStyle: "disc", paddingLeft: 18, margin: "4px 0 0", display: "flex", flexDirection: "column", gap: 3 }}>
+                {proj.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j}>{bullet.replace(/^- /, '')}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {(resumeData.skills.languages || resumeData.skills.frameworks || resumeData.skills.tools) && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontFamily, fontWeight: 700, borderBottom: "1px solid #000", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Technical Skills</h2>
+          <div style={{ fontSize: 12, fontFamily: "var(--font-body)", display: "flex", flexDirection: "column", gap: 3 }}>
+            {resumeData.skills.languages && <div><span style={{ fontWeight: 700 }}>Languages:</span> {resumeData.skills.languages}</div>}
+            {resumeData.skills.frameworks && <div><span style={{ fontWeight: 700 }}>Frameworks:</span> {resumeData.skills.frameworks}</div>}
+            {resumeData.skills.tools && <div><span style={{ fontWeight: 700 }}>Tools & Platforms:</span> {resumeData.skills.tools}</div>}
+          </div>
+        </section>
+      )}
+    </>
+  );
+
+  const ModernTemplate = () => (
+    <>
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "3px solid #000", paddingBottom: 16, marginBottom: 20 }}>
+        <div>
+          <h1 style={{ fontFamily, fontSize: resumeData.personal.name ? '1.85rem' : '1.3rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#000', margin: 0 }}>
+            {resumeData.personal.name || 'Your Name Here'}
+          </h1>
+          <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--accent-dark)", marginTop: 4 }}>
+            Software Developer
+          </p>
+        </div>
+        <div style={{ textAlign: "right", fontSize: 11, fontFamily: "var(--font-body)", lineHeight: 1.5, color: "#111" }}>
+          {resumeData.personal.email && <div>{resumeData.personal.email}</div>}
+          {resumeData.personal.phone && <div>{resumeData.personal.phone}</div>}
+          {resumeData.personal.linkedin && <div>{resumeData.personal.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</div>}
+          {resumeData.personal.github && <div>{resumeData.personal.github.replace(/^https?:\/\/(www\.)?/, '')}</div>}
+        </div>
+      </header>
+
+      {resumeData.summary && (
+        <section style={{ marginBottom: 20, fontFamily: "var(--font-body)", fontSize: 12, textAlign: "justify", lineHeight: 1.6, color: "#333" }}>
+          {resumeData.summary}
+        </section>
+      )}
+
+      {resumeData.experience.length > 0 && (
+        <section style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 800, borderLeft: "4px solid var(--accent)", paddingLeft: 8, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.1em" }}>Experience</h2>
+          {resumeData.experience.map((exp, i) => (
+            <div key={i} style={{ marginBottom: 12, fontSize: 12, fontFamily: "var(--font-body)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontWeight: 700, marginBottom: 4 }}>
+                <div>{exp.company} <span style={{ fontStyle: "italic", fontWeight: 500, color: "var(--text-secondary)" }}>· {exp.title}</span></div>
+                <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>{exp.startDate} – {exp.endDate}</div>
+              </div>
+              <ul style={{ listStyle: "circle", paddingLeft: 16, margin: "4px 0 0", display: "flex", flexDirection: "column", gap: 3 }}>
+                {exp.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j}>{bullet.replace(/^- /, '')}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {resumeData.projects.length > 0 && (
+        <section style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 800, borderLeft: "4px solid var(--accent)", paddingLeft: 8, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.1em" }}>Projects</h2>
+          {resumeData.projects.map((proj, i) => (
+            <div key={i} style={{ marginBottom: 10, fontSize: 12, fontFamily: "var(--font-body)" }}>
+              <div style={{ fontWeight: 700, marginBottom: 2 }}>
+                {proj.name} <span style={{ fontWeight: 500, fontFamily: "var(--font-mono)", fontSize: 11, background: "var(--bg-elevated)", padding: "1px 6px", border: "1px solid var(--border-muted)", marginLeft: 6 }}>{proj.technologies}</span>
+              </div>
+              <ul style={{ listStyle: "circle", paddingLeft: 16, margin: "4px 0 0", display: "flex", flexDirection: "column", gap: 3 }}>
+                {proj.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j}>{bullet.replace(/^- /, '')}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {(resumeData.skills.languages || resumeData.skills.frameworks || resumeData.skills.tools) && (
+        <section style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 800, borderLeft: "4px solid var(--accent)", paddingLeft: 8, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.1em" }}>Skills Matrix</h2>
+          <div style={{ fontSize: 12, fontFamily: "var(--font-body)", display: "flex", flexDirection: "column", gap: 4 }}>
+            {resumeData.skills.languages && <div><span style={{ fontWeight: 700, fontFamily: "var(--font-mono)", fontSize: 10, textTransform: "uppercase", color: "var(--text-secondary)" }}>Languages:</span> {resumeData.skills.languages}</div>}
+            {resumeData.skills.frameworks && <div><span style={{ fontWeight: 700, fontFamily: "var(--font-mono)", fontSize: 10, textTransform: "uppercase", color: "var(--text-secondary)" }}>Frameworks:</span> {resumeData.skills.frameworks}</div>}
+            {resumeData.skills.tools && <div><span style={{ fontWeight: 700, fontFamily: "var(--font-mono)", fontSize: 10, textTransform: "uppercase", color: "var(--text-secondary)" }}>Tools & Ops:</span> {resumeData.skills.tools}</div>}
+          </div>
+        </section>
+      )}
+
+      {resumeData.education.length > 0 && (
+        <section style={{ marginBottom: 20 }}>
+          <h2 style={{ fontSize: 12, fontFamily: "var(--font-mono)", fontWeight: 800, borderLeft: "4px solid var(--accent)", paddingLeft: 8, marginBottom: 12, textTransform: "uppercase", letterSpacing: "0.1em" }}>Education</h2>
+          {resumeData.education.map((edu, i) => (
+            <div key={i} style={{ marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontSize: 12, fontFamily: "var(--font-body)" }}>
+              <div>
+                <div style={{ fontWeight: 700 }}>{edu.school}</div>
+                <div style={{ fontStyle: "italic", fontSize: 11, color: "#444" }}>{edu.degree}</div>
+              </div>
+              <div style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>
+                {edu.year}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+    </>
+  );
+
+  const MinimalTemplate = () => (
+    <>
+      <header style={{ marginBottom: 28 }}>
+        <h1 style={{ fontFamily, fontSize: resumeData.personal.name ? '1.8rem' : '1.3rem', fontWeight: 400, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#000', margin: "0 0 10px" }}>
+          {resumeData.personal.name || 'Your Name Here'}
+        </h1>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 16px", fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>
+          {resumeData.personal.email && <span>{resumeData.personal.email}</span>}
+          {resumeData.personal.phone && <span>{resumeData.personal.phone}</span>}
+          {resumeData.personal.linkedin && <span>{resumeData.personal.linkedin.replace(/^https?:\/\/(www\.)?/, '')}</span>}
+          {resumeData.personal.github && <span>{resumeData.personal.github.replace(/^https?:\/\/(www\.)?/, '')}</span>}
+        </div>
+      </header>
+
+      {resumeData.summary && (
+        <section style={{ marginBottom: 24, fontFamily: "var(--font-body)", fontSize: 11.5, textAlign: "justify", lineHeight: 1.6, color: "#222" }}>
+          {resumeData.summary}
+        </section>
+      )}
+
+      {resumeData.experience.length > 0 && (
+        <section style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--text-secondary)", marginBottom: 14 }}>Experience</h2>
+          {resumeData.experience.map((exp, i) => (
+            <div key={i} style={{ marginBottom: 16, fontSize: 11.5, fontFamily: "var(--font-body)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontWeight: 700, marginBottom: 4 }}>
+                <div style={{ color: "#000" }}>{exp.company} <span style={{ fontWeight: 400, color: "var(--text-secondary)" }}>/ {exp.title}</span></div>
+                <div style={{ fontSize: 10, fontWeight: 500, color: "var(--text-muted)" }}>{exp.startDate} – {exp.endDate}</div>
+              </div>
+              <ul style={{ listStyle: "none", paddingLeft: 0, margin: "4px 0 0", display: "flex", flexDirection: "column", gap: 3 }}>
+                {exp.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j} style={{ display: "flex", gap: 8 }}>
+                    <span style={{ color: "var(--text-muted)" }}>—</span>
+                    <span>{bullet.replace(/^- /, '')}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {resumeData.projects.length > 0 && (
+        <section style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--text-secondary)", marginBottom: 14 }}>Projects</h2>
+          {resumeData.projects.map((proj, i) => (
+            <div key={i} style={{ marginBottom: 12, fontSize: 11.5, fontFamily: "var(--font-body)" }}>
+              <div style={{ fontWeight: 700, marginBottom: 2, color: "#000" }}>
+                {proj.name} <span style={{ fontWeight: 400, color: "var(--text-secondary)", fontSize: 11 }}>· {proj.technologies}</span>
+              </div>
+              <ul style={{ listStyle: "none", paddingLeft: 0, margin: "4px 0 0", display: "flex", flexDirection: "column", gap: 3 }}>
+                {proj.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j} style={{ display: "flex", gap: 8 }}>
+                    <span style={{ color: "var(--text-muted)" }}>—</span>
+                    <span>{bullet.replace(/^- /, '')}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {(resumeData.skills.languages || resumeData.skills.frameworks || resumeData.skills.tools) && (
+        <section style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--text-secondary)", marginBottom: 14 }}>Skills</h2>
+          <div style={{ fontSize: 11.5, fontFamily: "var(--font-body)", display: "flex", flexDirection: "column", gap: 3 }}>
+            {resumeData.skills.languages && <div><span style={{ fontWeight: 600 }}>Languages:</span> {resumeData.skills.languages}</div>}
+            {resumeData.skills.frameworks && <div><span style={{ fontWeight: 600 }}>Frameworks:</span> {resumeData.skills.frameworks}</div>}
+            {resumeData.skills.tools && <div><span style={{ fontWeight: 600 }}>Tools:</span> {resumeData.skills.tools}</div>}
+          </div>
+        </section>
+      )}
+
+      {resumeData.education.length > 0 && (
+        <section style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.15em", color: "var(--text-secondary)", marginBottom: 14 }}>Education</h2>
+          {resumeData.education.map((edu, i) => (
+            <div key={i} style={{ marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "baseline", fontSize: 11.5, fontFamily: "var(--font-body)" }}>
+              <div>
+                <span style={{ fontWeight: 700 }}>{edu.school}</span> <span style={{ color: "var(--text-secondary)" }}>/ {edu.degree}</span>
+              </div>
+              <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
+                {edu.year}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+    </>
+  );
+
+  const ExecutiveTemplate = () => (
+    <div style={{ display: "flex", gap: 24, height: "100%" }}>
+      {/* Left Column - Sidebar (32%) */}
+      <div style={{ width: "32%", borderRight: "1px solid #ddd", paddingRight: 16, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div>
+          <h1 style={{ fontFamily, fontSize: resumeData.personal.name ? '1.4rem' : '1.1rem', fontWeight: 800, textTransform: 'uppercase', color: '#000', margin: "0 0 6px" }}>
+            {resumeData.personal.name || 'Your Name'}
+          </h1>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 11, fontFamily: "var(--font-body)", color: "var(--text-secondary)", wordBreak: "break-word" }}>
+            {resumeData.personal.email && <div>✉ {resumeData.personal.email}</div>}
+            {resumeData.personal.phone && <div>☎ {resumeData.personal.phone}</div>}
+            {resumeData.personal.linkedin && <div>in: {resumeData.personal.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')}</div>}
+            {resumeData.personal.github && <div>gh: {resumeData.personal.github.replace(/^https?:\/\/(www\.)?github\.com\//, '')}</div>}
+          </div>
+        </div>
+
+        {(resumeData.skills.languages || resumeData.skills.frameworks || resumeData.skills.tools) && (
+          <div>
+            <h2 style={{ fontSize: 11.5, fontFamily, fontWeight: 700, borderBottom: "1.5px solid #000", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Skills</h2>
+            <div style={{ fontSize: 11, fontFamily: "var(--font-body)", display: "flex", flexDirection: "column", gap: 8 }}>
+              {resumeData.skills.languages && (
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", color: "var(--text-secondary)" }}>Languages</div>
+                  <div style={{ marginTop: 2 }}>{resumeData.skills.languages}</div>
+                </div>
+              )}
+              {resumeData.skills.frameworks && (
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", color: "var(--text-secondary)" }}>Frameworks</div>
+                  <div style={{ marginTop: 2 }}>{resumeData.skills.frameworks}</div>
+                </div>
+              )}
+              {resumeData.skills.tools && (
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 10, textTransform: "uppercase", color: "var(--text-secondary)" }}>Tools / Ops</div>
+                  <div style={{ marginTop: 2 }}>{resumeData.skills.tools}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {resumeData.education.length > 0 && (
+          <div>
+            <h2 style={{ fontSize: 11.5, fontFamily, fontWeight: 700, borderBottom: "1.5px solid #000", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Education</h2>
+            {resumeData.education.map((edu, i) => (
+              <div key={i} style={{ marginBottom: 8, fontSize: 11, fontFamily: "var(--font-body)" }}>
+                <div style={{ fontWeight: 700 }}>{edu.school}</div>
+                <div style={{ fontStyle: "italic", fontSize: 10, color: "#333" }}>{edu.degree}</div>
+                <div style={{ fontWeight: 700, fontSize: 10, color: "var(--text-secondary)", marginTop: 2 }}>{edu.year}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Right Column - Main Content (68%) */}
+      <div style={{ width: "68%", display: "flex", flexDirection: "column", gap: 18 }}>
+        {resumeData.summary && (
+          <section style={{ fontFamily: "var(--font-body)", fontSize: 12, textAlign: "justify", color: "#111", lineHeight: 1.6 }}>
+            {resumeData.summary}
+          </section>
+        )}
+
+        {resumeData.experience.length > 0 && (
+          <section>
+            <h2 style={{ fontSize: 12, fontFamily, fontWeight: 700, borderBottom: "1.5px solid #000", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Work History</h2>
+            {resumeData.experience.map((exp, i) => (
+              <div key={i} style={{ marginBottom: 10, fontSize: 11.5, fontFamily: "var(--font-body)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontWeight: 700, marginBottom: 4 }}>
+                  <div>{exp.company} <span style={{ fontStyle: "italic", fontWeight: 400, color: "#333" }}>| {exp.title}</span></div>
+                  <div style={{ fontSize: 10 }}>{exp.startDate} – {exp.endDate}</div>
+                </div>
+                <ul style={{ listStyle: "disc", paddingLeft: 16, margin: "2px 0 0", display: "flex", flexDirection: "column", gap: 2 }}>
+                  {exp.description.split('\n').map((bullet, j) => bullet.trim() && (
+                    <li key={j}>{bullet.replace(/^- /, '')}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        )}
+
+        {resumeData.projects.length > 0 && (
+          <section>
+            <h2 style={{ fontSize: 12, fontFamily, fontWeight: 700, borderBottom: "1.5px solid #000", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.08em" }}>Key Projects</h2>
+            {resumeData.projects.map((proj, i) => (
+              <div key={i} style={{ marginBottom: 8, fontSize: 11.5, fontFamily: "var(--font-body)" }}>
+                <div style={{ fontWeight: 700, marginBottom: 2 }}>
+                  {proj.name} <span style={{ fontWeight: 400, fontStyle: "italic", color: "#333" }}>| {proj.technologies}</span>
+                </div>
+                <ul style={{ listStyle: "disc", paddingLeft: 16, margin: "2px 0 0", display: "flex", flexDirection: "column", gap: 2 }}>
+                  {proj.description.split('\n').map((bullet, j) => bullet.trim() && (
+                    <li key={j}>{bullet.replace(/^- /, '')}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+        )}
+      </div>
+    </div>
+  );
+
+  const CreativeTemplate = () => (
+    <div style={{ position: "relative", minHeight: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Visual Accent bar at the top */}
+      <div style={{ height: 6, background: "var(--accent)", margin: "-48px -48px 24px -48px", width: "calc(100% + 96px)" }} />
+      <header style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "baseline", marginBottom: 20 }}>
+        <div>
+          <h1 style={{ fontFamily, fontSize: resumeData.personal.name ? (layoutMode === 'compact' ? '1.5rem' : '1.8rem') : '1.3rem', fontWeight: 900, color: 'var(--text-primary)', margin: 0, textTransform: "uppercase" }}>
+            {resumeData.personal.name || 'Your Name'}
+          </h1>
+          <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--accent)", marginTop: 4, letterSpacing: "0.05em" }}>
+            CREATIVE TECHNOLOGIST / SPECIALIST
+          </p>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 3, fontSize: 11, fontFamily: "var(--font-body)", color: "var(--text-secondary)", textAlign: "right" }}>
+          {resumeData.personal.email && <div>{resumeData.personal.email}</div>}
+          {resumeData.personal.phone && <div>{resumeData.personal.phone}</div>}
+          {resumeData.personal.linkedin && <div>{resumeData.personal.linkedin}</div>}
+          {resumeData.personal.github && <div>{resumeData.personal.github}</div>}
+        </div>
+      </header>
+
+      {resumeData.summary && (
+        <section style={{ marginBottom: 16, padding: 12, background: "var(--accent-light)", borderLeft: "4px solid var(--accent)", fontSize: 12, lineHeight: 1.5, color: "var(--text-primary)", fontFamily: "var(--font-body)" }}>
+          {resumeData.summary}
+        </section>
+      )}
+
+      <div style={{ display: "flex", gap: 20, flex: 1 }}>
+        {/* Left column (60%) */}
+        <div style={{ width: "60%", display: "flex", flexDirection: "column", gap: 16 }}>
+          {resumeData.experience.length > 0 && (
+            <section>
+              <h2 style={{ fontSize: 12, fontFamily, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-primary)", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 6, height: 6, background: "var(--accent)", display: "inline-block" }}></span>
+                Experience
+              </h2>
+              {resumeData.experience.map((exp, i) => (
+                <div key={i} style={{ marginBottom: 10, fontSize: 11.5, fontFamily: "var(--font-body)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontWeight: 700, marginBottom: 2 }}>
+                    <div>{exp.company} <span style={{ fontStyle: "italic", fontWeight: 400, color: "var(--text-secondary)" }}>| {exp.title}</span></div>
+                    <div style={{ fontSize: 9.5, fontFamily: "var(--font-mono)", color: "var(--text-secondary)", whiteSpace: "nowrap" }}>{exp.startDate} - {exp.endDate}</div>
+                  </div>
+                  <ul style={{ listStyle: "square", paddingLeft: 14, margin: "2px 0 0", display: "flex", flexDirection: "column", gap: 2 }}>
+                    {exp.description.split('\n').map((bullet, j) => bullet.trim() && (
+                      <li key={j}>{bullet.replace(/^- /, '')}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          )}
+
+          {resumeData.projects.length > 0 && (
+            <section>
+              <h2 style={{ fontSize: 12, fontFamily, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-primary)", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 6, height: 6, background: "var(--accent)", display: "inline-block" }}></span>
+                Featured Work
+              </h2>
+              {resumeData.projects.map((proj, i) => (
+                <div key={i} style={{ marginBottom: 10, fontSize: 11.5, fontFamily: "var(--font-body)" }}>
+                  <div style={{ fontWeight: 700, marginBottom: 2 }}>
+                    {proj.name} <span style={{ fontWeight: 400, fontStyle: "italic", color: "var(--accent)" }}>({proj.technologies})</span>
+                  </div>
+                  <ul style={{ listStyle: "square", paddingLeft: 14, margin: "2px 0 0", display: "flex", flexDirection: "column", gap: 2 }}>
+                    {proj.description.split('\n').map((bullet, j) => bullet.trim() && (
+                      <li key={j}>{bullet.replace(/^- /, '')}</li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </section>
+          )}
+        </div>
+
+        {/* Right column (40%) */}
+        <div style={{ width: "40%", display: "flex", flexDirection: "column", gap: 16 }}>
+          {(resumeData.skills.languages || resumeData.skills.frameworks || resumeData.skills.tools) && (
+            <section style={{ padding: 12, border: "2px solid #000", boxShadow: "3px 3px 0px #000", background: "#fff" }}>
+              <h2 style={{ fontSize: 11.5, fontFamily, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-primary)", marginBottom: 8 }}>
+                Skills Stack
+              </h2>
+              <div style={{ fontSize: 11, fontFamily: "var(--font-body)", display: "flex", flexDirection: "column", gap: 6 }}>
+                {resumeData.skills.languages && (
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 9, textTransform: "uppercase", color: "var(--accent)" }}>Languages</div>
+                    <div style={{ marginTop: 2 }}>{resumeData.skills.languages}</div>
+                  </div>
+                )}
+                {resumeData.skills.frameworks && (
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 9, textTransform: "uppercase", color: "var(--accent)" }}>Frameworks</div>
+                    <div style={{ marginTop: 2 }}>{resumeData.skills.frameworks}</div>
+                  </div>
+                )}
+                {resumeData.skills.tools && (
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 9, textTransform: "uppercase", color: "var(--accent)" }}>Tools / Tech</div>
+                    <div style={{ marginTop: 2 }}>{resumeData.skills.tools}</div>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {resumeData.education.length > 0 && (
+            <section>
+              <h2 style={{ fontSize: 12, fontFamily, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-primary)", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ width: 6, height: 6, background: "var(--accent)", display: "inline-block" }}></span>
+                Education
+              </h2>
+              {resumeData.education.map((edu, i) => (
+                <div key={i} style={{ marginBottom: 8, fontSize: 11, fontFamily: "var(--font-body)" }}>
+                  <div style={{ fontWeight: 700 }}>{edu.school}</div>
+                  <div style={{ color: "var(--text-secondary)", fontSize: 10.5 }}>{edu.degree}</div>
+                  <div style={{ fontWeight: 700, fontSize: 9.5, color: "var(--accent)", marginTop: 2 }}>{edu.year}</div>
+                </div>
+              ))}
+            </section>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+
+  const AcademicTemplate = () => (
+    <div style={{ fontFamily: 'Garamond, "Times New Roman", serif', padding: "0 10px" }}>
+      <header style={{ textAlign: "center", marginBottom: 20 }}>
+        <h1 style={{ fontSize: resumeData.personal.name ? '1.8rem' : '1.3rem', fontWeight: 400, color: '#000', margin: "0 0 6px", letterSpacing: "0.02em" }}>
+          {resumeData.personal.name || 'Your Name'}
+        </h1>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 12px", fontSize: 11.5, color: "#333", fontStyle: "italic" }}>
+          {resumeData.personal.email && <span>Email: {resumeData.personal.email}</span>}
+          {resumeData.personal.phone && <span>Phone: {resumeData.personal.phone}</span>}
+          {resumeData.personal.linkedin && <span>LinkedIn: {resumeData.personal.linkedin}</span>}
+          {resumeData.personal.github && <span>GitHub: {resumeData.personal.github}</span>}
+        </div>
+      </header>
+
+      {resumeData.summary && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontWeight: 700, borderBottom: "1px solid #333", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Profile</h2>
+          <p style={{ fontSize: 11.5, textAlign: "justify", lineHeight: 1.5, color: "#000", margin: 0 }}>
+            {resumeData.summary}
+          </p>
+        </section>
+      )}
+
+      {resumeData.education.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontWeight: 700, borderBottom: "1px solid #333", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Education</h2>
+          {resumeData.education.map((edu, i) => (
+            <div key={i} style={{ marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontSize: 11.5 }}>
+              <div>
+                <span style={{ fontWeight: 700 }}>{edu.school}</span>
+                <span style={{ fontStyle: "italic" }}> — {edu.degree}</span>
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 10.5 }}>{edu.year}</div>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {resumeData.experience.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontWeight: 700, borderBottom: "1px solid #333", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Professional Experience</h2>
+          {resumeData.experience.map((exp, i) => (
+            <div key={i} style={{ marginBottom: 10, fontSize: 11.5 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", fontWeight: 700, marginBottom: 3 }}>
+                <div>{exp.company} <span style={{ fontWeight: 400, fontStyle: "italic" }}>| {exp.title}</span></div>
+                <div style={{ fontSize: 10, fontWeight: 600 }}>{exp.startDate} – {exp.endDate}</div>
+              </div>
+              <ul style={{ listStyle: "circle", paddingLeft: 16, margin: "2px 0 0", display: "flex", flexDirection: "column", gap: 2 }}>
+                {exp.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j}>{bullet.replace(/^- /, '')}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {resumeData.projects.length > 0 && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontWeight: 700, borderBottom: "1px solid #333", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Projects & Publications</h2>
+          {resumeData.projects.map((proj, i) => (
+            <div key={i} style={{ marginBottom: 8, fontSize: 11.5 }}>
+              <div style={{ fontWeight: 700, marginBottom: 2 }}>
+                {proj.name} <span style={{ fontWeight: 400, fontStyle: "italic" }}>— Stack: {proj.technologies}</span>
+              </div>
+              <ul style={{ listStyle: "circle", paddingLeft: 16, margin: "2px 0 0", display: "flex", flexDirection: "column", gap: 2 }}>
+                {proj.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j}>{bullet.replace(/^- /, '')}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {(resumeData.skills.languages || resumeData.skills.frameworks || resumeData.skills.tools) && (
+        <section style={{ marginBottom: 16 }}>
+          <h2 style={{ fontSize: 13, fontWeight: 700, borderBottom: "1px solid #333", paddingBottom: 2, marginBottom: 8, textTransform: "uppercase", letterSpacing: "0.05em" }}>Publications & Expertise</h2>
+          <div style={{ fontSize: 11.5, display: "flex", flexDirection: "column", gap: 3 }}>
+            {resumeData.skills.languages && <div><span style={{ fontWeight: 700 }}>Languages & Data:</span> {resumeData.skills.languages}</div>}
+            {resumeData.skills.frameworks && <div><span style={{ fontWeight: 700 }}>Frameworks & Frameworks:</span> {resumeData.skills.frameworks}</div>}
+            {resumeData.skills.tools && <div><span style={{ fontWeight: 700 }}>Research Tools & Environments:</span> {resumeData.skills.tools}</div>}
+          </div>
+        </section>
+      )}
+    </div>
+  );
+
+  const StartupTemplate = () => (
+    <div style={{ fontFamily: 'Inter, Arial, sans-serif' }}>
+      <header style={{ marginBottom: 16 }}>
+        <div style={{ display: "inline-block", background: "var(--text-primary)", color: "#fff", padding: "3px 8px", fontFamily: "var(--font-mono)", fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>
+          FAST-TRACK RESUME
+        </div>
+        <h1 style={{ fontSize: resumeData.personal.name ? (layoutMode === 'compact' ? '1.5rem' : '1.75rem') : '1.3rem', fontWeight: 900, color: '#000', margin: "0 0 4px", letterSpacing: "-0.02em" }}>
+          {resumeData.personal.name || 'Your Name'}
+        </h1>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 12px", fontSize: 10.5, fontFamily: "var(--font-mono)", color: "var(--text-secondary)" }}>
+          {resumeData.personal.email && <span>{resumeData.personal.email}</span>}
+          {resumeData.personal.phone && <span>· {resumeData.personal.phone}</span>}
+          {resumeData.personal.linkedin && <span>· in/{resumeData.personal.linkedin.replace(/^https?:\/\/(www\.)?linkedin\.com\/in\//, '')}</span>}
+          {resumeData.personal.github && <span>· gh/{resumeData.personal.github.replace(/^https?:\/\/(www\.)?github\.com\//, '')}</span>}
+        </div>
+      </header>
+
+      {/* Top Skills Row */}
+      {(resumeData.skills.languages || resumeData.skills.frameworks || resumeData.skills.tools) && (
+        <section style={{ marginBottom: 14, background: "var(--bg-elevated)", border: "1px solid var(--border-muted)", padding: 10 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", fontSize: 10.5, fontFamily: "var(--font-mono)" }}>
+            {resumeData.skills.languages && <div><span style={{ fontWeight: 700 }}>LANGS:</span> {resumeData.skills.languages}</div>}
+            {resumeData.skills.frameworks && <div><span style={{ fontWeight: 700 }}>STACK:</span> {resumeData.skills.frameworks}</div>}
+            {resumeData.skills.tools && <div><span style={{ fontWeight: 700 }}>OPS:</span> {resumeData.skills.tools}</div>}
+          </div>
+        </section>
+      )}
+
+      {resumeData.summary && (
+        <section style={{ marginBottom: 14 }}>
+          <p style={{ fontSize: 11.5, color: "#111", lineHeight: 1.5, margin: 0 }}>
+            {resumeData.summary}
+          </p>
+        </section>
+      )}
+
+      {resumeData.experience.length > 0 && (
+        <section style={{ marginBottom: 14 }}>
+          <h2 style={{ fontSize: 10.5, fontFamily: "var(--font-mono)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent-dark)", borderBottom: "1px solid var(--border-muted)", paddingBottom: 3, marginBottom: 6 }}>Employment</h2>
+          {resumeData.experience.map((exp, i) => (
+            <div key={i} style={{ marginBottom: 8, fontSize: 11.5 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", fontWeight: 700, marginBottom: 2 }}>
+                <div>
+                  <span style={{ color: "#000", fontWeight: 800 }}>{exp.company}</span>
+                  <span style={{ color: "var(--text-secondary)", fontWeight: 400 }}> — {exp.title}</span>
+                </div>
+                <div style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 500 }}>{exp.startDate} - {exp.endDate}</div>
+              </div>
+              <ul style={{ listStyle: "none", paddingLeft: 0, margin: "2px 0 0", display: "flex", flexDirection: "column", gap: 2 }}>
+                {exp.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j} style={{ display: "flex", gap: 6 }}>
+                    <span style={{ color: "var(--accent)" }}>❯</span>
+                    <span>{bullet.replace(/^- /, '')}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {resumeData.projects.length > 0 && (
+        <section style={{ marginBottom: 14 }}>
+          <h2 style={{ fontSize: 10.5, fontFamily: "var(--font-mono)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent-dark)", borderBottom: "1px solid var(--border-muted)", paddingBottom: 3, marginBottom: 6 }}>Tech Projects</h2>
+          {resumeData.projects.map((proj, i) => (
+            <div key={i} style={{ marginBottom: 8, fontSize: 11.5 }}>
+              <div style={{ fontWeight: 800, color: "#000", marginBottom: 2, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span>{proj.name}</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 9, color: "var(--accent)", fontWeight: 500 }}>{proj.technologies}</span>
+              </div>
+              <ul style={{ listStyle: "none", paddingLeft: 0, margin: "2px 0 0", display: "flex", flexDirection: "column", gap: 2 }}>
+                {proj.description.split('\n').map((bullet, j) => bullet.trim() && (
+                  <li key={j} style={{ display: "flex", gap: 6 }}>
+                    <span style={{ color: "var(--accent)" }}>❯</span>
+                    <span>{bullet.replace(/^- /, '')}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </section>
+      )}
+
+      {resumeData.education.length > 0 && (
+        <section style={{ marginBottom: 14 }}>
+          <h2 style={{ fontSize: 10.5, fontFamily: "var(--font-mono)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--accent-dark)", borderBottom: "1px solid var(--border-muted)", paddingBottom: 3, marginBottom: 6 }}>Education</h2>
+          {resumeData.education.map((edu, i) => (
+            <div key={i} style={{ marginBottom: 4, display: "flex", justifyContent: "space-between", alignItems: "baseline", fontSize: 11.5 }}>
+              <div>
+                <span style={{ fontWeight: 700, color: "#000" }}>{edu.school}</span>
+                <span style={{ color: "var(--text-secondary)" }}> / {edu.degree}</span>
+              </div>
+              <div style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 500 }}>
+                {edu.year}
+              </div>
+            </div>
+          ))}
+        </section>
+      )}
+    </div>
+  );
+
+  // ── End of Template Rendering Code ───────────────────────────────────
+
   return (
-    <div className="flex flex-col lg:flex-row h-full">
+    <div className="resume-builder-layout">
       {/* Editor Pane (Hidden when printing) */}
-      <div className="w-full lg:w-1/2 p-6 border-r-2 border-border overflow-y-auto print:hidden bg-background">
-        <div className="flex justify-between items-center mb-6 border-b-2 border-border pb-4">
-          <h2 className="text-2xl font-black uppercase tracking-tight">Resume Builder</h2>
-          <div className="flex gap-2 flex-wrap justify-end">
+      <div className="resume-builder-editor print:hidden">
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24, borderBottom: "1px solid var(--border-muted)", paddingBottom: 16 }}>
+          <h2 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: "clamp(1.2rem, 2.5vw, 1.6rem)", color: "var(--text-primary)" }}>Resume Builder</h2>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+            <select
+              value={templateId}
+              onChange={e => setTemplateId(e.target.value)}
+              className="input-field"
+              style={{ width: "auto", padding: "6px 12px", fontSize: 12, height: "auto", cursor: "pointer" }}
+              title="Resume template style layout"
+            >
+              {TEMPLATES_LIST.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
             <select
               value={fontFamily}
               onChange={e => setFontFamily(e.target.value)}
-              className="brutal-input py-2 px-3 text-xs font-mono cursor-pointer"
+              className="input-field"
+              style={{ width: "auto", padding: "6px 12px", fontSize: 12, height: "auto", cursor: "pointer" }}
               title="Resume font"
             >
               {FONTS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
@@ -481,199 +1362,220 @@ export default function ResumeBuilder() {
             <select
               value={layoutMode}
               onChange={e => setLayoutMode(e.target.value)}
-              className="brutal-input py-2 px-3 text-xs font-mono cursor-pointer"
+              className="input-field"
+              style={{ width: "auto", padding: "6px 12px", fontSize: 12, height: "auto", cursor: "pointer" }}
               title="Resume density"
             >
               {LAYOUTS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
             </select>
-            <label className="brutal-btn-white py-2 px-4 text-xs cursor-pointer border-dashed hover:bg-muted text-muted-foreground hover:text-foreground">
+            <label className="btn btn-secondary btn-sm" style={{ cursor: "pointer", height: "auto", display: "inline-flex", alignItems: "center", margin: 0 }}>
               Parse PDF
-              <input type="file" accept=".pdf" className="hidden" onChange={handleParsePdf} />
+              <input type="file" accept=".pdf" style={{ display: "none" }} onChange={handleParsePdf} />
             </label>
-            <button onClick={() => saveResume(false)} disabled={saveStatus === 'saving'} className="brutal-btn-white px-4 py-2 text-xs">
+            <button onClick={handleNormalizeAll} className="btn btn-secondary btn-sm" style={{ height: "auto", display: "inline-flex", alignItems: "center", margin: 0, gap: 4 }} title="Automatically format and clean up casing, bullets, tech stack tags, dates, and links">
+              ✨ Auto-Format
+            </button>
+            <button onClick={() => saveResume(false)} disabled={saveStatus === 'saving'} className="btn btn-secondary btn-sm" style={{ height: "auto" }}>
               {saveStatus === 'saving' ? "Saving..." : "Save"}
             </button>
-            <button onClick={handleAnalyzeBuilder} disabled={analyzingBuilder} className="brutal-btn-white px-4 py-2 text-xs">
+            <button onClick={handleAnalyzeBuilder} disabled={analyzingBuilder} className="btn btn-secondary btn-sm" style={{ height: "auto" }}>
               {analyzingBuilder ? "Analyzing..." : "Analyze Builder"}
             </button>
-            <button onClick={handlePrint} className="brutal-btn-white bg-accent text-accent-foreground px-4 py-2 text-xs">
+            <button onClick={handlePrint} className="btn btn-primary btn-sm" style={{ height: "auto" }}>
               Export PDF
             </button>
           </div>
         </div>
 
-        <div className="mb-4 p-3 border-2 border-border bg-card">
-          <div className="flex flex-wrap gap-4 text-xs font-mono">
-            <span>Completion: <strong>{completionScore}%</strong></span>
-            <span>Summary Words: <strong>{getWordCount(resumeData.summary)}</strong></span>
-            <span>Experience: <strong>{resumeData.experience.length}</strong></span>
-            <span>Projects: <strong>{resumeData.projects.length}</strong></span>
-            <span>Strong Bullets: <strong>{strongBullets}/{allBullets.length || 0}</strong></span>
-            <span className={saveStatus === 'error' ? 'text-destructive' : saveStatus === 'dirty' ? 'text-yellow-500' : 'text-muted-foreground'}>
-              {saveStatus === 'dirty' && 'Unsaved changes'}
+        {/* Status Dashboard Box */}
+        <div className="card" style={{ padding: 18, marginBottom: 20, background: "#fff" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--text-secondary)" }}>
+            <div>COMPLETION: <strong style={{ color: "var(--text-primary)" }}>{completionScore}%</strong></div>
+            <div>SUMMARY: <strong style={{ color: "var(--text-primary)" }}>{getWordCount(resumeData.summary)}w</strong></div>
+            <div>EXPERIENCE: <strong style={{ color: "var(--text-primary)" }}>{resumeData.experience.length} job{resumeData.experience.length !== 1 ? 's' : ''}</strong></div>
+            <div>PROJECTS: <strong style={{ color: "var(--text-primary)" }}>{resumeData.projects.length}</strong></div>
+            <div>STRONG BULLETS: <strong style={{ color: "var(--color-success)" }}>{strongBullets}/{allBullets.length || 0}</strong></div>
+            <div style={{
+              marginLeft: "auto",
+              color: saveStatus === 'error' ? 'var(--color-error)' : saveStatus === 'dirty' ? 'var(--color-warning)' : 'var(--color-success)',
+            }}>
+              ● {saveStatus === 'dirty' && 'Unsaved changes'}
               {saveStatus === 'saving' && 'Saving...'}
               {saveStatus === 'saved' && `Saved ${lastSavedAt ? lastSavedAt.toLocaleTimeString() : ''}`}
               {saveStatus === 'error' && 'Save failed'}
               {saveStatus === 'idle' && 'Ready'}
-            </span>
+            </div>
           </div>
-          <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-3">
+          <div style={{ display: "flex", gap: 8, marginTop: 14 }} className="quick-actions-row">
             <input
-              className="brutal-input w-full p-2 text-xs font-mono"
+              className="input-field"
+              style={{ flex: 1, padding: "8px 12px", fontSize: 12, height: "auto" }}
               value={analysisJd}
               onChange={e => setAnalysisJd(e.target.value)}
-              placeholder="Optional target job description for builder analysis"
+              placeholder="Target job description for specialized AI builder analysis..."
             />
-            {builderAnalysis && (
-              <div className="p-4 border-2 border-primary bg-[#fff] text-xs font-mono w-full col-span-1 lg:col-span-2 mt-4">
-                <div className="flex justify-between items-center mb-3 pb-2 border-b-2 border-black">
-                  <h3 className="text-sm font-black text-primary uppercase">🔍 Maya's Analysis & Max's Rewrites</h3>
-                  <div className="flex gap-4">
-                    <span className="text-muted-foreground">ATS SCORE: <strong className="text-foreground text-base">{builderAnalysis.atsScore}/100</strong></span>
-                    <span className="text-muted-foreground">DELTA: <strong className={builderAnalysis.scoreDiff > 0 ? "text-green-500" : builderAnalysis.scoreDiff < 0 ? "text-destructive" : "text-foreground"}>
-                      {builderAnalysis.scoreDiff > 0 ? `+${builderAnalysis.scoreDiff}` : builderAnalysis.scoreDiff}
-                    </strong></span>
-                  </div>
-                </div>
-                
-                {builderAnalysis.verdict && <p className="mb-4 text-sm text-foreground">{builderAnalysis.verdict}</p>}
-                
-                {builderAnalysis.topFixes && builderAnalysis.topFixes.length > 0 ? (
-                  <div className="space-y-3">
-                    <h4 className="font-bold text-muted-foreground uppercase text-[10px]">Top Suggested Fixes</h4>
-                    {builderAnalysis.topFixes.map((fix, idx) => (
-                      <div key={idx} className="p-3 border border-border bg-background flex flex-col gap-2">
-                        <div className="flex justify-between">
-                          <span className="uppercase text-[10px] bg-muted px-1 py-0.5 font-bold">{fix.category.replace('_', ' ')}</span>
-                          <span className="text-[10px] text-muted-foreground">Priority {fix.priority}</span>
-                        </div>
-                        {fix.original && (
-                          <div className="flex gap-2">
-                            <span className="text-destructive font-black text-xs min-w-[20px]">-</span>
-                            <span className="text-muted-foreground line-through decoration-destructive/50">{fix.original}</span>
-                          </div>
-                        )}
-                        <div className="flex gap-2 items-start">
-                          <span className="text-green-500 font-black text-xs min-w-[20px]">+</span>
-                          <span className="text-foreground font-bold">{fix.fix}</span>
-                        </div>
-                        
-                        {/* 1-Click Apply Button */}
-                        {fix.original && (
-                          <button 
-                            onClick={() => applyMaxRewrite(fix)}
-                            className="self-end mt-1 text-[10px] uppercase font-black bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground px-3 py-1 border border-primary transition-colors"
-                          >
-                            1-Click Apply ⚡
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {builderAnalysis.suggestions.map((sug, idx) => (
-                      <p key={idx} className="text-muted-foreground">- {sug}</p>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
+
+          {builderAnalysis && (
+            <div className="card-surface" style={{ marginTop: 16, padding: 18, border: "var(--border-brutal)", background: "var(--bg-surface)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, borderBottom: "1px dashed var(--border-muted)", paddingBottom: 8 }}>
+                <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--accent)" }}>🔍 Maya's Analysis & Max's Rewrites</h3>
+                <div style={{ display: "flex", gap: 12, fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700 }}>
+                  <span style={{ color: "var(--text-secondary)" }}>ATS SCORE: <strong style={{ color: "var(--text-primary)" }}>{builderAnalysis.atsScore}/100</strong></span>
+                  <span style={{ color: "var(--text-secondary)" }}>DELTA: <strong style={{ color: builderAnalysis.scoreDiff > 0 ? "var(--color-success)" : builderAnalysis.scoreDiff < 0 ? "var(--color-error)" : "var(--text-primary)" }}>
+                    {builderAnalysis.scoreDiff > 0 ? `+${builderAnalysis.scoreDiff}` : builderAnalysis.scoreDiff}
+                  </strong></span>
+                </div>
+              </div>
+              
+              {builderAnalysis.verdict && <p style={{ fontSize: 12.5, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 14 }}>{builderAnalysis.verdict}</p>}
+              
+              {builderAnalysis.topFixes && builderAnalysis.topFixes.length > 0 ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <h4 style={{ fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", fontSize: 9, letterSpacing: "0.08em" }}>Top Suggested Fixes</h4>
+                  {builderAnalysis.topFixes.map((fix, idx) => (
+                    <div key={idx} className="card" style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, background: "#fff" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span className="badge badge-blue" style={{ fontSize: 9, padding: "2px 6px" }}>{fix.category.replace('_', ' ')}</span>
+                        <span style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>Priority {fix.priority}</span>
+                      </div>
+                      {fix.original && (
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <span style={{ color: "var(--color-error)", fontWeight: 800 }}>-</span>
+                          <span style={{ color: "var(--text-muted)", textDecoration: "line-through", fontSize: 12 }}>{fix.original}</span>
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                        <span style={{ color: "var(--color-success)", fontWeight: 800 }}>+</span>
+                        <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 12 }}>{fix.fix}</span>
+                      </div>
+                      
+                      {fix.original && (
+                        <button 
+                          onClick={() => applyMaxRewrite(fix)}
+                          className="btn btn-secondary btn-sm"
+                          style={{ alignSelf: "flex-end", marginTop: 4, fontSize: 9, padding: "3px 10px", height: "auto" }}
+                        >
+                          1-Click Apply ⚡
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  {builderAnalysis.suggestions.map((sug, idx) => (
+                    <p key={idx} style={{ fontSize: 12, color: "var(--text-secondary)" }}>- {sug}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
+        {/* ATS Bullet Checker */}
         {allBullets.length > 0 && (
-          <div className="mb-6 p-4 border-2 border-border bg-card">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-sm font-black uppercase">ATS Bullet Quality</h3>
-              <span className="text-xs font-mono text-muted-foreground">
-                Strong = starts with action verb + includes measurable impact
+          <div className="card" style={{ padding: 18, marginBottom: 20, background: "#fff" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>ATS Bullet Quality</h3>
+              <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>
+                Goal: Action Verb + Metric Result
               </span>
             </div>
             {weakBullets.length === 0 ? (
-              <p className="text-xs font-mono text-green-500">Great work - all bullets are impact-oriented.</p>
+              <p style={{ fontSize: 12, color: "var(--color-success)", fontWeight: 700 }}>✓ Outstanding! All bullet points are impact-oriented and contain metrics.</p>
             ) : (
-              <div className="space-y-2 max-h-40 overflow-y-auto">
-                {weakBullets.slice(0, 6).map((item, idx) => (
-                  <div key={idx} className="text-xs font-mono p-2 border border-border bg-background">
-                    <p className="text-foreground">{item.line}</p>
-                    <p className="text-muted-foreground mt-1">
-                      {!item.hasActionVerb ? "Add a strong action verb. " : ""}
-                      {!item.hasMetric ? "Add a measurable result (%, count, time, revenue)." : ""}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 180, overflowY: "auto" }}>
+                {weakBullets.slice(0, 4).map((item, idx) => (
+                  <div key={idx} className="card-surface" style={{ padding: 12, border: "var(--border-brutal)", background: "var(--bg-surface)" }}>
+                    <p style={{ fontSize: 12.5, color: "var(--text-primary)", lineHeight: 1.5 }}>"{item.line}"</p>
+                    <p style={{ fontSize: 10, color: "var(--accent-dark)", fontWeight: 700, marginTop: 6, fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                      {!item.hasActionVerb ? "⚠️ Missing Action Verb. " : ""}
+                      {!item.hasMetric ? "⚠️ Missing Measurable Impact (%, $, numbers)." : ""}
                     </p>
                     <button
                       onClick={() => handleAiRewriteWeakBullet(item)}
                       disabled={rewritingKey === item.key}
-                      className="mt-2 text-[11px] font-mono px-2 py-1 border border-primary text-primary hover:bg-primary hover:text-primary-foreground disabled:opacity-50"
+                      className="btn btn-secondary btn-sm"
+                      style={{ marginTop: 8, fontSize: 9, padding: "3px 8px", height: "auto" }}
                     >
-                      {rewritingKey === item.key ? 'Rewriting...' : 'AI Rewrite'}
+                      {rewritingKey === item.key ? 'Rewriting...' : 'AI Rewrite →'}
                     </button>
                   </div>
                 ))}
-                {weakBullets.length > 6 && (
-                  <p className="text-xs font-mono text-muted-foreground">+{weakBullets.length - 6} more weak bullets</p>
+                {weakBullets.length > 4 && (
+                  <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700, textAlign: "right" }}>
+                    +{weakBullets.length - 4} more weak bullets
+                  </p>
                 )}
               </div>
             )}
           </div>
         )}
 
-        <div className="mb-6 p-4 border-2 border-border bg-card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-black uppercase">Section ATS Scores</h3>
-            <span className="text-xs font-mono text-muted-foreground">Target 80+ per section</span>
+        {/* Section Scores */}
+        <div className="card" style={{ padding: 18, marginBottom: 20, background: "#fff" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>Section ATS Scores</h3>
+            <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>Target 80+ per section</span>
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-            {Object.entries(sectionScores).map(([key, value]) => (
-              <div key={key} className={`p-3 border-2 bg-background ${scoreColorClass(value.score)}`}>
-                <p className="text-[10px] font-mono uppercase">{key}</p>
-                <p className="text-2xl font-black">{value.score}</p>
-              </div>
-            ))}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }} className="section-scores-grid">
+            {Object.entries(sectionScores).map(([key, value]) => {
+              const valColor = value.score >= 80 ? "var(--color-success)" : value.score >= 60 ? "var(--accent)" : "var(--color-error)";
+              const valBg = value.score >= 80 ? "rgba(22,163,74,0.06)" : value.score >= 60 ? "var(--accent-glow)" : "rgba(220,38,38,0.06)";
+              return (
+                <div key={key} className="card-surface" style={{ padding: 10, textAlign: "center", border: "var(--border-brutal)", background: valBg }}>
+                  <p style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-secondary)", textTransform: "uppercase" }}>{key}</p>
+                  <p style={{ fontSize: 20, fontWeight: 900, color: valColor, fontFamily: "var(--font-serif)", fontStyle: "italic", marginTop: 4 }}>{value.score}</p>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="space-y-3">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {Object.entries(sectionScores).map(([key, value]) => (
-              <div key={`hint-${key}`} className="p-2 border border-border bg-background">
-                <p className="text-xs font-mono font-bold uppercase mb-1">{key} Hints</p>
+              <div key={`hint-${key}`} className="card" style={{ padding: 12, background: "#fff" }}>
+                <p style={{ fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-primary)", textTransform: "uppercase", marginBottom: 4 }}>{key} Hints</p>
                 {value.hints.length ? (
-                  <ul className="text-xs font-mono text-muted-foreground list-disc pl-4 space-y-1">
-                    {value.hints.map((hint, idx) => <li key={idx}>{hint}</li>)}
+                  <ul style={{ paddingLeft: 14, fontSize: 11.5, color: "var(--text-secondary)", lineHeight: 1.5, listStyle: "square" }}>
+                    {value.hints.map((hint, idx) => <li key={idx} style={{ marginBottom: 2 }}>{hint}</li>)}
                   </ul>
                 ) : (
-                  <p className="text-xs font-mono text-green-500">Looks strong for ATS.</p>
+                  <p style={{ fontSize: 11, color: "var(--color-success)", fontWeight: 700 }}>✓ Perfect! Section is fully optimized.</p>
                 )}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mb-6 p-4 border-2 border-border bg-card">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-black uppercase">Section Score Trend</h3>
-            <span className="text-xs font-mono text-muted-foreground">Last {Math.min(sectionScoreHistory.length, 12)} saves</span>
+        {/* Section Score History Trend */}
+        <div className="card" style={{ padding: 18, marginBottom: 20, background: "#fff" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+            <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>Section Score Trend</h3>
+            <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>Last {Math.min(sectionScoreHistory.length, 12)} saves</span>
           </div>
           {sectionScoreHistory.length < 2 ? (
-            <p className="text-xs font-mono text-muted-foreground">Save a few iterations to track progress over time.</p>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontWeight: 500 }}>Save a few times to track score changes over iterations.</p>
           ) : (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 150, overflowY: "auto" }}>
               {sectionScoreHistory.map((snap, idx) => {
                 const prev = sectionScoreHistory[idx + 1];
                 const delta = (field) => (prev ? snap[field] - prev[field] : 0);
                 const deltaLabel = (d) => (d > 0 ? `+${d}` : `${d}`);
                 return (
-                  <div key={snap.ts} className="p-2 border border-border bg-background text-xs font-mono">
-                    <div className="flex justify-between mb-1">
-                      <span>Save #{sectionScoreHistory.length - idx}</span>
-                      <span className="text-muted-foreground">{new Date(snap.ts).toLocaleString()}</span>
+                  <div key={snap.ts} className="card-surface" style={{ padding: 10, fontSize: 11, fontFamily: "var(--font-mono)", background: "#fff", border: "var(--border-brutal)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontWeight: 800, color: "var(--text-primary)" }}>
+                      <span>SAVE #{sectionScoreHistory.length - idx}</span>
+                      <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>{new Date(snap.ts).toLocaleTimeString()}</span>
                     </div>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
                       {['summary', 'experience', 'projects', 'skills'].map((field) => {
                         const d = delta(field);
+                        const cl = d > 0 ? 'var(--color-success)' : d < 0 ? 'var(--color-error)' : 'var(--text-secondary)';
                         return (
-                          <span key={`${snap.ts}-${field}`} className={d > 0 ? 'text-green-500' : d < 0 ? 'text-destructive' : 'text-muted-foreground'}>
-                            {field}: {snap[field]} ({deltaLabel(d)})
+                          <span key={`${snap.ts}-${field}`} style={{ color: cl, fontWeight: 700, fontSize: 9.5 }}>
+                            {field.charAt(0).toUpperCase() + field.slice(1, 3)}: {snap[field]} ({deltaLabel(d)})
                           </span>
                         );
                       })}
@@ -685,216 +1587,260 @@ export default function ResumeBuilder() {
           )}
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-          {['personal', 'summary', 'experience', 'education', 'projects', 'skills'].map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-3 py-1 font-mono text-xs uppercase border-2 transition-colors shrink-0 ${activeTab === tab ? 'bg-primary text-primary-foreground border-primary font-bold' : 'bg-card border-border hover:border-primary'}`}
-            >
-              {tab}
-            </button>
-          ))}
+        {/* Section Tabs */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 20, overflowX: "auto", paddingBottom: 8 }}>
+          {['personal', 'summary', 'experience', 'education', 'projects', 'skills'].map(tab => {
+            const active = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                id={`builder-tab-${tab}`}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "var(--border-brutal)",
+                  background: active ? "var(--accent)" : "#fff",
+                  color: active ? "#fff" : "var(--text-secondary)",
+                  fontFamily: "var(--font-display)",
+                  fontSize: 11, fontWeight: 700,
+                  cursor: "pointer",
+                  boxShadow: active ? "2px 2px 0 var(--text-primary)" : "none",
+                  transform: active ? "translate(-1px, -1px)" : "none",
+                  transition: "all var(--transition-fast)",
+                  textTransform: "uppercase"
+                }}
+              >
+                {tab}
+              </button>
+            );
+          })}
         </div>
 
         {/* Editor Forms */}
-        <div className="space-y-4">
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {activeTab === 'personal' && (
-            <div className="space-y-4">
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Full Name</label><input className="brutal-input w-full p-2" value={resumeData.personal.name} onChange={e => updatePersonal('name', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Email</label><input className="brutal-input w-full p-2" value={resumeData.personal.email} onChange={e => updatePersonal('email', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Phone</label><input className="brutal-input w-full p-2" value={resumeData.personal.phone} onChange={e => updatePersonal('phone', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">LinkedIn URL</label><input className="brutal-input w-full p-2" value={resumeData.personal.linkedin} onChange={e => updatePersonal('linkedin', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">GitHub URL</label><input className="brutal-input w-full p-2" value={resumeData.personal.github} onChange={e => updatePersonal('github', e.target.value)} /></div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>Full Name</label><input className="input-field" value={resumeData.personal.name} onChange={e => updatePersonal('name', e.target.value)} /></div>
+              <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>Email</label><input className="input-field" value={resumeData.personal.email} onChange={e => updatePersonal('email', e.target.value)} /></div>
+              <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>Phone</label><input className="input-field" value={resumeData.personal.phone} onChange={e => updatePersonal('phone', e.target.value)} /></div>
+              <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>LinkedIn URL</label><input className="input-field" value={resumeData.personal.linkedin} onChange={e => updatePersonal('linkedin', e.target.value)} /></div>
+              <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>GitHub URL</label><input className="input-field" value={resumeData.personal.github} onChange={e => updatePersonal('github', e.target.value)} /></div>
             </div>
           )}
 
           {activeTab === 'summary' && (
             <div>
-              <label className="text-xs font-mono font-bold uppercase block mb-1">Professional Summary</label>
-              <textarea className="brutal-input w-full p-2 h-32" value={resumeData.summary} onChange={e => { setResumeData({...resumeData, summary: e.target.value}); setSaveStatus('dirty'); }} />
-              <p className="text-xs font-mono text-muted-foreground mt-2">Tip: Keep this between 50-90 words and role-specific.</p>
+              <label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>Professional Summary</label>
+              <textarea className="input-field" style={{ height: 120, resize: "vertical" }} value={resumeData.summary} onChange={e => { setResumeData({...resumeData, summary: e.target.value}); setSaveStatus('dirty'); }} />
+              <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6, fontFamily: "var(--font-mono)" }}>Tip: Keep this between 50-90 words and role-specific.</p>
             </div>
           )}
 
           {activeTab === 'experience' && (
-            <div className="space-y-6">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {resumeData.experience.map((exp, i) => (
-                <div key={i} className="p-4 border-2 border-border bg-card relative">
-                  <div className="absolute top-2 right-2 flex gap-2">
-                    <button onClick={() => moveArrayItem('experience', i, -1)} className="text-xs font-mono hover:underline">[↑]</button>
-                    <button onClick={() => moveArrayItem('experience', i, 1)} className="text-xs font-mono hover:underline">[↓]</button>
-                    <button onClick={() => removeArrayItem('experience', i)} className="text-destructive font-mono text-xs hover:underline">[Remove]</button>
+                <div key={i} className="card" style={{ padding: 18, position: "relative", background: "#fff" }}>
+                  <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 10, fontSize: 11, fontFamily: "var(--font-mono)" }}>
+                    <button onClick={() => moveArrayItem('experience', i, -1)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--text-secondary)" }}>[↑]</button>
+                    <button onClick={() => moveArrayItem('experience', i, 1)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--text-secondary)" }}>[↓]</button>
+                    <button onClick={() => removeArrayItem('experience', i)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--color-error)" }}>[Remove]</button>
                   </div>
-                  <div className="space-y-2">
-                    <input className="brutal-input w-full p-2 text-sm font-bold" placeholder="Company Name" value={exp.company} onChange={e => updateArrayItem('experience', i, 'company', e.target.value)} />
-                    <input className="brutal-input w-full p-2 text-sm" placeholder="Job Title" value={exp.title} onChange={e => updateArrayItem('experience', i, 'title', e.target.value)} />
-                    <div className="flex gap-2">
-                      <input className="brutal-input w-1/2 p-2 text-sm" placeholder="Start Date (e.g. Jan 2020)" value={exp.startDate} onChange={e => updateArrayItem('experience', i, 'startDate', e.target.value)} />
-                      <input className="brutal-input w-1/2 p-2 text-sm" placeholder="End Date (e.g. Present)" value={exp.endDate} onChange={e => updateArrayItem('experience', i, 'endDate', e.target.value)} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+                    <input className="input-field" style={{ fontWeight: 700 }} placeholder="Company Name (e.g. Google)" value={exp.company} onChange={e => updateArrayItem('experience', i, 'company', e.target.value)} />
+                    <input className="input-field" placeholder="Job Title (e.g. Frontend Engineer)" value={exp.title} onChange={e => updateArrayItem('experience', i, 'title', e.target.value)} />
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <input className="input-field" style={{ width: "50%" }} placeholder="Start Date (e.g. Jan 2020)" value={exp.startDate} onChange={e => updateArrayItem('experience', i, 'startDate', e.target.value)} />
+                      <input className="input-field" style={{ width: "50%" }} placeholder="End Date (e.g. Present)" value={exp.endDate} onChange={e => updateArrayItem('experience', i, 'endDate', e.target.value)} />
                     </div>
-                    <textarea className="brutal-input w-full p-2 text-sm h-24" placeholder="Description (one bullet per line)" value={exp.description} onChange={e => updateArrayItem('experience', i, 'description', e.target.value)} />
+                    <textarea className="input-field" style={{ height: 100, resize: "vertical" }} placeholder="Description (one bullet per line starting with a dash)" value={exp.description} onChange={e => updateArrayItem('experience', i, 'description', e.target.value)} />
                   </div>
                 </div>
               ))}
-              <button onClick={() => addArrayItem('experience', { company: '', title: '', startDate: '', endDate: '', description: '' })} className="w-full py-2 border-2 border-dashed border-primary text-primary font-mono text-sm hover:bg-primary/10 transition-colors">
+              <button onClick={() => addArrayItem('experience', { company: '', title: '', startDate: '', endDate: '', description: '' })} className="btn btn-secondary" style={{ borderStyle: "dashed", width: "100%", justifyContent: "center" }}>
                 + Add Experience
               </button>
             </div>
           )}
 
           {activeTab === 'education' && (
-            <div className="space-y-6">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {resumeData.education.map((edu, i) => (
-                <div key={i} className="p-4 border-2 border-border bg-card relative">
-                  <div className="absolute top-2 right-2 flex gap-2">
-                    <button onClick={() => moveArrayItem('education', i, -1)} className="text-xs font-mono hover:underline">[↑]</button>
-                    <button onClick={() => moveArrayItem('education', i, 1)} className="text-xs font-mono hover:underline">[↓]</button>
-                    <button onClick={() => removeArrayItem('education', i)} className="text-destructive font-mono text-xs hover:underline">[Remove]</button>
+                <div key={i} className="card" style={{ padding: 18, position: "relative", background: "#fff" }}>
+                  <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 10, fontSize: 11, fontFamily: "var(--font-mono)" }}>
+                    <button onClick={() => moveArrayItem('education', i, -1)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--text-secondary)" }}>[↑]</button>
+                    <button onClick={() => moveArrayItem('education', i, 1)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--text-secondary)" }}>[↓]</button>
+                    <button onClick={() => removeArrayItem('education', i)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--color-error)" }}>[Remove]</button>
                   </div>
-                  <div className="space-y-2">
-                    <input className="brutal-input w-full p-2 text-sm font-bold" placeholder="School/University" value={edu.school} onChange={e => updateArrayItem('education', i, 'school', e.target.value)} />
-                    <input className="brutal-input w-full p-2 text-sm" placeholder="Degree (e.g. B.S. Computer Science)" value={edu.degree} onChange={e => updateArrayItem('education', i, 'degree', e.target.value)} />
-                    <input className="brutal-input w-full p-2 text-sm" placeholder="Year / Expected Graduation" value={edu.year} onChange={e => updateArrayItem('education', i, 'year', e.target.value)} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+                    <input className="input-field" style={{ fontWeight: 700 }} placeholder="School / University" value={edu.school} onChange={e => updateArrayItem('education', i, 'school', e.target.value)} />
+                    <input className="input-field" placeholder="Degree (e.g. B.S. Computer Science)" value={edu.degree} onChange={e => updateArrayItem('education', i, 'degree', e.target.value)} />
+                    <input className="input-field" placeholder="Graduation Year (e.g. 2024)" value={edu.year} onChange={e => updateArrayItem('education', i, 'year', e.target.value)} />
                   </div>
                 </div>
               ))}
-              <button onClick={() => addArrayItem('education', { school: '', degree: '', year: '' })} className="w-full py-2 border-2 border-dashed border-primary text-primary font-mono text-sm hover:bg-primary/10 transition-colors">
+              <button onClick={() => addArrayItem('education', { school: '', degree: '', year: '' })} className="btn btn-secondary" style={{ borderStyle: "dashed", width: "100%", justifyContent: "center" }}>
                 + Add Education
               </button>
             </div>
           )}
 
           {activeTab === 'projects' && (
-            <div className="space-y-6">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {resumeData.projects.map((proj, i) => (
-                <div key={i} className="p-4 border-2 border-border bg-card relative">
-                  <div className="absolute top-2 right-2 flex gap-2">
-                    <button onClick={() => moveArrayItem('projects', i, -1)} className="text-xs font-mono hover:underline">[↑]</button>
-                    <button onClick={() => moveArrayItem('projects', i, 1)} className="text-xs font-mono hover:underline">[↓]</button>
-                    <button onClick={() => removeArrayItem('projects', i)} className="text-destructive font-mono text-xs hover:underline">[Remove]</button>
+                <div key={i} className="card" style={{ padding: 18, position: "relative", background: "#fff" }}>
+                  <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 10, fontSize: 11, fontFamily: "var(--font-mono)" }}>
+                    <button onClick={() => moveArrayItem('projects', i, -1)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--text-secondary)" }}>[↑]</button>
+                    <button onClick={() => moveArrayItem('projects', i, 1)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--text-secondary)" }}>[↓]</button>
+                    <button onClick={() => removeArrayItem('projects', i)} style={{ background: "none", border: "none", cursor: "pointer", fontWeight: 700, color: "var(--color-error)" }}>[Remove]</button>
                   </div>
-                  <div className="space-y-2">
-                    <input className="brutal-input w-full p-2 text-sm font-bold" placeholder="Project Name" value={proj.name} onChange={e => updateArrayItem('projects', i, 'name', e.target.value)} />
-                    <input className="brutal-input w-full p-2 text-sm" placeholder="Technologies Used" value={proj.technologies} onChange={e => updateArrayItem('projects', i, 'technologies', e.target.value)} />
-                    <textarea className="brutal-input w-full p-2 text-sm h-24" placeholder="Description (one bullet per line)" value={proj.description} onChange={e => updateArrayItem('projects', i, 'description', e.target.value)} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 12 }}>
+                    <input className="input-field" style={{ fontWeight: 700 }} placeholder="Project Name" value={proj.name} onChange={e => updateArrayItem('projects', i, 'name', e.target.value)} />
+                    <input className="input-field" placeholder="Technologies Used (e.g. React, Firebase, Python)" value={proj.technologies} onChange={e => updateArrayItem('projects', i, 'technologies', e.target.value)} />
+                    <textarea className="input-field" style={{ height: 100, resize: "vertical" }} placeholder="Description (one bullet per line starting with a dash)" value={proj.description} onChange={e => updateArrayItem('projects', i, 'description', e.target.value)} />
                   </div>
                 </div>
               ))}
-              <button onClick={() => addArrayItem('projects', { name: '', technologies: '', description: '' })} className="w-full py-2 border-2 border-dashed border-primary text-primary font-mono text-sm hover:bg-primary/10 transition-colors">
+              <button onClick={() => addArrayItem('projects', { name: '', technologies: '', description: '' })} className="btn btn-secondary" style={{ borderStyle: "dashed", width: "100%", justifyContent: "center" }}>
                 + Add Project
               </button>
             </div>
           )}
 
           {activeTab === 'skills' && (
-            <div className="space-y-4">
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Languages</label><input className="brutal-input w-full p-2" placeholder="e.g. Python, Java, JavaScript" value={resumeData.skills.languages} onChange={e => updateSkills('languages', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Frameworks</label><input className="brutal-input w-full p-2" placeholder="e.g. React, Node.js, Django" value={resumeData.skills.frameworks} onChange={e => updateSkills('frameworks', e.target.value)} /></div>
-              <div><label className="text-xs font-mono font-bold uppercase block mb-1">Tools / Other</label><input className="brutal-input w-full p-2" placeholder="e.g. Git, Docker, AWS" value={resumeData.skills.tools} onChange={e => updateSkills('tools', e.target.value)} /></div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>Languages</label><input className="input-field" placeholder="e.g. Python, Java, JavaScript, SQL" value={resumeData.skills.languages} onChange={updateSkills.bind(null, 'languages')} /></div>
+              <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>Frameworks</label><input className="input-field" placeholder="e.g. React, Node.js, Django, Tailwind" value={resumeData.skills.frameworks} onChange={updateSkills.bind(null, 'frameworks')} /></div>
+              <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>Tools / Other</label><input className="input-field" placeholder="e.g. Git, Docker, Kubernetes, AWS" value={resumeData.skills.tools} onChange={updateSkills.bind(null, 'tools')} /></div>
             </div>
           )}
         </div>
       </div>
 
       {/* Preview Pane (Becomes full width/height when printing) */}
-      <div className="w-full lg:w-1/2 bg-[#f8f9fa] overflow-y-auto flex items-start justify-center print:w-full print:block print:bg-white print:overflow-visible">
+      <div className="resume-builder-preview grid-lines">
         {/* A4 Sheet Simulation */}
         <div
-          className={`bg-white text-black shadow-2xl my-8 w-[210mm] min-h-[297mm] print:shadow-none print:m-0 print:p-0 ${layoutMode === 'compact' ? 'p-6' : 'p-8'}`}
-          style={{ fontFamily, lineHeight: layoutMode === 'compact' ? 1.35 : 1.5 }}
+          className={`bg-white text-black print-resume-container print:shadow-none print:m-0 print:p-0 ${layoutMode === 'compact' ? 'p-8' : 'p-12'}`}
+          style={{ 
+            fontFamily, 
+            lineHeight: layoutMode === 'compact' ? 1.4 : 1.6,
+            width: "210mm",
+            minHeight: "297mm",
+            border: "var(--border-brutal-thick)",
+            boxShadow: "var(--shadow-brutal-xl)",
+            borderRadius: "0px"
+          }}
         >
-          {/* Header */}
-          <header className="border-b-2 border-black pb-4 mb-4 text-center">
-            <h1 style={{ fontFamily, fontSize: resumeData.personal.name ? (layoutMode === 'compact' ? '1.75rem' : '2rem') : '1.5rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: resumeData.personal.name ? '#000' : '#aaa' }}>
-              {resumeData.personal.name || 'Your Name Here'}
-            </h1>
-            <div className="flex flex-wrap justify-center gap-3 text-sm mt-2 font-sans">
-              {resumeData.personal.email && <span>{resumeData.personal.email}</span>}
-              {resumeData.personal.phone && <span>• {resumeData.personal.phone}</span>}
-              {resumeData.personal.linkedin && <span>• {resumeData.personal.linkedin}</span>}
-              {resumeData.personal.github && <span>• {resumeData.personal.github}</span>}
-            </div>
-          </header>
-
-          {/* Summary */}
-          {resumeData.summary && (
-            <section className="mb-4 font-sans text-sm text-justify">
-              {resumeData.summary}
-            </section>
-          )}
-
-          {/* Education */}
-          {resumeData.education.length > 0 && (
-            <section className="mb-4">
-              <h2 className="text-lg font-serif font-bold uppercase border-b border-black mb-2">Education</h2>
-              {resumeData.education.map((edu, i) => (
-                <div key={i} className="mb-2 font-sans text-sm flex justify-between items-start">
-                  <div>
-                    <div className="font-bold">{edu.school}</div>
-                    <div className="italic">{edu.degree}</div>
-                  </div>
-                  <div className="text-right shrink-0 ml-4 font-bold">
-                    {edu.year}
-                  </div>
-                </div>
-              ))}
-            </section>
-          )}
-
-          {/* Experience */}
-          {resumeData.experience.length > 0 && (
-            <section className="mb-4">
-              <h2 className="text-lg font-serif font-bold uppercase border-b border-black mb-2">Experience</h2>
-              {resumeData.experience.map((exp, i) => (
-                <div key={i} className="mb-3 font-sans text-sm">
-                  <div className="flex justify-between items-start font-bold">
-                    <div>{exp.company} <span className="italic font-normal">| {exp.title}</span></div>
-                    <div>{exp.startDate} – {exp.endDate}</div>
-                  </div>
-                  <ul className="list-disc pl-5 mt-1 space-y-1">
-                    {exp.description.split('\n').map((bullet, j) => bullet.trim() && (
-                      <li key={j}>{bullet.replace(/^- /, '')}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </section>
-          )}
-
-          {/* Projects */}
-          {resumeData.projects.length > 0 && (
-            <section className="mb-4">
-              <h2 className="text-lg font-serif font-bold uppercase border-b border-black mb-2">Projects</h2>
-              {resumeData.projects.map((proj, i) => (
-                <div key={i} className="mb-2 font-sans text-sm">
-                  <div className="font-bold">
-                    {proj.name} <span className="font-normal italic">| {proj.technologies}</span>
-                  </div>
-                  <ul className="list-disc pl-5 mt-1 space-y-1">
-                    {proj.description.split('\n').map((bullet, j) => bullet.trim() && (
-                      <li key={j}>{bullet.replace(/^- /, '')}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </section>
-          )}
-
-          {/* Skills */}
-          {(resumeData.skills.languages || resumeData.skills.frameworks || resumeData.skills.tools) && (
-            <section className="mb-4">
-              <h2 className="text-lg font-serif font-bold uppercase border-b border-black mb-2">Technical Skills</h2>
-              <div className="font-sans text-sm space-y-1">
-                {resumeData.skills.languages && <div><span className="font-bold">Languages:</span> {resumeData.skills.languages}</div>}
-                {resumeData.skills.frameworks && <div><span className="font-bold">Frameworks:</span> {resumeData.skills.frameworks}</div>}
-                {resumeData.skills.tools && <div><span className="font-bold">Tools:</span> {resumeData.skills.tools}</div>}
-              </div>
-            </section>
+          {templateId === 'modern' ? (
+            <ModernTemplate />
+          ) : templateId === 'minimal' ? (
+            <MinimalTemplate />
+          ) : templateId === 'executive' ? (
+            <ExecutiveTemplate />
+          ) : templateId === 'creative' ? (
+            <CreativeTemplate />
+          ) : templateId === 'academic' ? (
+            <AcademicTemplate />
+          ) : templateId === 'startup' ? (
+            <StartupTemplate />
+          ) : (
+            <ClassicTemplate />
           )}
         </div>
       </div>
+      
+      <style>{`
+        .resume-builder-layout {
+          display: flex;
+          flex-direction: row;
+          height: calc(100vh - 52px);
+          background: var(--bg-surface);
+          overflow: hidden;
+        }
+        .resume-builder-editor {
+          width: 50%;
+          padding: 24px;
+          overflow-y: auto;
+          border-right: var(--border-brutal);
+          background: var(--bg-surface);
+          max-height: 100%;
+        }
+        .resume-builder-preview {
+          width: 50%;
+          overflow-y: auto;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+          background: var(--bg-elevated);
+          padding: 32px 16px;
+          max-height: 100%;
+        }
+        
+        /* Disable wobbly hover transitions/animations for inputs/details cards to preserve focus */
+        .resume-builder-editor .card:hover,
+        .resume-builder-editor .card-premium:hover,
+        .resume-builder-editor .card-surface:hover {
+          transform: none !important;
+          box-shadow: var(--shadow-brutal) !important;
+        }
+        
+        @media (max-width: 1024px) {
+          .resume-builder-layout {
+            flex-direction: column;
+            height: auto;
+            overflow: visible;
+          }
+          .resume-builder-editor {
+            width: 100%;
+            border-right: none;
+            border-bottom: var(--border-brutal);
+            max-height: none;
+          }
+          .resume-builder-preview {
+            width: 100%;
+            padding: 24px 12px;
+            max-height: none;
+          }
+        }
+        
+        @media print {
+          body {
+            background: #fff !important;
+            color: #000 !important;
+          }
+          .resume-builder-layout {
+            display: block;
+            height: auto;
+            background: #fff;
+            overflow: visible;
+          }
+          .resume-builder-editor {
+            display: none !important;
+          }
+          .resume-builder-preview {
+            width: 100% !important;
+            display: block;
+            background: #fff !important;
+            padding: 0 !important;
+            overflow: visible;
+          }
+          .print-resume-container {
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            min-height: auto !important;
+          }
+        }
+        @media (max-width: 900px) {
+          .section-scores-grid { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media (max-width: 480px) {
+          .section-scores-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

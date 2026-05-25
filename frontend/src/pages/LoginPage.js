@@ -3,89 +3,42 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE, setAuthToken, updateMetaTags } from "../utils";
 
-/* ── Cursor Dot ───────────────────────────────────────────── */
-function CursorDot() {
-  const dotRef  = useRef(null);
-  const ringRef = useRef(null);
-  const pos     = useRef({ x: 0, y: 0 });
-  const ring    = useRef({ x: 0, y: 0 });
-  const raf     = useRef(null);
-  useEffect(() => {
-    const move = (e) => { pos.current = { x: e.clientX, y: e.clientY }; };
-    window.addEventListener("mousemove", move);
-    const tick = () => {
-      if (dotRef.current) { dotRef.current.style.left = pos.current.x + "px"; dotRef.current.style.top = pos.current.y + "px"; }
-      if (ringRef.current) {
-        ring.current.x += (pos.current.x - ring.current.x) * 0.14;
-        ring.current.y += (pos.current.y - ring.current.y) * 0.14;
-        ringRef.current.style.left = ring.current.x + "px";
-        ringRef.current.style.top  = ring.current.y + "px";
-      }
-      raf.current = requestAnimationFrame(tick);
-    };
-    raf.current = requestAnimationFrame(tick);
-    return () => { window.removeEventListener("mousemove", move); cancelAnimationFrame(raf.current); };
-  }, []);
-  return (
-    <>
-      <div ref={dotRef}  style={{ position:"fixed", pointerEvents:"none", zIndex:9999, width:8,  height:8,  borderRadius:"50%", background:"hsl(24,100%,50%)", transform:"translate(-50%,-50%)", top:0, left:0 }} />
-      <div ref={ringRef} style={{ position:"fixed", pointerEvents:"none", zIndex:9998, width:32, height:32, borderRadius:"50%", border:"1.5px solid hsl(24,100%,50%)", transform:"translate(-50%,-50%)", top:0, left:0, opacity:0.5 }} />
-    </>
-  );
-}
-
-/* ── Magnetic Button ──────────────────────────────────────── */
-function MagBtn({ children, type, disabled, className, style }) {
-  const ref = useRef(null);
-  const onMove = useCallback((e) => {
-    const el = ref.current; if (!el) return;
-    const { left, top, width, height } = el.getBoundingClientRect();
-    const dx = (e.clientX - left - width  / 2) * 0.3;
-    const dy = (e.clientY - top  - height / 2) * 0.3;
-    el.style.transform = `translate(${dx}px,${dy}px)`;
-    el.style.transition = "transform 0.15s ease";
-  }, []);
-  const onLeave = useCallback(() => {
-    if (ref.current) { ref.current.style.transform = "translate(0,0)"; ref.current.style.transition = "transform 0.5s ease"; }
-  }, []);
-  return (
-    <button ref={ref} type={type} disabled={disabled} className={className} style={{ ...style, willChange: "transform" }} onMouseMove={onMove} onMouseLeave={onLeave}>
-      {children}
-    </button>
-  );
-}
-
-/* ── Rotating Truths (left panel) ─────────────────────────── */
-const TRUTHS = [
-  { stat: "6s",    copy: "That's how long a recruiter looks at your resume. Make them stop." },
-  { stat: "75%",   copy: "Of resumes never reach a human. An ATS bot kills them first." },
-  { stat: "200+",  copy: "Applications sent. 3 replies. It's not the market — it's the resume." },
-  { stat: "87%",   copy: "Of SmartResume users pass ATS after fixing their score." },
-  { stat: "< 60s", copy: "To get your first honest resume score. No credit card. No BS." },
+/* ── Rotating Stats ─────────────────────────────────────────────── */
+const STATS = [
+  { value: "6s",   text: <>Average recruiter scan time. <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>Make it count.</span></> },
+  { value: "75%",  text: <>Of resumes are <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>rejected by ATS bots</span> before a human sees them.</> },
+  { value: "87%",  text: <>Of SmartResume users pass ATS after <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>fixing their score.</span></> },
+  { value: "<60s", text: <>To get your first honest ATS score. <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>No card. Just results.</span></> },
+  { value: "200+", text: <>Applications sent, zero callbacks. <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>It's the resume.</span></> },
 ];
 
-function RotatingTruth() {
+function RotatingStat() {
   const [idx, setIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
+  const [vis, setVis] = useState(true);
   useEffect(() => {
-    const interval = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => { setIdx(i => (i + 1) % TRUTHS.length); setVisible(true); }, 400);
-    }, 3600);
-    return () => clearInterval(interval);
+    const t = setInterval(() => {
+      setVis(false);
+      setTimeout(() => { setIdx(i => (i + 1) % STATS.length); setVis(true); }, 350);
+    }, 4000);
+    return () => clearInterval(t);
   }, []);
-  const t = TRUTHS[idx];
+  const s = STATS[idx];
   return (
-    <div style={{ opacity: visible ? 1 : 0, transition: "opacity 0.4s ease", minHeight: 100 }}>
-      <div className="text-7xl font-black mb-3" style={{ color: "hsl(24,100%,50%)", fontFamily: "Playfair Display, serif", letterSpacing: "-0.04em" }}>
-        {t.stat}
-      </div>
-      <p className="text-base font-semibold leading-snug" style={{ color: "#ccc", maxWidth: 280 }}>{t.copy}</p>
+    <div style={{ opacity: vis ? 1 : 0, transition: "opacity 0.35s ease", minHeight: 110 }}>
+      <div style={{
+        fontFamily: "var(--font-serif)",
+        fontSize: "4.5rem", fontWeight: 800, lineHeight: 1,
+        color: "var(--accent-dark)", marginBottom: 12,
+        fontStyle: "italic",
+      }}>{s.value}</div>
+      <p style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.65, maxWidth: 280 }}>
+        {s.text}
+      </p>
     </div>
   );
 }
 
-/* ── Main ─────────────────────────────────────────────────── */
+/* ── Main ───────────────────────────────────────────────────────── */
 export default function LoginPage() {
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
@@ -93,15 +46,15 @@ export default function LoginPage() {
   const [error, setError]       = useState("");
   const [success, setSuccess]   = useState("");
   const [loading, setLoading]   = useState(false);
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     updateMetaTags({ title: "Log in — SmartResume" });
     if (location.state?.message) setSuccess(location.state.message);
   }, [location.state]);
 
-  const handleLogin = async (e) => {
+  const handleLogin = async e => {
     e.preventDefault();
     setError(""); setLoading(true);
     try {
@@ -120,138 +73,189 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0a0a0a" }}>
-      <CursorDot />
+    <div className="auth-page grid-lines">
+      {/* Background blobs */}
+      <div className="auth-bg-blob auth-bg-blob-1" />
+      <div className="auth-bg-blob auth-bg-blob-2" />
 
-      {/* ── LEFT PANEL ─────────────────────────────────── */}
-      <div
-        className="hidden lg:flex flex-col justify-between p-12 w-[480px] shrink-0 relative overflow-hidden"
-        style={{ background: "#111", borderRight: "2px solid #1f1f1f" }}
-      >
-        {/* grid bg */}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(to right,rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"40px 40px", pointerEvents:"none" }} />
+      {/* Left panel (hidden on mobile) */}
+      <div style={{
+        width: 460, flexShrink: 0,
+        background: "var(--bg-surface)",
+        borderRight: "var(--border-brutal-thick)",
+        display: "flex", flexDirection: "column", justifyContent: "space-between",
+        padding: "40px 48px",
+        position: "relative", overflow: "hidden",
+      }} className="auth-left-panel">
+        {/* Subtle dot grid */}
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          backgroundImage: "radial-gradient(rgba(28,25,23,0.06) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }} />
 
         {/* Logo */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div
-            className="w-10 h-10 flex items-center justify-center font-black text-white text-sm"
-            style={{ background: "hsl(24,100%,50%)", border: "2px solid #333" }}
-          >SR</div>
-          <span className="font-black text-lg text-white" style={{ letterSpacing: "-0.03em" }}>SmartResume</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 1, cursor: "pointer" }} onClick={() => navigate("/")}>
+          <div className="nav-logo-icon">SR</div>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 18, color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
+            SmartResume
+          </span>
         </div>
 
-        {/* Rotating truth */}
-        <div className="relative z-10">
-          <div className="text-xs font-black uppercase tracking-widest mb-6" style={{ color: "#555" }}>
-            — did you know
-          </div>
-          <RotatingTruth />
+        {/* Rotating stat */}
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.18em",
+            textTransform: "uppercase", color: "var(--text-muted)",
+            marginBottom: 24,
+          }}>— Did you know</div>
+          <RotatingStat />
         </div>
 
-        {/* Bottom testimonial */}
-        <div className="relative z-10 p-5" style={{ border: "1px solid #222", background: "#0d0d0d" }}>
-          <p className="text-sm font-semibold leading-relaxed" style={{ color: "#888" }}>
-            &ldquo;Went from 0 callbacks to 3 interviews in 2 weeks after fixing my ATS score.&rdquo;
+        {/* Testimonial */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          background: "#fff",
+          border: "var(--border-brutal)",
+          borderRadius: "var(--radius-sm)",
+          boxShadow: "var(--shadow-brutal)",
+          padding: "20px 22px",
+        }}>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.7, fontStyle: "italic", marginBottom: 12, fontFamily: "var(--font-serif)" }}>
+            "Went from 0 callbacks to 3 interviews in 2 weeks after fixing my ATS score."
           </p>
-          <p className="text-xs font-black mt-2" style={{ color: "hsl(24,100%,50%)" }}>— 3rd year CSE, NIT Trichy</p>
+          <p style={{ fontSize: 12, fontWeight: 800, color: "var(--accent-dark)" }}>— Priya R., 3rd year CSE</p>
         </div>
       </div>
 
-      {/* ── RIGHT PANEL (Form) ─────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md">
+      {/* Right panel (form) */}
+      <div style={{
+        flex: 1, display: "flex", alignItems: "center",
+        justifyContent: "center", padding: "40px 24px",
+        position: "relative", zIndex: 1,
+      }}>
+        <div style={{ width: "100%", maxWidth: 420 }}>
 
           {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: "hsl(24,100%,50%)", border: "2px solid #333" }}>SR</div>
-            <span className="font-black text-lg text-white" style={{ letterSpacing: "-0.03em" }}>SmartResume</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 36, cursor: "pointer" }} className="auth-mobile-logo" onClick={() => navigate("/")}>
+            <div className="nav-logo-icon">SR</div>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17, color: "var(--text-primary)" }}>SmartResume</span>
           </div>
 
-          {/* Card */}
-          <div className="relative p-8 lg:p-10" style={{ background: "#111", border: "2px solid #222", boxShadow: "6px 6px 0px 0px hsl(24,100%,50%)" }}>
-            {/* Corner accents */}
-            <div style={{ position:"absolute", top:-2, left:-2, width:14, height:14, borderTop:"2px solid hsl(24,100%,50%)", borderLeft:"2px solid hsl(24,100%,50%)" }} />
-            <div style={{ position:"absolute", bottom:-2, right:-2, width:14, height:14, borderBottom:"2px solid hsl(24,100%,50%)", borderRight:"2px solid hsl(24,100%,50%)" }} />
-
-            <div className="mb-8" style={{ borderBottom: "1px solid #1f1f1f", paddingBottom: "1.5rem" }}>
-              <h1 className="text-3xl font-black text-white mb-1" style={{ letterSpacing: "-0.03em" }}>Welcome back.</h1>
-              <p className="text-sm" style={{ color: "#666" }}>Your resume score is waiting for you.</p>
+          <div className="auth-card">
+            {/* Header */}
+            <div style={{ marginBottom: 28 }}>
+              <h1 style={{
+                fontFamily: "var(--font-display)", fontWeight: 800,
+                fontSize: "1.75rem", letterSpacing: "-0.03em",
+                color: "var(--text-primary)", marginBottom: 6,
+              }}>Welcome back.</h1>
+              <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Your resume score is waiting for you.</p>
             </div>
 
             {success && (
-              <div className="mb-6 px-4 py-3 text-sm font-bold" style={{ background: "#052e16", border: "2px solid #16a34a", color: "#4ade80" }}>
+              <div className="alert alert-success" style={{ marginBottom: 20 }}>
                 {success}
               </div>
             )}
 
-            <form onSubmit={handleLogin} className="space-y-5">
+            <form onSubmit={handleLogin}>
               {/* Email */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#555" }}>Email</label>
+              <div style={{ marginBottom: 18 }}>
+                <label className="input-label">Email</label>
                 <input
-                  type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  required autoComplete="email"
+                  id="login-email"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
                   placeholder="you@example.com"
-                  className="w-full px-4 py-3 text-sm font-medium outline-none transition-all"
-                  style={{ background: "#0a0a0a", border: "2px solid #2a2a2a", color: "#fff", fontFamily: "inherit" }}
-                  onFocus={e => e.target.style.borderColor = "hsl(24,100%,50%)"}
-                  onBlur={e => e.target.style.borderColor = "#2a2a2a"}
+                  className="input-field"
                 />
               </div>
 
               {/* Password */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#555" }}>Password</label>
-                <div className="relative">
+              <div style={{ marginBottom: 20 }}>
+                <label className="input-label">Password</label>
+                <div style={{ position: "relative" }}>
                   <input
-                    type={showPw ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)}
-                    required autoComplete="current-password"
+                    id="login-password"
+                    type={showPw ? "text" : "password"}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    autoComplete="current-password"
                     placeholder="••••••••"
-                    className="w-full px-4 py-3 pr-12 text-sm font-medium outline-none transition-all"
-                    style={{ background: "#0a0a0a", border: "2px solid #2a2a2a", color: "#fff", fontFamily: "inherit" }}
-                    onFocus={e => e.target.style.borderColor = "hsl(24,100%,50%)"}
-                    onBlur={e => e.target.style.borderColor = "#2a2a2a"}
+                    className="input-field"
+                    style={{ paddingRight: 64 }}
                   />
-                  <button type="button" onClick={() => setShowPw(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black uppercase"
-                    style={{ color: "#444", cursor: "none" }}
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(v => !v)}
+                    style={{
+                      position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                      background: "none", border: "none", cursor: "pointer",
+                      fontSize: 11, fontWeight: 600, color: "var(--text-muted)",
+                      letterSpacing: "0.05em", textTransform: "uppercase",
+                    }}
                   >
-                    {showPw ? "hide" : "show"}
+                    {showPw ? "Hide" : "Show"}
                   </button>
                 </div>
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 px-4 py-3 text-sm font-bold" style={{ background: "#1f0000", border: "2px solid #7f1d1d", color: "#fca5a5" }}>
-                  <span style={{ color: "#ef4444" }}>✕</span> {error}
+                <div className="alert alert-error" style={{ marginBottom: 16 }}>
+                  <span>⚠</span> {error}
                 </div>
               )}
 
-              <MagBtn
-                type="submit" disabled={loading}
-                className="w-full py-4 text-base font-black uppercase tracking-widest mt-2"
-                style={{ background: loading ? "#333" : "hsl(24,100%,50%)", color: "#111", border: "2px solid #000", boxShadow: "4px 4px 0px 0px #000", cursor: loading ? "not-allowed" : "none" }}
+              <button
+                id="login-submit-btn"
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary"
+                style={{ width: "100%", justifyContent: "center", height: 46, fontSize: 15 }}
               >
                 {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border border-border shadow-[4px_4px_0_#000] border-t-transparent animate-spin inline-block" />
-                    Logging in...
-                  </span>
+                  <><div className="loading-dots" style={{ transform: "scale(0.6)" }}>
+                    <div className="loading-dot" /><div className="loading-dot" /><div className="loading-dot" />
+                  </div> Logging in…</>
                 ) : "Log In →"}
-              </MagBtn>
+              </button>
             </form>
 
-            <div className="mt-8 pt-6 text-center" style={{ borderTop: "1px solid #1f1f1f" }}>
-              <p className="text-sm" style={{ color: "#555" }}>
-                No account?{" "}
-                <button onClick={() => navigate("/signup")} className="font-black" style={{ color: "hsl(24,100%,50%)", cursor: "none" }}>Create one free →</button>
-              </p>
-            </div>
-          </div>
+            <div className="divider" style={{ margin: "24px 0 20px" }} />
 
-          <p className="text-center text-xs mt-6" style={{ color: "#333" }}>No credit card. No trial expiry. Just free.</p>
+            <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-muted)" }}>
+              No account?{" "}
+              <button
+                onClick={() => navigate("/signup")}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "var(--accent)", fontWeight: 700, fontSize: 13,
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                Create one free →
+              </button>
+            </p>
+            <p style={{ textAlign: "center", fontSize: 11, color: "var(--text-muted)", marginTop: 12 }}>
+              No credit card. No trial. Just free.
+            </p>
+          </div>
         </div>
       </div>
+
+      <style>{`
+        .auth-left-panel { display: flex; }
+        .auth-mobile-logo { display: none; }
+        @media (max-width: 900px) {
+          .auth-left-panel { display: none !important; }
+          .auth-mobile-logo { display: flex !important; }
+        }
+      `}</style>
     </div>
   );
 }

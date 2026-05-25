@@ -1,108 +1,123 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
 
-const CARD = { background: '#fff', border: '1px solid #000', boxShadow: '4px 4px 0 #000' };
+const FEATURES = [
+  { icon: "🎯", label: "Hybrid AI Engine", desc: "Heuristic analysis + LLM deep evaluation in a single batched call. 7-dimension scoring with human-readable reasoning.", color: "#d97706" },
+  { icon: "🔒", label: "Privacy First", desc: "Your resume text is analyzed in-memory and stored securely. We never share your data with third parties.", color: "#0284c7" },
+  { icon: "🌐", label: "Real-Time Jobs", desc: "Adzuna-powered job discovery across 10+ countries. AI resume-to-job matching with gap analysis.", color: "#16a34a" },
+  { icon: "🗺️", label: "Personalized Roadmaps", desc: "AI generates 8-week learning plans tailored to your resume gaps, target role, and dream company.", color: "#7c3aed" },
+  { icon: "⚡", label: "GitHub Integration", desc: "Cross-reference your resume claims with real GitHub activity. Surface hidden skills you forgot to list.", color: "#db2777" },
+  { icon: "🤖", label: "Alex — AI Mentor", desc: "An agentic career coach that knows your score, streak, and pipeline. Proactive, data-driven advice.", color: "#b45309" },
+];
+
+const STATS = [
+  { value: "7",   label: "Scoring Dimensions" },
+  { value: "10+", label: "Countries (Jobs)" },
+  { value: "1",   label: "LLM Call Per Analysis" },
+  { value: "50+", label: "Skills Detected" },
+];
 
 export default function AboutPage() {
   const navigate = useNavigate();
 
-  const features = [
-    { label: 'Hybrid AI Engine', desc: 'Heuristic analysis + LLM deep evaluation in a single batched call. 7-dimension scoring with human-readable reasoning.', color: 'hsl(var(--accent-500))' },
-    { label: 'Privacy First', desc: 'Your resume text is analyzed in-memory and stored securely. We never share your data with third parties.', color: '#2563EB' },
-    { label: 'Real-Time Jobs', desc: 'Adzuna-powered job discovery across 10+ countries. AI resume-to-job matching with gap analysis.', color: '#16A34A' },
-    { label: 'Personalized Roadmaps', desc: 'AI generates 8-week learning plans tailored to your resume gaps, target role, and dream company.', color: '#8b5cf6' },
-    { label: 'GitHub Integration', desc: 'Cross-reference your resume claims with real GitHub activity. Surface hidden skills you forgot to list.', color: '#ec4899' },
-    { label: 'Alex — AI Mentor', desc: 'An agentic career coach that knows your score, streak, and pipeline. Proactive, data-driven advice.', color: '#f59e0b' },
-  ];
-
-  const stats = [
-    { value: '7', label: 'Scoring Dimensions' },
-    { value: '10+', label: 'Countries (Jobs)' },
-    { value: '1', label: 'LLM Call Per Analysis' },
-    { value: '50+', label: 'Skills Detected' },
-  ];
-
   return (
-    <div className="min-h-screen" style={{ background: 'hsl(40,30%,92%)' }}>
-      {/* Nav */}
-      <header className="w-full" style={{ background: 'hsl(40,30%,92%)', borderBottom: '1px solid #000' }}>
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: 'hsl(var(--accent-500))', border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>SR</div>
-            <span className="font-black text-lg" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>SmartResume</span>
-          </div>
-          <div className="hidden md:flex items-center gap-8 font-black text-sm uppercase tracking-widest" style={{ color: 'var(--foreground)' }}>
-            {['How it Works', 'Resources', 'Templates'].map(label => (
-              <span key={label} onClick={() => navigate(`/${label.toLowerCase().replace(/ /g, '-')}`)} className="cursor-pointer hover:underline">{label}</span>
+    <div style={{ background: "var(--bg-page)", minHeight: "100vh" }} className="grid-lines">
+      <Navbar />
+
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "64px 24px 96px" }}>
+        {/* Hero */}
+        <div style={{ marginBottom: 64 }}>
+          <div className="section-label sr"><span className="section-label-text">About the Platform</span></div>
+          <h1 className="text-display sr" style={{ marginBottom: 20, maxWidth: 680 }}>
+            We don't guess. <span className="highlight-accent rotate-right-1" style={{ display: "inline-block", color: "#fff", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>We diagnose.</span>
+          </h1>
+          <p className="sr" style={{ fontSize: 17, color: "var(--text-secondary)", lineHeight: 1.75, maxWidth: 560, marginBottom: 48 }}>
+            Traditional resume tools give you a number. SmartResume gives you a 7-dimension diagnostic report
+            with exact fixes, AI-powered rewrites, and a personalized roadmap to land your target role.
+          </p>
+
+          {/* Stats */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 16 }} id="about-stats">
+            {STATS.map((s, i) => (
+              <div key={s.label} className={`card sr sr-delay-${i + 1}`} style={{ padding: "24px 20px", textAlign: "center" }}>
+                <div style={{
+                  fontFamily: "var(--font-mono)", fontSize: "2.4rem", fontWeight: 700,
+                  color: "var(--accent)", marginBottom: 6, lineHeight: 1,
+                }}>{s.value}</div>
+                <div style={{ fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)" }}>
+                  {s.label}
+                </div>
+              </div>
             ))}
           </div>
-          <button onClick={() => navigate('/login')} className="text-sm font-bold px-4 py-2" style={{ color: '#555' }}>Log in</button>
-        </div>
-      </header>
-
-      <div className="max-w-5xl mx-auto px-6 py-20">
-        {/* Hero */}
-        <div className="flex items-center gap-3 mb-4">
-          <span style={{ width: 28, height: 2, background: 'hsl(var(--accent-500))', display: 'inline-block' }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(var(--accent-500))' }}>About the Platform</span>
-        </div>
-        <h1 className="font-display-serif text-5xl md:text-6xl mb-6" style={{ color: 'var(--foreground)', letterSpacing: '-0.03em' }}>
-          We Don't Guess.<br />We <span className="inline-block px-2" style={{ background: 'hsl(var(--accent-500))', color: 'var(--foreground)', border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>Diagnose.</span>
-        </h1>
-        <p className="text-lg mb-16 max-w-2xl" style={{ color: '#555', lineHeight: 1.7 }}>
-          Traditional resume tools give you a number. SmartResume gives you a 7-dimension diagnostic report
-          with exact fixes, AI-powered rewrites, and a personalized roadmap to land your target role.
-        </p>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
-          {stats.map((s, i) => (
-            <div key={i} className="p-5 text-center shadow-[4px_4px_0_#000]" style={CARD}>
-              <p className="text-4xl font-black mb-1" style={{ color: 'hsl(var(--accent-500))', fontFamily: 'Playfair Display, serif' }}>{s.value}</p>
-              <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#888' }}>{s.label}</p>
-            </div>
-          ))}
         </div>
 
-        {/* Features */}
-        <div className="flex items-center gap-3 mb-6">
-          <span style={{ width: 28, height: 2, background: 'hsl(var(--accent-500))', display: 'inline-block' }} />
-          <span className="text-xs font-black uppercase tracking-widest" style={{ color: 'hsl(var(--accent-500))' }}>What Powers SmartResume</span>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-16">
-          {features.map((f, i) => (
-            <div key={i} className="p-6 shadow-[4px_4px_0_#000] transition-transform hover:-translate-y-1" style={CARD}>
-              <div className="w-10 h-10 flex items-center justify-center mb-4 shadow-[2px_2px_0_#000]" style={{ background: f.color, border: '1px solid #000', boxShadow: '4px 4px 0 #000' }}>
-                <span className="text-white font-black text-sm">{String(i + 1).padStart(2, '0')}</span>
+        {/* Features grid */}
+        <div style={{ marginBottom: 64 }}>
+          <div className="section-label sr"><span className="section-label-text">What Powers SmartResume</span></div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20, marginTop: 24 }} id="about-features">
+            {FEATURES.map((f, i) => (
+              <div key={f.label} className={`card-premium sr sr-delay-${(i % 3) + 1}`} style={{ padding: "28px" }}>
+                <div style={{
+                  width: 44, height: 44, borderRadius: "var(--radius-sm)",
+                  background: f.color, border: "var(--border-brutal)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 22, marginBottom: 16,
+                  color: "#fff",
+                  boxShadow: "2px 2px 0px var(--text-primary)"
+                }}>{f.icon}</div>
+                <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, marginBottom: 8, color: "var(--text-primary)" }}>
+                  {f.label}
+                </h3>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.7 }}>{f.desc}</p>
               </div>
-              <h3 className="font-black text-base uppercase mb-2" style={{ color: 'var(--foreground)' }}>{f.label}</h3>
-              <p className="text-sm" style={{ color: 'var(--muted-foreground)', lineHeight: 1.6 }}>{f.desc}</p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Tech Stack */}
-        <div className="p-8 shadow-[4px_4px_0_#000]" style={{ ...CARD, borderColor: 'hsl(var(--accent-500))' }}>
-          <h2 className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: 'hsl(var(--accent-500))' }}>Tech Stack</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm" style={{ color: '#555' }}>
+        <div className="card sr" style={{ padding: "32px 36px", marginBottom: 64 }}>
+          <div className="section-label" style={{ marginBottom: 20 }}><span className="section-label-text">Tech Stack</span></div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }} id="tech-stack">
             <div>
-              <p className="font-black mb-2" style={{ color: 'var(--foreground)' }}>Frontend</p>
-              <p>React 18 · TailwindCSS v4 · Framer Motion · GSAP · Recharts · Lucide Icons</p>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 8 }}>
+                Frontend
+              </div>
+              <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.7 }}>
+                React 18 · TailwindCSS · Framer Motion · GSAP · Recharts · Lucide Icons
+              </p>
             </div>
             <div>
-              <p className="font-black mb-2" style={{ color: 'var(--foreground)' }}>Backend</p>
-              <p>FastAPI · SQLAlchemy · Neon PostgreSQL · Groq (Llama 3.3) · Google Gemini · Adzuna API</p>
+              <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 14, color: "var(--text-primary)", marginBottom: 8 }}>
+                Backend
+              </div>
+              <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.7 }}>
+                FastAPI · SQLAlchemy · Neon PostgreSQL · Groq (Llama 3.3) · Google Gemini · Adzuna API
+              </p>
             </div>
           </div>
         </div>
 
         {/* CTA */}
-        <div className="text-center mt-16">
-          <button onClick={() => navigate("/signup")} className="brutal-btn px-10 py-4 text-base shadow-[4px_4px_0_#000]">
+        <div style={{ textAlign: "center" }}>
+          <button
+            className="btn btn-primary btn-lg"
+            onClick={() => navigate("/signup")}
+            id="about-cta-btn"
+          >
             Start Analyzing — Free →
           </button>
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 768px) {
+          #about-stats { grid-template-columns: repeat(2, 1fr) !important; }
+          #about-features { grid-template-columns: 1fr !important; }
+          #tech-stack { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

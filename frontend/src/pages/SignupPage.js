@@ -1,101 +1,47 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE, updateMetaTags } from "../utils";
 
-/* ── Cursor Dot ───────────────────────────────────────────── */
-function CursorDot() {
-  const dotRef  = useRef(null);
-  const ringRef = useRef(null);
-  const pos     = useRef({ x: 0, y: 0 });
-  const ring    = useRef({ x: 0, y: 0 });
-  const raf     = useRef(null);
-  useEffect(() => {
-    const move = (e) => { pos.current = { x: e.clientX, y: e.clientY }; };
-    window.addEventListener("mousemove", move);
-    const tick = () => {
-      if (dotRef.current) { dotRef.current.style.left = pos.current.x + "px"; dotRef.current.style.top = pos.current.y + "px"; }
-      if (ringRef.current) {
-        ring.current.x += (pos.current.x - ring.current.x) * 0.14;
-        ring.current.y += (pos.current.y - ring.current.y) * 0.14;
-        ringRef.current.style.left = ring.current.x + "px";
-        ringRef.current.style.top  = ring.current.y + "px";
-      }
-      raf.current = requestAnimationFrame(tick);
-    };
-    raf.current = requestAnimationFrame(tick);
-    return () => { window.removeEventListener("mousemove", move); cancelAnimationFrame(raf.current); };
-  }, []);
-  return (
-    <>
-      <div ref={dotRef}  style={{ position:"fixed", pointerEvents:"none", zIndex:9999, width:8,  height:8,  borderRadius:"50%", background:"hsl(24,100%,50%)", transform:"translate(-50%,-50%)", top:0, left:0 }} />
-      <div ref={ringRef} style={{ position:"fixed", pointerEvents:"none", zIndex:9998, width:32, height:32, borderRadius:"50%", border:"1.5px solid hsl(24,100%,50%)", transform:"translate(-50%,-50%)", top:0, left:0, opacity:0.5 }} />
-    </>
-  );
+/* ── Password Strength ──────────────────────────────────────────── */
+function getStrength(pw) {
+  if (!pw) return null;
+  if (pw.length < 6) return { label: "Too short", color: "#dc2626", pct: "20%" };
+  if (pw.length < 8) return { label: "Weak",      color: "#f97316", pct: "40%" };
+  if (pw.length < 12 && /[^a-zA-Z0-9]/.test(pw)) return { label: "Good",   color: "#eab308", pct: "65%" };
+  if (pw.length >= 12) return { label: "Strong", color: "#16a34a", pct: "100%" };
+  return { label: "Fair", color: "#f59e0b", pct: "50%" };
 }
 
-/* ── Magnetic Button ──────────────────────────────────────── */
-function MagBtn({ children, type, disabled, className, style }) {
-  const ref = useRef(null);
-  const onMove = useCallback((e) => {
-    const el = ref.current; if (!el) return;
-    const { left, top, width, height } = el.getBoundingClientRect();
-    const dx = (e.clientX - left - width  / 2) * 0.3;
-    const dy = (e.clientY - top  - height / 2) * 0.3;
-    el.style.transform = `translate(${dx}px,${dy}px)`;
-    el.style.transition = "transform 0.15s ease";
-  }, []);
-  const onLeave = useCallback(() => {
-    if (ref.current) { ref.current.style.transform = "translate(0,0)"; ref.current.style.transition = "transform 0.5s ease"; }
-  }, []);
-  return (
-    <button ref={ref} type={type} disabled={disabled} className={className} style={{ ...style, willChange: "transform" }} onMouseMove={onMove} onMouseLeave={onLeave}>
-      {children}
-    </button>
-  );
-}
-
-/* ── Left Panel — Feature Checklist ──────────────────────── */
 const PERKS = [
-  "ATS score in under 60 seconds",
-  "Keyword gap analysis vs any job description",
-  "One-click AI bullet point rewrites",
-  "Job matcher — paste URL, get match %",
-  "Full resume history & evolution tracking",
-  "8-week AI prep roadmap for your target company",
+  { icon: "🎯", text: <>ATS score in <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>under 60 seconds</span></> },
+  { icon: "🔑", text: <>Keyword <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>gap analysis</span> vs any job</> },
+  { icon: "✍️", text: <>One-click AI bullet point <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>rewrites</span></> },
+  { icon: "🗂️", text: <>Job tracker with <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>AI matching</span></> },
+  { icon: "📈", text: <>Resume evolution <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>timeline tracking</span></> },
+  { icon: "🤖", text: <>8-week AI prep <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>career roadmap</span></> },
 ];
 
-/* ── Password Strength ────────────────────────────────────── */
-function strengthLabel(pw) {
-  if (!pw) return null;
-  if (pw.length < 6) return { label: "Too short", color: "#ef4444", width: "20%" };
-  if (pw.length < 8) return { label: "Weak",      color: "#f97316", width: "40%" };
-  if (pw.length < 12 && /[^a-zA-Z0-9]/.test(pw)) return { label: "Good", color: "#eab308", width: "65%" };
-  if (pw.length >= 12) return { label: "Strong",  color: "#22c55e", width: "100%" };
-  return { label: "Fair", color: "#f59e0b", width: "50%" };
-}
-
-/* ── Main ─────────────────────────────────────────────────── */
 export default function SignupPage() {
-  const [email, setEmail]       = useState("");
+  const [email,    setEmail]    = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPw, setShowPw]     = useState(false);
-  const [error, setError]       = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [showPw,   setShowPw]   = useState(false);
+  const [error,    setError]    = useState("");
+  const [loading,  setLoading]  = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { updateMetaTags({ title: "Sign Up — SmartResume" }); }, []);
 
-  const handleSignup = async (e) => {
+  const handleSignup = async e => {
     e.preventDefault();
     setError(""); setLoading(true);
     try {
-      const formData = new FormData();
-      formData.append("email", email);
-      formData.append("username", username);
-      formData.append("password", password);
-      await axios.post(`${API_BASE}/signup`, formData);
+      const fd = new FormData();
+      fd.append("email", email);
+      fd.append("username", username);
+      fd.append("password", password);
+      await axios.post(`${API_BASE}/signup`, fd);
       navigate("/login", { state: { message: "Account created! Log in to get started." } });
     } catch (err) {
       const d = err?.response?.data?.detail;
@@ -103,157 +49,219 @@ export default function SignupPage() {
     } finally { setLoading(false); }
   };
 
-  const strength = strengthLabel(password);
+  const strength = getStrength(password);
 
   return (
-    <div className="min-h-screen flex" style={{ background: "#0a0a0a" }}>
-      <CursorDot />
+    <div className="auth-page grid-lines">
+      <div className="auth-bg-blob auth-bg-blob-1" />
+      <div className="auth-bg-blob auth-bg-blob-2" />
 
-      {/* ── LEFT PANEL ─────────────────────────────────── */}
-      <div
-        className="hidden lg:flex flex-col justify-between p-12 w-[480px] shrink-0 relative overflow-hidden"
-        style={{ background: "#111", borderRight: "2px solid #1f1f1f" }}
-      >
-        {/* grid bg */}
-        <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(to right,rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.03) 1px,transparent 1px)", backgroundSize:"40px 40px", pointerEvents:"none" }} />
+      {/* Left panel */}
+      <div style={{
+        width: 460, flexShrink: 0,
+        background: "var(--bg-surface)",
+        borderRight: "var(--border-brutal-thick)",
+        display: "flex", flexDirection: "column", justifyContent: "space-between",
+        padding: "40px 48px",
+        position: "relative", overflow: "hidden",
+      }} className="auth-left-panel">
+        <div style={{
+          position: "absolute", inset: 0, pointerEvents: "none",
+          backgroundImage: "radial-gradient(rgba(28,25,23,0.06) 1px, transparent 1px)",
+          backgroundSize: "28px 28px",
+        }} />
 
         {/* Logo */}
-        <div className="flex items-center gap-3 relative z-10">
-          <div className="w-10 h-10 flex items-center justify-center font-black text-white text-sm" style={{ background: "hsl(24,100%,50%)", border: "2px solid #333" }}>SR</div>
-          <span className="font-black text-lg text-white" style={{ letterSpacing: "-0.03em" }}>SmartResume</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 1, cursor: "pointer" }} onClick={() => navigate("/")}>
+          <div className="nav-logo-icon">SR</div>
+          <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 18, color: "var(--text-primary)", letterSpacing: "-0.03em" }}>
+            SmartResume
+          </span>
         </div>
 
         {/* Headline */}
-        <div className="relative z-10">
-          <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: "#555" }}>— what you get, free</p>
-          <h2 className="font-black text-4xl text-white mb-8" style={{ letterSpacing: "-0.04em", lineHeight: 1.1 }}>
-            Everything you need<br />
-            <span style={{ color: "hsl(24,100%,50%)" }}>to stop getting rejected.</span>
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.18em",
+            textTransform: "uppercase", color: "var(--text-muted)",
+            marginBottom: 20,
+          }}>— What you get, free</div>
+          <h2 style={{
+            fontFamily: "var(--font-display)", fontWeight: 800,
+            fontSize: "2.2rem", letterSpacing: "-0.04em", lineHeight: 1.1,
+            color: "var(--text-primary)", marginBottom: 28,
+          }}>
+            Everything you need <span className="highlight-accent rotate-right-1" style={{ margin: "4px 0", display: "inline-block", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>to stop getting rejected.</span>
           </h2>
-          <ul className="space-y-3">
+          <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 12 }}>
             {PERKS.map((perk, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm font-medium" style={{ color: "#aaa" }}>
-                <span className="mt-0.5 shrink-0" style={{ color: "hsl(24,100%,50%)", fontSize: 18, lineHeight: 1 }}>✓</span>
-                {perk}
+              <li key={i} style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 14, color: "var(--text-secondary)" }}>
+                <span style={{
+                  width: 28, height: 28, borderRadius: "var(--radius-sm)",
+                  background: "var(--accent-light)",
+                  border: "var(--border-brutal)",
+                  boxShadow: "2px 2px 0px var(--text-primary)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 14, flexShrink: 0,
+                }}>{perk.icon}</span>
+                {perk.text}
               </li>
             ))}
           </ul>
         </div>
 
         {/* Bottom note */}
-        <div className="relative z-10">
-          <p className="text-xs" style={{ color: "#333" }}>No credit card. No free trial that expires.<br />Just free. Because we were students once too.</p>
-        </div>
+        <p style={{ position: "relative", zIndex: 1, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+          No credit card. No free trial that expires.<br />
+          Just free. Because we were students once too.
+        </p>
       </div>
 
-      {/* ── RIGHT PANEL (Form) ─────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md">
+      {/* Right panel */}
+      <div style={{
+        flex: 1, display: "flex", alignItems: "center",
+        justifyContent: "center", padding: "40px 24px",
+        position: "relative", zIndex: 1,
+      }}>
+        <div style={{ width: "100%", maxWidth: 420 }}>
 
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="w-9 h-9 flex items-center justify-center font-black text-white text-sm" style={{ background: "hsl(24,100%,50%)", border: "2px solid #333" }}>SR</div>
-            <span className="font-black text-lg text-white" style={{ letterSpacing: "-0.03em" }}>SmartResume</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 36, cursor: "pointer" }} className="auth-mobile-logo" onClick={() => navigate("/")}>
+            <div className="nav-logo-icon">SR</div>
+            <span style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 17, color: "var(--text-primary)" }}>SmartResume</span>
           </div>
 
-          {/* Card */}
-          <div className="relative p-8 lg:p-10" style={{ background: "#111", border: "2px solid #222", boxShadow: "6px 6px 0px 0px hsl(24,100%,50%)" }}>
-            {/* Corner accents */}
-            <div style={{ position:"absolute", top:-2, left:-2, width:14, height:14, borderTop:"2px solid hsl(24,100%,50%)", borderLeft:"2px solid hsl(24,100%,50%)" }} />
-            <div style={{ position:"absolute", bottom:-2, right:-2, width:14, height:14, borderBottom:"2px solid hsl(24,100%,50%)", borderRight:"2px solid hsl(24,100%,50%)" }} />
-
-            <div className="mb-8" style={{ borderBottom: "1px solid #1f1f1f", paddingBottom: "1.5rem" }}>
-              <h1 className="text-3xl font-black text-white mb-1" style={{ letterSpacing: "-0.03em" }}>Create your account.</h1>
-              <p className="text-sm" style={{ color: "#666" }}>Free forever. No gotchas.</p>
+          <div className="auth-card">
+            <div style={{ marginBottom: 28 }}>
+              <h1 style={{
+                fontFamily: "var(--font-display)", fontWeight: 800,
+                fontSize: "1.75rem", letterSpacing: "-0.03em",
+                color: "var(--text-primary)", marginBottom: 6,
+              }}>Create your account.</h1>
+              <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Free forever. No gotchas.</p>
             </div>
 
-            <form onSubmit={handleSignup} className="space-y-5">
+            <form onSubmit={handleSignup}>
               {/* Username */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#555" }}>Username</label>
+              <div style={{ marginBottom: 16 }}>
+                <label className="input-label">Username</label>
                 <input
-                  value={username} onChange={e => setUsername(e.target.value)}
-                  required autoComplete="username"
+                  id="signup-username"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                  required
+                  autoComplete="username"
                   placeholder="e.g. abhishek_dev"
-                  className="w-full px-4 py-3 text-sm font-medium outline-none transition-all"
-                  style={{ background: "#0a0a0a", border: "2px solid #2a2a2a", color: "#fff", fontFamily: "inherit" }}
-                  onFocus={e => e.target.style.borderColor = "hsl(24,100%,50%)"}
-                  onBlur={e => e.target.style.borderColor = "#2a2a2a"}
+                  className="input-field"
                 />
               </div>
 
               {/* Email */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#555" }}>Email</label>
+              <div style={{ marginBottom: 16 }}>
+                <label className="input-label">Email</label>
                 <input
-                  type="email" value={email} onChange={e => setEmail(e.target.value)}
-                  required autoComplete="email"
+                  id="signup-email"
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  required
+                  autoComplete="email"
                   placeholder="you@example.com"
-                  className="w-full px-4 py-3 text-sm font-medium outline-none transition-all"
-                  style={{ background: "#0a0a0a", border: "2px solid #2a2a2a", color: "#fff", fontFamily: "inherit" }}
-                  onFocus={e => e.target.style.borderColor = "hsl(24,100%,50%)"}
-                  onBlur={e => e.target.style.borderColor = "#2a2a2a"}
+                  className="input-field"
                 />
               </div>
 
               {/* Password */}
-              <div>
-                <label className="block text-xs font-black uppercase tracking-widest mb-2" style={{ color: "#555" }}>Password</label>
-                <div className="relative">
+              <div style={{ marginBottom: 20 }}>
+                <label className="input-label">Password</label>
+                <div style={{ position: "relative" }}>
                   <input
-                    type={showPw ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)}
-                    required autoComplete="new-password"
+                    id="signup-password"
+                    type={showPw ? "text" : "password"}
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    autoComplete="new-password"
                     placeholder="min. 6 characters"
-                    className="w-full px-4 py-3 pr-12 text-sm font-medium outline-none transition-all"
-                    style={{ background: "#0a0a0a", border: "2px solid #2a2a2a", color: "#fff", fontFamily: "inherit" }}
-                    onFocus={e => e.target.style.borderColor = "hsl(24,100%,50%)"}
-                    onBlur={e => e.target.style.borderColor = "#2a2a2a"}
+                    className="input-field"
+                    style={{ paddingRight: 64 }}
                   />
-                  <button type="button" onClick={() => setShowPw(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-black uppercase"
-                    style={{ color: "#444", cursor: "none" }}
-                  >{showPw ? "hide" : "show"}</button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPw(v => !v)}
+                    style={{
+                      position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
+                      background: "none", border: "none", cursor: "pointer",
+                      fontSize: 11, fontWeight: 600, color: "var(--text-muted)",
+                      letterSpacing: "0.05em", textTransform: "uppercase",
+                    }}
+                  >{showPw ? "Hide" : "Show"}</button>
                 </div>
                 {/* Strength bar */}
                 {strength && (
-                  <div className="mt-2">
-                    <div style={{ height: 3, background: "#1f1f1f", marginBottom: 4 }}>
-                      <div style={{ height: 3, width: strength.width, background: strength.color, transition: "all 0.3s ease" }} />
+                  <div style={{ marginTop: 8 }}>
+                    <div className="progress-track" style={{ height: 4, background: "var(--bg-elevated)" }}>
+                      <div style={{
+                        height: "100%", width: strength.pct,
+                        background: strength.color,
+                        borderRadius: "var(--radius-full)",
+                        transition: "all 0.3s ease",
+                      }} />
                     </div>
-                    <span className="text-xs font-bold" style={{ color: strength.color }}>{strength.label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: strength.color, marginTop: 4, display: "block" }}>
+                      {strength.label}
+                    </span>
                   </div>
                 )}
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 px-4 py-3 text-sm font-bold" style={{ background: "#1f0000", border: "2px solid #7f1d1d", color: "#fca5a5" }}>
-                  <span style={{ color: "#ef4444" }}>✕</span> {error}
+                <div className="alert alert-error" style={{ marginBottom: 16 }}>
+                  <span>⚠</span> {error}
                 </div>
               )}
 
-              <MagBtn
-                type="submit" disabled={loading}
-                className="w-full py-4 text-base font-black uppercase tracking-widest mt-2"
-                style={{ background: loading ? "#333" : "hsl(24,100%,50%)", color: "#111", border: "2px solid #000", boxShadow: "4px 4px 0px 0px #000", cursor: loading ? "not-allowed" : "none" }}
+              <button
+                id="signup-submit-btn"
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary"
+                style={{ width: "100%", justifyContent: "center", height: 46, fontSize: 15 }}
               >
                 {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border border-border shadow-[4px_4px_0_#000] border-t-transparent animate-spin inline-block" />
-                    Creating account...
-                  </span>
+                  <><div className="loading-dots" style={{ transform: "scale(0.6)" }}>
+                    <div className="loading-dot" /><div className="loading-dot" /><div className="loading-dot" />
+                  </div> Creating account…</>
                 ) : "Create Free Account →"}
-              </MagBtn>
+              </button>
             </form>
 
-            <div className="mt-8 pt-6 text-center" style={{ borderTop: "1px solid #1f1f1f" }}>
-              <p className="text-sm" style={{ color: "#555" }}>
-                Already have an account?{" "}
-                <button onClick={() => navigate("/login")} className="font-black" style={{ color: "hsl(24,100%,50%)", cursor: "none" }}>Log in →</button>
-              </p>
-            </div>
+            <div className="divider" style={{ margin: "24px 0 20px" }} />
+
+            <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-muted)" }}>
+              Already have an account?{" "}
+              <button
+                onClick={() => navigate("/login")}
+                style={{
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "var(--accent)", fontWeight: 700, fontSize: 13,
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                Log in →
+              </button>
+            </p>
           </div>
         </div>
       </div>
+
+      <style>{`
+        .auth-left-panel { display: flex; }
+        .auth-mobile-logo { display: none; }
+        @media (max-width: 900px) {
+          .auth-left-panel { display: none !important; }
+          .auth-mobile-logo { display: flex !important; }
+        }
+      `}</style>
     </div>
   );
 }
