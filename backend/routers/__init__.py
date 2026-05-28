@@ -1,0 +1,10 @@
+from .auth import router as auth_router
+from .resume import router as resume_router
+from .roadmaps import router as roadmaps_router
+from .jobs import router as jobs_router
+from .dsa import router as dsa_router
+from .comms import router as comms_router
+from .tracker import router as tracker_router
+from .mentor import router as mentor_router
+from .agents import router as agents_router
+from .admin import router as admin_router

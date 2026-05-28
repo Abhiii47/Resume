@@ -7,7 +7,7 @@ and proactively tracks + supports their career journey.
 import json
 import logging
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ def build_user_context(user, db) -> Dict:
             "score": analysis.ats_score,
             "breakdown": analysis.score_breakdown or {},
             "suggestions": (analysis.suggestions or [])[:3],
-            "days_ago": (datetime.utcnow() - analysis.created_at).days,
+            "days_ago": (datetime.now(timezone.utc) - analysis.created_at).days,
             "jd_used": bool(analysis.jd_used),
             "resume_text_preview": _analysis_resume_text(analysis)[:800],
         }
@@ -77,7 +77,7 @@ def build_user_context(user, db) -> Dict:
     dsa_records = db.query(DSATrack).filter(DSATrack.user_id == user.id).all()
     if dsa_records:
         completed = [r for r in dsa_records if r.status == "done"]
-        today = datetime.utcnow().date()
+        today = datetime.now(timezone.utc).date()
         calendar = {}
         for r in completed:
             if r.completed_at:
@@ -107,9 +107,9 @@ def build_user_context(user, db) -> Dict:
 
     if apps:
         stale = [
-            f"{a.company} ({a.role}) — {(datetime.utcnow() - a.created_at).days}d, stage: {a.stage}"
+            f"{a.company} ({a.role}) — {(datetime.now(timezone.utc) - a.created_at).days}d, stage: {a.stage}"
             for a in apps
-            if (datetime.utcnow() - a.created_at).days > 14 and a.stage not in ("offer", "rejected")
+            if (datetime.now(timezone.utc) - a.created_at).days > 14 and a.stage not in ("offer", "rejected")
         ]
         stage_counts = {}
         for a in apps:
@@ -262,7 +262,7 @@ def execute_tool(tool_name: str, args: Dict, user, db) -> str:
                 role=role,
                 stage=args.get("stage", "applied"),
                 job_url=args.get("url") or None,
-                date_applied=datetime.utcnow(),
+                date_applied=datetime.now(timezone.utc),
             )
             db.add(app)
             db.commit()

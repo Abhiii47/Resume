@@ -3,6 +3,7 @@
 import asyncio
 import json
 import logging
+import inspect
 import re
 import time
 import uuid
@@ -19,6 +20,7 @@ class AgentStatus(str, Enum):
     THINKING = "thinking"
     ACTIVE = "active"
     TOOL_EXECUTING = "tool_executing"
+    PARALLEL = "parallel"   # running simultaneously with other agents
     ERROR = "error"
 
 
@@ -56,7 +58,7 @@ class ToolResult:
     tool_name: str
     success: bool
     result: Any = None
-    error: str = None
+    error: Optional[str] = None
 
 
 @dataclass
@@ -100,6 +102,7 @@ class BaseAgent(ABC):
         self.tools: list[AgentTool] = []
         self.status: AgentStatus = AgentStatus.STANDBY
         self.max_iterations: int = 5
+        self.parallel_mode: bool = False   # set True when running alongside other agents
 
         self._llm = None
         self._db_factory = None
@@ -118,6 +121,7 @@ class BaseAgent(ABC):
             "color": self.color,
             "description": self.description,
             "status": self.status.value,
+            "parallel_mode": self.parallel_mode,
             "tools": [t.schema() for t in self.tools],
         }
 
@@ -254,7 +258,7 @@ class BaseAgent(ABC):
 
     async def _execute_tool(self, tool: AgentTool, arguments: dict, context: AgentContext) -> Any:
         kwargs = {**arguments, "context": context}
-        if asyncio.iscoroutinefunction(tool.handler):
+        if inspect.iscoroutinefunction(tool.handler):
             return await tool.handler(**kwargs)
         return await asyncio.to_thread(tool.handler, **kwargs)
 

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import { API_BASE, getAuthToken } from "../utils";
+import api from "../lib/api";
 
 const CATEGORIES = [
   { id: "dsa", label: "DSA", icon: "💻", color: "hsl(var(--accent-500))" },
@@ -19,9 +18,7 @@ export default function HolisticTracker({ roadmap }) {
 
   const fetchTrackerData = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/tracker/weekly`, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` }
-      });
+      const res = await api.get("/tracker/weekly");
       setTrackerData(res.data);
     } catch (err) {
       console.error("Failed to load tracker", err);
@@ -38,12 +35,10 @@ export default function HolisticTracker({ roadmap }) {
     e?.preventDefault();
     setLogging(categoryId);
     try {
-      await axios.post(`${API_BASE}/tracker/log`, {
+      await api.post("/tracker/log", {
         category: categoryId,
         count: 1,
         note: logNote
-      }, {
-        headers: { Authorization: `Bearer ${getAuthToken()}`, "Content-Type": "application/json" }
       });
       setLogNote("");
       await fetchTrackerData();

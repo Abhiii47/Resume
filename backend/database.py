@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     JSON,
@@ -22,19 +22,25 @@ from security_utils import decrypt_resume_text, encrypt_resume_text
 
 # Engine setup
 connect_args = {}
-engine_kwargs = {"echo": False}
+engine_kwargs: dict = {"echo": False}
 
 if settings.DATABASE_URL.startswith("sqlite"):
     connect_args = {"check_same_thread": False}
 else:
-    # PostgreSQL (Neon) production settings
-    connect_args = {"connect_timeout": 30}
+    # Neon PostgreSQL — serverless-optimised pool settings
+    # sslmode=require is mandatory for Neon; also set it here as a safety net
+    # in case the URL was supplied without the query param.
+    connect_args = {
+        "connect_timeout": 30,      # Neon cold-starts can take ~5-10 s
+        "sslmode": "require",       # always encrypt in transit
+    }
     engine_kwargs.update(
         {
-            "pool_size": 5,
-            "max_overflow": 10,
-            "pool_pre_ping": True,  # Detect stale connections
-            "pool_recycle": 300,  # Recycle connections every 5 min
+            "pool_size": 3,         # Neon free tier: max 10 connections total
+            "max_overflow": 7,      # burst up to 10 total
+            "pool_pre_ping": True,  # drop stale connections instantly
+            "pool_recycle": 120,    # Neon idles connections ~5 min; recycle before that
+            "pool_timeout": 30,     # wait up to 30 s for a free slot before raising
         }
     )
 
@@ -56,9 +62,13 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    reset_token = Column(String, nullable=True, index=True)
+    reset_token_expires = Column(DateTime, nullable=True)
+    token_version = Column(Integer, default=1, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     analyses = relationship("Analysis", back_populates="user", cascade="all, delete-orphan")
+    user_profile = relationship("UserProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     github_profile = relationship("GitHubProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     coding_roadmaps = relationship("CodingRoadmap", back_populates="user", cascade="all, delete-orphan")
     applications = relationship("JobApplication", back_populates="user", cascade="all, delete-orphan")
@@ -87,12 +97,38 @@ class Analysis(Base):
     suggestions = Column(JSON)
     radar_data = Column(JSON)
     role_alignment = Column(JSON)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    full_report = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     user = relationship("User", back_populates="analyses")
 
     def __repr__(self):
         return f"<Analysis(id={self.id}, user_id={self.user_id}, score={self.ats_score})>"
+
+
+# User Profile
+class UserProfile(Base):
+    __tablename__ = "user_profiles"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    first_name = Column(String, nullable=True)
+    last_name = Column(String, nullable=True)
+    headline = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)
+    education = Column(JSON, nullable=True) # e.g. {"university": "", "degree": "", "graduation_year": ""}
+    skills = Column(JSON, default=list)
+    target_role = Column(String, nullable=True)
+    experience_level = Column(String, nullable=True)
+    github_url = Column(String, nullable=True)
+    portfolio_url = Column(String, nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="user_profile")
+
+    def __repr__(self):
+        return f"<UserProfile(user_id={self.user_id}, role='{self.target_role}')>"
 
 
 # GitHub Integration
@@ -114,7 +150,7 @@ class GitHubProfile(Base):
     contribution_streak = Column(Integer, default=0)
     resume_gaps = Column(JSON)
     github_bonuses = Column(JSON)
-    last_synced = Column(DateTime, default=datetime.utcnow)
+    last_synced = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="github_profile")
 
@@ -133,8 +169,8 @@ class CodingRoadmap(Base):
     completed_topics = Column(JSON, default=list)
     total_topics = Column(Integer, default=0)
     progress_pct = Column(Float, default=0.0)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="coding_roadmaps")
 
@@ -155,11 +191,11 @@ class JobApplication(Base):
     stage = Column(String, default="applied")
     notes = Column(Text, nullable=True)
     salary_range = Column(String, nullable=True)
-    date_applied = Column(DateTime, default=datetime.utcnow)
+    date_applied = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     next_followup = Column(DateTime, nullable=True)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="applications")
 
@@ -178,8 +214,8 @@ class DSATrack(Base):
     status = Column(String, default="todo")
     notes = Column(Text, nullable=True)
     completed_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="dsa_tracks")
 
@@ -195,8 +231,8 @@ class ResumeProfile(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     title = Column(String, default="My Resume")
     content = Column(JSON, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="resume_profiles")
 
@@ -213,7 +249,7 @@ class MentorConversation(Base):
     role = Column(String, nullable=False)  # "user" | "assistant"
     content = Column(Text, nullable=False)
     tools_used = Column(JSON, default=list)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     user = relationship("User", back_populates="mentor_conversations")
 
@@ -231,7 +267,7 @@ class DailyLog(Base):
     count = Column(Integer, default=1)
     note = Column(Text, nullable=True)
     log_date = Column(DateTime, nullable=False, index=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="daily_logs")
 
@@ -253,7 +289,7 @@ class AgentConversation(Base):
     content = Column(Text, nullable=False)
     message_type = Column(String, default="message")  # "message" | "thinking" | "tool_call" | "handoff"
     metadata_json = Column(JSON, default=dict)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     user = relationship("User", back_populates="agent_conversations")
 
@@ -276,7 +312,7 @@ class AgentTrace(Base):
     messages = Column(JSON, default=list)
     total_llm_calls = Column(Integer, default=0)
     total_latency_ms = Column(Integer, default=0)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     user = relationship("User", back_populates="agent_traces")
 
@@ -295,7 +331,7 @@ class LLMCallLog(Base):
     success = Column(Boolean, default=False, nullable=False, index=True)
     latency_ms = Column(Integer, nullable=False, default=0)
     error = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), index=True)
 
     def __repr__(self):
         return (
@@ -310,7 +346,7 @@ class LLMCache(Base):
     id = Column(Integer, primary_key=True, index=True)
     prompt_hash = Column(String, unique=True, index=True, nullable=False)
     response_payload = Column(JSON, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     def __repr__(self):
         return f"<LLMCache(hash='{self.prompt_hash}')>"
@@ -333,6 +369,14 @@ def _ensure_schema_migrations():
         analysis_columns = _get_column_names("analyses")
         if "resume_text" not in analysis_columns:
             connection.execute(text("ALTER TABLE analyses ADD COLUMN resume_text TEXT"))
+        if "full_report" not in analysis_columns:
+            connection.execute(text("ALTER TABLE analyses ADD COLUMN full_report JSON"))
+
+        user_columns = _get_column_names("users")
+        if "reset_token" not in user_columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN reset_token VARCHAR"))
+        if "reset_token_expires" not in user_columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN reset_token_expires DATETIME"))
 
         dsa_columns = _get_column_names("dsa_tracks")
         if "completed_at" not in dsa_columns:

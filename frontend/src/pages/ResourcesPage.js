@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useScrollReveal } from "../utils";
 
 const CATEGORIES = [
   { id: "dsa", label: "DSA", color: "#d97706", resources: [
@@ -49,6 +50,7 @@ const CATEGORIES = [
 export default function ResourcesPage() {
   const navigate = useNavigate();
   const [active, setActive] = useState("dsa");
+  useScrollReveal();
   const cat = CATEGORIES.find(c => c.id === active);
 
   return (
@@ -60,7 +62,7 @@ export default function ResourcesPage() {
         <div style={{ marginBottom: 40 }}>
           <div className="section-label sr"><span className="section-label-text">Career Resources</span></div>
           <h1 className="text-display" style={{ marginBottom: 16 }}>
-            Resource <span className="highlight-accent rotate-left-1" style={{ display: "inline-block", color: "#fff", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>Hub</span>.
+            Resource <span className="highlight-accent" style={{ display: "inline-block", color: "#fff", border: "none", boxShadow: "none", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>Hub</span>.
           </h1>
           <p className="sr" style={{ fontSize: 16, color: "var(--text-secondary)", lineHeight: 1.75, maxWidth: 520 }}>
             Curated, battle-tested resources used by engineers who cracked FAANG.
@@ -76,15 +78,15 @@ export default function ResourcesPage() {
               id={`resource-tab-${c.id}`}
               style={{
                 padding: "8px 18px",
-                borderRadius: "var(--radius-sm)",
-                border: "var(--border-brutal)",
-                background: active === c.id ? c.color : "#fff",
+                borderRadius: "var(--radius-md)",
+                border: active === c.id ? "1px solid rgba(255,255,255,0.1)" : "1px solid rgba(20,41,33,0.06)",
+                background: active === c.id ? "linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%)" : "#fff",
                 color: active === c.id ? "#fff" : "var(--text-secondary)",
                 fontFamily: "var(--font-display)",
-                fontSize: 13, fontWeight: 700,
+                fontSize: 13, fontWeight: 600,
                 cursor: "pointer",
-                boxShadow: active === c.id ? "2px 2px 0px var(--text-primary)" : "none",
-                transform: active === c.id ? "translate(-1px, -1px)" : "none",
+                boxShadow: active === c.id ? "0 4px 12px rgba(22,78,59,0.15)" : "0 2px 4px rgba(20,41,33,0.02)",
+                transform: "none",
                 transition: "all var(--transition-fast)",
               }}
             >{c.label}</button>
@@ -118,11 +120,11 @@ export default function ResourcesPage() {
                 <span style={{
                   alignSelf: "flex-start",
                   padding: "3px 10px",
-                  borderRadius: "var(--radius-sm)",
+                  borderRadius: "12px",
                   background: "var(--accent-light)",
-                  border: "var(--border-brutal)",
-                  boxShadow: "1px 1px 0 var(--text-primary)",
-                  fontSize: 11, fontWeight: 700,
+                  border: "1px solid rgba(22, 78, 59, 0.12)",
+                  fontSize: 11, fontWeight: 600,
+                  color: "var(--accent)",
                 }}>{r.tag}</span>
               </a>
             ))}

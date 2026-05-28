@@ -6,7 +6,7 @@ Replaces the old 'Alex' mentor with a warmer, more data-driven approach.
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from .base_agent import AgentContext, AgentTool, BaseAgent
@@ -195,7 +195,7 @@ class CoachAgent(BaseAgent):
                     "score": analysis.ats_score,
                     "breakdown": analysis.score_breakdown or {},
                     "suggestions": (analysis.suggestions or [])[:3],
-                    "days_ago": (datetime.utcnow() - analysis.created_at).days,
+                    "days_ago": (datetime.now(timezone.utc) - analysis.created_at).days,
                     "jd_used": bool(analysis.jd_used),
                     "resume_text_preview": resume_text[:800],
                 }
@@ -204,7 +204,7 @@ class CoachAgent(BaseAgent):
             dsa_records = db.query(DSATrack).filter(DSATrack.user_id == user.id).all()
             if dsa_records:
                 completed = [r for r in dsa_records if r.status == "done"]
-                today = datetime.utcnow().date()
+                today = datetime.now(timezone.utc).date()
                 calendar: dict = {}
                 for r in completed:
                     if r.completed_at:
@@ -233,9 +233,9 @@ class CoachAgent(BaseAgent):
             )
             if apps:
                 stale = [
-                    f"{a.company} ({a.role}) — {(datetime.utcnow() - a.created_at).days}d, stage: {a.stage}"
+                    f"{a.company} ({a.role}) — {(datetime.now(timezone.utc) - a.created_at).days}d, stage: {a.stage}"
                     for a in apps
-                    if (datetime.utcnow() - a.created_at).days > 14
+                    if (datetime.now(timezone.utc) - a.created_at).days > 14
                     and a.stage not in ("offer", "rejected")
                 ]
                 stage_counts: dict = {}
@@ -428,7 +428,7 @@ class CoachAgent(BaseAgent):
                 sorted_dims = sorted(radar, key=lambda d: d.get("A", 50))
                 weakest = [{"dimension": d.get("subject", ""), "score": d.get("A", 0)} for d in sorted_dims[:3]]
 
-            days_since = (datetime.utcnow() - analysis.created_at).days if analysis.created_at else None
+            days_since = (datetime.now(timezone.utc) - analysis.created_at).days if analysis.created_at else None
 
             return {
                 "ats_score": analysis.ats_score,

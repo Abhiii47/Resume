@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import axios from "axios";
-import { API_BASE, getAuthToken } from "../utils";
+import api from "../lib/api";
 
 // ── Icons ──────────────────────────────────────────────────────────────────────
 const SendIcon = () => (
@@ -294,9 +293,7 @@ export default function MentorChat() {
   useEffect(() => {
     (async () => {
       try {
-        const res = await axios.get(`${API_BASE}/mentor/history`, {
-          headers: { Authorization: `Bearer ${getAuthToken()}` },
-        });
+        const res = await api.get("/mentor/history");
         const hist = res.data.messages || [];
         if (hist.length > 0) {
           setMessages(hist);
@@ -314,11 +311,7 @@ export default function MentorChat() {
   const triggerInit = useCallback(async () => {
     setIsThinking(true);
     try {
-      const res = await axios.post(
-        `${API_BASE}/mentor/chat`,
-        { is_init: true },
-        { headers: { Authorization: `Bearer ${getAuthToken()}`, "Content-Type": "application/json" } }
-      );
+      const res = await api.post("/mentor/chat", { is_init: true });
       setMessages([{
         id: Date.now(), role: "assistant",
         content: res.data.response,
@@ -350,11 +343,7 @@ export default function MentorChat() {
     setIsThinking(true);
 
     try {
-      const res = await axios.post(
-        `${API_BASE}/mentor/chat`,
-        { message: msg },
-        { headers: { Authorization: `Bearer ${getAuthToken()}`, "Content-Type": "application/json" } }
-      );
+      const res = await api.post("/mentor/chat", { message: msg });
       setMessages(prev => [...prev, {
         id: Date.now() + 1, role: "assistant",
         content: res.data.response,
@@ -389,9 +378,7 @@ export default function MentorChat() {
   const handleClear = async () => {
     if (!window.confirm("Clear your conversation with Alex? This can't be undone.")) return;
     try {
-      await axios.delete(`${API_BASE}/mentor/history`, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` },
-      });
+      await api.delete("/mentor/history");
       setMessages([]);
       await triggerInit();
     } catch (e) {

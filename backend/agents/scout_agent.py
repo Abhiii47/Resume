@@ -5,7 +5,7 @@ Resourceful job market navigator who thinks about fit from both sides.
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import requests
@@ -372,7 +372,7 @@ Return JSON:
                 stage_counts[a.stage] = stage_counts.get(a.stage, 0) + 1
 
             # Stale detection
-            now = datetime.utcnow()
+            now = datetime.now(timezone.utc)
             stale = []
             for a in apps:
                 days = (now - a.created_at).days
@@ -432,7 +432,7 @@ Return JSON:
                 role=role,
                 stage=stage,
                 job_url=url or None,
-                date_applied=datetime.utcnow(),
+                date_applied=datetime.now(timezone.utc),
             )
             context.db.add(app)
             context.db.commit()

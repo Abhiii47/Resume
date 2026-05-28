@@ -24,6 +24,8 @@ export default function Navbar() {
     { label: "Templates",    path: "/templates" },
     { label: "Resources",    path: "/resources" },
     { label: "About",        path: "/about" },
+    { label: "Privacy",      path: "/privacy" },
+    { label: "Terms",        path: "/terms" },
   ];
 
   return (

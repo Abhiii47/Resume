@@ -1,10 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { API_BASE, updateMetaTags, handleApiError } from "../utils";
+import api from "../lib/api";
+import { updateMetaTags, handleApiError } from "../utils";
 import AuthModal from "../components/AuthModal";
 import Navbar from "../components/Navbar";
+import WalkthroughVideoPlayer from "../components/ui/WalkthroughVideoPlayer";
+import AgentShowcase from "../components/ui/AgentShowcase";
+import { motion } from "framer-motion";
 
+
+// Trigger watcher rebuild
 /* ── Scroll Reveal ─────────────────────────────────────────────── */
 function useScrollReveal() {
   useEffect(() => {
@@ -87,32 +92,32 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { label: "ATS Pass Rate", value: 87, suffix: "%" },
-  { label: "Resumes Analyzed", value: 12, suffix: "k+" },
-  { label: "Avg Score Improvement", value: 34, suffix: "pts" },
-  { label: "Time to First Score", value: 60, suffix: "s" },
+  { label: "Beta Testers", value: 150, suffix: "+" },
+  { label: "Resumes Processed", value: 500, suffix: "+" },
+  { label: "Templates Available", value: 7, suffix: "" },
+  { label: "Uptime", value: 99.9, suffix: "%" },
 ];
 
 const TESTIMONIALS = [
   {
-    quote: "Went from 0 callbacks to 3 interviews in 2 weeks after fixing my ATS score. The keyword gap analysis changed everything.",
-    name: "Priya R.",
-    role: "3rd year CSE, NIT Trichy",
-    avatar: "PR",
+    quote: "The ATS score engine helped me realize my resume was lacking measurable impact metrics. The feedback was spot on.",
+    name: "Beta Tester A.",
+    role: "Software Engineering Student",
+    avatar: "A",
     color: "#d97706",
   },
   {
-    quote: "SmartResume's AI copilot rewrote my bullet points better than I ever could. Got my first FAANG internship call.",
-    name: "Arjun K.",
-    role: "IIT Delhi, CS sophomore",
-    avatar: "AK",
+    quote: "Nova AI rewrote my bullet points beautifully. The UI is clean and the job tracker Kanban board keeps me organized.",
+    name: "Beta Tester B.",
+    role: "Recent CS Graduate",
+    avatar: "B",
     color: "#0284c7",
   },
   {
-    quote: "Used it 3 days before placement season. Score jumped from 48 to 81. Got placed at Flipkart.",
-    name: "Sneha M.",
-    role: "Final year, BITS Pilani",
-    avatar: "SM",
+    quote: "I loved being able to see the AI's thought process in the Trace Log. It really helps you understand what recruiters look for.",
+    name: "Beta Tester C.",
+    role: "Backend Developer",
+    avatar: "C",
     color: "#16a34a",
   },
 ];
@@ -136,7 +141,7 @@ const FAQS = [
   },
   {
     q: "Is my data stored securely?",
-    a: "Absolutely. All resume contents and profile data are stored in a secure SQLite database associated with your JWT user session. We do not sell your personal data or share your resume text with third parties. AI processing is performed over secure, authenticated API tunnels."
+    a: "Absolutely. All resume contents and profile data are stored in a secure PostgreSQL database associated with your JWT user session. We do not sell your personal data or share your resume text with third parties. AI processing is performed over secure, authenticated API tunnels."
   }
 ];
 
@@ -301,6 +306,8 @@ export default function LandingPage() {
   const [activeShowcaseTab, setActiveShowcaseTab] = useState("builder");
   const [activeFaqIndex, setActiveFaqIndex] = useState(0);
   const statsRef = useRef(null);
+  const stickerConstraintsRef = useRef(null);
+
 
   useScrollReveal();
 
@@ -335,7 +342,9 @@ export default function LandingPage() {
     fd.append("jd", jd);
     fd.append("years", 0);
     try {
-      const { data } = await axios.post(`${API_BASE}/guest-analyze-resume/`, fd);
+      const { data } = await api.post("/guest-analyze-resume/", fd, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
       setResult(data);
     } catch (err) {
       setError(handleApiError(err));
@@ -367,33 +376,57 @@ export default function LandingPage() {
           }} className="hero-grid">
 
             {/* Left copy */}
-            <div style={{ position: "relative" }}>
+            <div style={{ position: "relative" }} ref={stickerConstraintsRef}>
               {/* Floating stickers */}
-              <div className="rotate-left-2 shadow-[2px_2px_0_#1c1917] hidden xl:flex" style={{
-                position: "absolute", top: -45, left: 180,
-                background: "var(--color-warning)", border: "var(--border-brutal)",
-                padding: "4px 10px", fontSize: 11, fontWeight: 800,
-                textTransform: "uppercase", zIndex: 5,
-              }}>
+              <motion.div
+                drag
+                dragConstraints={stickerConstraintsRef}
+                dragElastic={0.1}
+                whileDrag={{ scale: 1.1, cursor: "grabbing" }}
+                className="float-sticker-l shadow-[2px_2px_0_#1c1917] hidden xl:flex"
+                style={{
+                  position: "absolute", top: -25, left: 20,
+                  background: "var(--color-warning)", border: "var(--border-brutal)",
+                  padding: "4px 10px", fontSize: 11, fontWeight: 800,
+                  textTransform: "uppercase", zIndex: 5,
+                  cursor: "grab",
+                }}
+              >
                 100% Free
-              </div>
-              <div className="rotate-right-2 shadow-[2px_2px_0_#1c1917] hidden xl:flex" style={{
-                position: "absolute", top: -35, right: 30,
-                background: "var(--color-info)", color: "#fff", border: "var(--border-brutal)",
-                padding: "4px 10px", fontSize: 11, fontWeight: 800,
-                textTransform: "uppercase", zIndex: 5,
-              }}>
+              </motion.div>
+              <motion.div
+                drag
+                dragConstraints={stickerConstraintsRef}
+                dragElastic={0.1}
+                whileDrag={{ scale: 1.1, cursor: "grabbing" }}
+                className="float-sticker-r shadow-[2px_2px_0_#1c1917] hidden xl:flex"
+                style={{
+                  position: "absolute", top: -15, right: 40,
+                  background: "var(--color-info)", color: "#fff", border: "var(--border-brutal)",
+                  padding: "4px 10px", fontSize: 11, fontWeight: 800,
+                  textTransform: "uppercase", zIndex: 5,
+                  cursor: "grab",
+                }}
+              >
                 NO Gotchas
-              </div>
+              </motion.div>
 
               <div className="badge badge-amber" style={{ marginBottom: 24 }} id="hero-badge">
                 <span className="badge-dot pulse" style={{ background: "var(--accent)" }} />
-                AI-Powered Resume Intelligence
+                ⚡ Placement-Ready Resume Audits
               </div>
 
-              <h1 className="text-display" style={{ marginBottom: 20, fontSize: "clamp(2.2rem, 5.5vw, 3.8rem)", lineHeight: 1.1 }}>
-                Finding a job is <span className="highlight-black rotate-left-1" style={{ margin: "0 4px", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "400" }}>Hard.</span> <br />
-                We make it <span className="highlight-accent rotate-right-1" style={{ margin: "0 4px", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>easier.</span>
+              <h1 className="text-display" style={{ marginBottom: 20, fontSize: "clamp(1.9rem, 4.8vw, 3.2rem)", lineHeight: 1.15 }}>
+                {/* Word stagger reveal */}
+                {["Beat", "the"].map((word, i) => (
+                  <span key={i} className="hero-word" style={{ "--index": i }}>{word}&nbsp;</span>
+                ))}
+                <span className="hero-word highlight-black rotate-left-1" style={{ "--index": 2, display: "inline-block", margin: "0 4px", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "400" }}>scanner.</span>
+                <br />
+                {["Land", "the"].map((word, i) => (
+                  <span key={i} className="hero-word" style={{ "--index": i + 3 }}>{word}&nbsp;</span>
+                ))}
+                <span className="hero-word highlight-accent rotate-right-1" style={{ "--index": 5, display: "inline-block", margin: "0 4px", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>interview.</span>
               </h1>
 
               <p style={{
@@ -402,8 +435,7 @@ export default function LandingPage() {
                 maxWidth: 480, marginBottom: 36,
                 fontWeight: 500,
               }}>
-                Stop starting from scratch. We optimize your master resume to instantly generate
-                tailored resumes and outreach for every job you want.
+                Stop sending resumes into the ATS black hole. SmartResume scores your PDF across 7 recruiter dimensions, flags missing keywords, and optimizes your bullet points in seconds.
               </p>
 
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 32 }}>
@@ -426,7 +458,7 @@ export default function LandingPage() {
               {/* Social proof row */}
               <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
                 <div style={{ display: "flex" }}>
-                  {["#d97706","#0284c7","#16a34a","#7c3aed"].map((c, i) => (
+                  {["#d97706", "#0284c7", "#16a34a", "#7c3aed"].map((c, i) => (
                     <div key={i} style={{
                       width: 30, height: 30, borderRadius: "50%",
                       background: c, border: "var(--border-brutal)",
@@ -436,7 +468,7 @@ export default function LandingPage() {
                       boxShadow: "1px 1px 0 var(--text-primary)",
                       zIndex: 10 - i,
                     }}>
-                      {["P","A","S","R"][i]}
+                      {["P", "A", "S", "R"][i]}
                     </div>
                   ))}
                 </div>
@@ -498,6 +530,22 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Simulated Video Section ─────────────────────────────── */}
+      <section className="section" style={{ borderBottom: "var(--border-brutal)", background: "var(--bg-page)" }}>
+        <div className="container" style={{ maxWidth: 880 }}>
+          <div className="section-label sr"><span className="section-label-text">Interactive Demo</span></div>
+          <h2 className="text-heading sr" style={{ marginBottom: 12, textAlign: "center" }}>
+            See SmartResume in Action
+          </h2>
+          <p className="sr" style={{ color: "var(--text-secondary)", fontSize: 16, marginBottom: 36, maxWidth: 580, marginLeft: "auto", marginRight: "auto", textAlign: "center", lineHeight: 1.7 }}>
+            Watch how our automated pipeline drops, sweeps, rewrites, and exports your optimized resume in real-time.
+          </p>
+          <div className="sr" style={{ marginTop: 24 }}>
+            <WalkthroughVideoPlayer />
+          </div>
+        </div>
+      </section>
+
       {/* ── Features Bento Grid & Detailed Interactive Showcase ─────────────────────────────── */}
       <section className="section" style={{ borderBottom: "var(--border-brutal)" }}>
         <div className="container">
@@ -549,7 +597,7 @@ export default function LandingPage() {
             minHeight: 380,
             borderRadius: "0px"
           }} id="showcase-container" className="sr">
-            
+
             {/* Left side details */}
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
               {activeShowcaseTab === "builder" && (
@@ -654,33 +702,9 @@ export default function LandingPage() {
                   </div>
                 </div>
               )}
-
               {activeShowcaseTab === "copilot" && (
-                <div style={{ display: "flex", flex: 1, flexDirection: "column", gap: 14 }}>
-                  {/* Chat logs */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
-                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                      <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#7c3aed", color: "#fff", fontSize: 9, fontWeight: 900, display: "flex", alignItems: "center", justifyContent: "center" }}>N</div>
-                      <div style={{ background: "#f3e8ff", border: "1px solid #c084fc", padding: 6, borderRadius: 4, fontSize: 10.5, maxWidth: "80%", color: "#581c87" }}>
-                        We need more metrics here. How about: <strong>Optimized DB queries by 35%</strong>?
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", gap: 8, alignItems: "flex-start", justifyContent: "flex-end" }}>
-                      <div style={{ background: "var(--bg-surface)", border: "1px solid var(--border-muted)", padding: 6, borderRadius: 4, fontSize: 10.5, maxWidth: "80%" }}>
-                        Looks great, let's auto-format that.
-                      </div>
-                    </div>
-                  </div>
-                  {/* Handoff Trace log */}
-                  <div style={{ border: "2px dashed #7c3aed", background: "#fbfaff", padding: 8, fontFamily: "var(--font-mono)", fontSize: 9.5 }}>
-                    <div style={{ color: "#7c3aed", fontWeight: 800, marginBottom: 4 }}>► Nova Trace Log</div>
-                    <div style={{ color: "#6b7280" }}>[08:14:02] Nova -&gt; Bullet Coder initialized.</div>
-                    <div style={{ color: "#16a34a" }}>[08:14:03] Rewrite bullet complete. Score improvement: +14pts</div>
-                  </div>
-                </div>
-              )}
-
-              {activeShowcaseTab === "tracker" && (
+                <AgentShowcase />
+              )}              {activeShowcaseTab === "tracker" && (
                 <div style={{ display: "flex", flex: 1, gap: 10 }}>
                   {[
                     { title: "Applied", company: "Google", role: "L4 Swe", score: "88%" },
@@ -726,9 +750,7 @@ export default function LandingPage() {
               )}
 
             </div>
-
           </div>
-
         </div>
       </section>
 
@@ -794,7 +816,7 @@ export default function LandingPage() {
                   fontFamily: "Georgia, serif",
                 }}>"</div>
                 <p style={{
-                fontSize: 14, lineHeight: 1.75,
+                  fontSize: 14, lineHeight: 1.75,
                   color: "var(--text-secondary)", marginBottom: 24,
                   fontStyle: "italic",
                 }}>
@@ -832,11 +854,11 @@ export default function LandingPage() {
             {FAQS.map((faq, idx) => {
               const isOpen = activeFaqIndex === idx;
               return (
-                <div 
-                  key={idx} 
-                  className="card sr" 
-                  style={{ 
-                    background: "#fff", 
+                <div
+                  key={idx}
+                  className="card sr"
+                  style={{
+                    background: "#fff",
                     padding: "20px 24px",
                     cursor: "pointer",
                     textAlign: "left"
@@ -844,18 +866,18 @@ export default function LandingPage() {
                   onClick={() => setActiveFaqIndex(isOpen ? -1 : idx)}
                 >
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <h3 style={{ 
-                      fontFamily: "var(--font-display)", 
-                      fontWeight: 800, 
-                      fontSize: 15, 
+                    <h3 style={{
+                      fontFamily: "var(--font-display)",
+                      fontWeight: 800,
+                      fontSize: 15,
                       color: "var(--text-primary)",
                       margin: 0
                     }}>
                       {faq.q}
                     </h3>
-                    <span style={{ 
-                      fontSize: 18, 
-                      fontWeight: 800, 
+                    <span style={{
+                      fontSize: 18,
+                      fontWeight: 800,
                       transform: isOpen ? "rotate(45deg)" : "rotate(0deg)",
                       transition: "transform 150ms"
                     }}>
@@ -863,13 +885,13 @@ export default function LandingPage() {
                     </span>
                   </div>
                   {isOpen && (
-                    <div style={{ 
-                      marginTop: 14, 
-                      paddingTop: 14, 
+                    <div style={{
+                      marginTop: 14,
+                      paddingTop: 14,
                       borderTop: "1px solid var(--border-muted)",
-                      fontSize: 13.5, 
-                      color: "var(--text-secondary)", 
-                      lineHeight: 1.65 
+                      fontSize: 13.5,
+                      color: "var(--text-secondary)",
+                      lineHeight: 1.65
                     }}>
                       {faq.a}
                     </div>
@@ -964,7 +986,7 @@ export default function LandingPage() {
             }}>SmartResume</span>
           </div>
           <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
-            {[["About", "/about"], ["How it Works", "/how-it-works"], ["Templates", "/templates"], ["Resources", "/resources"]].map(([label, path]) => (
+            {[["About", "/about"], ["How it Works", "/how-it-works"], ["Templates", "/templates"], ["Resources", "/resources"], ["Privacy", "/privacy"], ["Terms", "/terms"]].map(([label, path]) => (
               <button
                 key={path}
                 onClick={() => navigate(path)}

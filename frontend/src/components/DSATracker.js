@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
-import { API_BASE, getAuthToken } from "../utils";
+import api from "../lib/api";
 import { DAILY_TARGET, DSA_CATALOG } from "../data/dsaCatalog";
 
 const WEEKDAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
@@ -85,9 +84,7 @@ export default function DSATracker({ roadmap = null }) {
 
   const fetchProgress = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/dsa/progress`, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` },
-      });
+      const res = await api.get("/dsa/progress");
       setProgress(res.data.progress || {});
       setCalendar(res.data.calendar || {});
       setStats(res.data.stats || { completed_total: 0, today_completed: 0, current_streak: 0 });
@@ -104,17 +101,11 @@ export default function DSATracker({ roadmap = null }) {
     setProgress((prev) => ({ ...prev, [problemId]: newStatus }));
 
     try {
-      await axios.post(
-        `${API_BASE}/dsa/progress`,
-        {
-          problem_id: problemId,
-          platform: platform.toLowerCase(),
-          status: newStatus,
-        },
-        {
-          headers: { Authorization: `Bearer ${getAuthToken()}` },
-        }
-      );
+      await api.post("/dsa/progress", {
+        problem_id: problemId,
+        platform: platform.toLowerCase(),
+        status: newStatus,
+      });
       fetchProgress();
     } catch (err) {
       console.error("Failed to update status", err);

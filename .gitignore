@@ -25,9 +25,10 @@ backend/venv*/
 env/
 ENV/
 *.egg-info/
-dist/
 build/
 .eggs/
+.pytest_cache/
+.benchmarks/
 
 # --- Node / Frontend ---
 node_modules/
@@ -36,15 +37,21 @@ frontend/dist/
 frontend/.parcel-cache/
 frontend/.next/
 .npm
+dist/
+
+# --- Databases ---
+*.db
+*.sqlite
+*.sqlite3
+backend/*.db
 
 # --- Logs & Debug ---
 *.log
+backend/*.log
 backend/debug_*.py
 backend/diagnose_*.py
 backend/check_*.py
 backend/verify_*.py
-backend/critical_error.log
-backend/debug_error.log
 
 # --- Data / ML artifacts ---
 data/
@@ -59,11 +66,26 @@ backend/data/
 Thumbs.db
 .vscode/
 .idea/
+.kiro/
 *.swp
 *.swo
 
 # --- CI / External Services ---
 .deepsource.toml
+
+# --- Dev-only scripts (frontend) ---
+frontend/cleaner*.py
+frontend/brutalize.py
+frontend/fix_*.py
+frontend/extract_*.js
+frontend/extract_*.py
+frontend/extracted_*.js
+frontend/search_log.js
+frontend/all_diff*.txt
+frontend/dashboard_*.js
+frontend/dashboard_diff*.txt
+frontend/*_utf8*.js
+frontend/*_utf8*.txt
 
 # --- Keep these ---
 !backend/requirements.txt

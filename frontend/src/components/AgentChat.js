@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { API_BASE, getAuthToken } from "../utils";
+import api from "../lib/api";
 import AgentMessage from "./ui/AgentMessage";
 import TraceViewer from "./ui/TraceViewer";
 
@@ -12,10 +13,10 @@ const TEAM = [
 ];
 
 const QUICK_ACTIONS = [
-  { label: "Full Resume Review", emoji: "🔍", color: "var(--color-info)", msg: "Review my resume — do a full analysis with improvements and career advice" },
+  { label: "Full Resume Review", emoji: "🔍", color: "var(--color-info)",    msg: "Review my resume — do a full analysis with improvements and career advice" },
   { label: "Job Hunt",           emoji: "🎯", color: "var(--color-success)", msg: "Find me matching jobs based on my skills and help me apply" },
-  { label: "Interview Prep",     emoji: "🎙️", color: "var(--accent)", msg: "Prepare me for interviews — find my weak areas and give me practice questions" },
-  { label: "Quick Fix",          emoji: "⚡", color: "var(--text-primary)",    msg: "Quick fix my resume — find the top 3 flaws and rewrite them" },
+  { label: "Interview Prep",     emoji: "🎙️", color: "var(--accent)",        msg: "Prepare me for interviews — find my weak areas and give me practice questions" },
+  { label: "Quick Fix",          emoji: "⚡", color: "var(--text-primary)",  msg: "Quick fix my resume — find the top 3 flaws and rewrite them" },
 ];
 
 const SendIcon = () => (
@@ -44,39 +45,62 @@ function parseSSE(chunk) {
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 export default function AgentChat({ onAnalysisRefresh }) {
-  const [agents, setAgents]           = useState(TEAM);
-  const [messages, setMessages]       = useState([]);
-  const [trace, setTrace]             = useState([]);
-  const [input, setInput]             = useState("");
-  const [streaming, setStreaming]     = useState(false);
-  const [loading, setLoading]         = useState(true);
-  const [activeAgent, setActiveAgent] = useState(null);
-  const [traceOpen, setTraceOpen]     = useState(false);
+  const [agents, setAgents]                 = useState(TEAM);
+  const [messages, setMessages]             = useState([]);
+  const [trace, setTrace]                   = useState([]);
+  const [input, setInput]                   = useState("");
+  const [streaming, setStreaming]           = useState(false);
+  const [loading, setLoading]               = useState(true);
+  // Track ALL currently-active agents (Set of names) — enables parallel UI
+  const [activeAgentSet, setActiveAgentSet] = useState(new Set());
+  const [isParallel, setIsParallel]         = useState(false);
+  const [traceOpen, setTraceOpen]           = useState(false);
   const endRef   = useRef(null);
   const abortRef = useRef(null);
-  const hadAgentMessageRef = useRef(false);
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, streaming]);
 
   useEffect(() => {
-    const hdrs = { Authorization: `Bearer ${getAuthToken()}` };
     Promise.all([
-      fetch(`${API_BASE}/agents/team`,    { headers: hdrs }).then(r => r.json()).catch(() => null),
-      fetch(`${API_BASE}/agents/history`,  { headers: hdrs }).then(r => r.json()).catch(() => null),
+      api.get("/agents/team").then(r => r.data).catch(() => null),
+      api.get("/agents/history").then(r => r.data).catch(() => null),
     ]).then(([team, hist]) => {
       if (team?.agents?.length) setAgents(team.agents);
       if (hist?.messages?.length) setMessages(hist.messages);
     }).finally(() => setLoading(false));
   }, []);
 
-  const setStatus = useCallback((name, status) => {
-    setAgents(prev => prev.map(a => a.name.toLowerCase() === name?.toLowerCase() ? { ...a, status } : a));
-    if (status === "active" || status === "thinking") setActiveAgent(name);
+  // Update a single agent's status
+  const setAgentStatus = useCallback((name, status) => {
+    if (!name) return;
+    setAgents(prev => prev.map(a =>
+      a.name.toLowerCase() === name.toLowerCase() ? { ...a, status } : a
+    ));
   }, []);
 
+  // Add an agent to the active set
+  const addActive = useCallback((name) => {
+    if (!name) return;
+    setActiveAgentSet(prev => new Set([...prev, name.toLowerCase()]));
+    setAgentStatus(name, "thinking");
+  }, [setAgentStatus]);
+
+  // Remove an agent from the active set
+  const removeActive = useCallback((name) => {
+    if (!name) return;
+    setActiveAgentSet(prev => {
+      const next = new Set(prev);
+      next.delete(name.toLowerCase());
+      return next;
+    });
+    setAgentStatus(name, "standby");
+  }, [setAgentStatus]);
+
+  // Reset all agents to standby
   const resetAll = useCallback(() => {
     setAgents(prev => prev.map(a => ({ ...a, status: "standby" })));
-    setActiveAgent(null);
+    setActiveAgentSet(new Set());
+    setIsParallel(false);
   }, []);
 
   const send = useCallback(async (text) => {
@@ -86,10 +110,10 @@ export default function AgentChat({ onAnalysisRefresh }) {
     setMessages(prev => [...prev, { id: `u-${uid()}`, event_type: "user", agent: "you", content: body, timestamp: new Date().toISOString() }]);
     setStreaming(true);
     setTrace([]);
+    setIsParallel(false);
 
     const ctrl = new AbortController();
     abortRef.current = ctrl;
-    hadAgentMessageRef.current = false;
 
     try {
       const res = await fetch(`${API_BASE}/agents/chat`, {
@@ -127,24 +151,38 @@ export default function AgentChat({ onAnalysisRefresh }) {
             setTrace(p => [...p, m]);
 
             if (evt.event === "agent_thinking") {
-              setStatus(evt.data.agent, "thinking");
+              addActive(evt.data.agent);
               setMessages(p => [...p.filter(x => x.event_type !== "agent_thinking"), m]);
+
+            } else if (evt.event === "agent_handoff") {
+              // If parallel flag is set, mark parallel mode — all handoffs fire at once
+              if (evt.data.parallel) {
+                setIsParallel(true);
+                addActive(evt.data.to_agent);
+              } else {
+                // Sequential: deactivate sender, activate receiver
+                if (evt.data.from_agent) removeActive(evt.data.from_agent);
+                addActive(evt.data.to_agent);
+              }
+              setMessages(p => [...p, m]);
+
             } else if (evt.event === "tool_call") {
-              setStatus(evt.data.agent, "tool_executing");
+              setAgentStatus(evt.data.agent, "tool_executing");
+
             } else if (evt.event === "tool_result") {
+              setAgentStatus(evt.data.agent, "active");
               if (evt.data.tool === "score_resume" && evt.data.success !== false) {
                 onAnalysisRefresh && onAnalysisRefresh();
               }
+
             } else if (evt.event === "agent_message") {
-              setStatus(evt.data.agent, "active");
-              hadAgentMessageRef.current = true;
+              setAgentStatus(evt.data.agent, "active");
+              // In parallel mode we don't remove from activeSet until done
               setMessages(p => [...p.filter(x => x.event_type !== "agent_thinking"), m]);
-            } else if (evt.event === "agent_handoff") {
-              setStatus(evt.data.to_agent, "thinking");
-              if (evt.data.from_agent) setStatus(evt.data.from_agent, "standby");
-              setMessages(p => [...p, m]);
+
             } else if (evt.event === "error") {
               setMessages(p => [...p, m]);
+
             } else if (evt.event === "done") {
               resetAll();
               onAnalysisRefresh && onAnalysisRefresh();
@@ -161,14 +199,14 @@ export default function AgentChat({ onAnalysisRefresh }) {
       resetAll();
       abortRef.current = null;
     }
-  }, [input, streaming, setStatus, resetAll, onAnalysisRefresh]);
+  }, [input, streaming, addActive, removeActive, setAgentStatus, resetAll, onAnalysisRefresh]);
 
   const onKey = (e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } };
 
   const clearHistory = async () => {
     if (!window.confirm("Clear all conversations?")) return;
     try {
-      await fetch(`${API_BASE}/agents/history`, { method: "DELETE", headers: { Authorization: `Bearer ${getAuthToken()}` } });
+      await api.delete("/agents/history");
       setMessages([]);
       setTrace([]);
     } catch (e) {
@@ -177,7 +215,20 @@ export default function AgentChat({ onAnalysisRefresh }) {
   };
 
   const empty = !messages.length && !loading && !streaming;
-  const liveAgent = agents.find(a => a.name?.toLowerCase() === activeAgent?.toLowerCase());
+  const activeCount = activeAgentSet.size;
+  const liveAgents = agents.filter(a => activeAgentSet.has(a.name.toLowerCase()));
+
+  // Build status label
+  let statusLabel;
+  if (!streaming) {
+    statusLabel = "● Online";
+  } else if (isParallel && activeCount >= 2) {
+    statusLabel = `⚡ ${activeCount} agents in parallel`;
+  } else if (liveAgents.length === 1) {
+    statusLabel = `● ${liveAgents[0].emoji} ${liveAgents[0].name}...`;
+  } else {
+    statusLabel = "● Coordinating...";
+  }
 
   return (
     <div
@@ -186,17 +237,20 @@ export default function AgentChat({ onAnalysisRefresh }) {
     >
       <style>{`
         @keyframes agentPulse { 0%,100%{opacity:.3;transform:scale(.8)} 50%{opacity:1;transform:scale(1.2)} }
+        @keyframes parallelGlow { 0%,100%{box-shadow:2px 2px 0 var(--text-primary)} 50%{box-shadow:2px 2px 0 var(--text-primary), 0 0 12px var(--accent)} }
         @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes parallelBadgePop { 0%{transform:scale(0) rotate(-10deg)} 70%{transform:scale(1.15) rotate(2deg)} 100%{transform:scale(1) rotate(0)} }
         .ac-input:focus{outline:none} .ac-input{resize:none}
         .ac-chip { transition: all var(--transition-fast); }
         .ac-chip:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0 var(--text-primary); }
+        .ac-chip-parallel { animation: parallelGlow 1.8s ease-in-out infinite; }
         
         @media (max-width: 600px) {
           .quick-actions-grid { grid-template-columns: 1fr !important; }
         }
       `}</style>
 
-      {/* header */}
+      {/* ── Header ── */}
       <div style={{ padding: "18px 24px", borderBottom: "var(--border-brutal)", background: "#fffdf7", flexShrink: 0 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -213,49 +267,86 @@ export default function AgentChat({ onAnalysisRefresh }) {
               </h2>
             </div>
           </div>
+
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* Status pill — glows orange during parallel */}
             <div style={{
               fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 700,
-              color: streaming ? "var(--color-warning)" : "var(--color-success)",
+              color: streaming
+                ? (isParallel && activeCount >= 2 ? "#f97316" : "var(--color-warning)")
+                : "var(--color-success)",
               textTransform: "uppercase", letterSpacing: ".1em",
               padding: "4px 10px", border: "var(--border-brutal)",
-              background: "var(--bg-surface)", boxShadow: "2px 2px 0 var(--text-primary)",
+              background: streaming && isParallel && activeCount >= 2 ? "#fff7ed" : "var(--bg-surface)",
+              boxShadow: streaming && isParallel && activeCount >= 2
+                ? "2px 2px 0 var(--text-primary), 0 0 8px #f9731640"
+                : "2px 2px 0 var(--text-primary)",
               borderRadius: "var(--radius-sm)",
-            }}>● {streaming ? (liveAgent ? `${liveAgent.emoji} ${liveAgent.name}...` : "Processing...") : "Online"}</div>
-            <button 
-              onClick={clearHistory} 
+              transition: "all 0.3s ease",
+            }}>{statusLabel}</div>
+
+            <button
+              onClick={clearHistory}
               className="btn btn-secondary btn-sm"
-              style={{
-                padding: "6px 12px", fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700,
-                textTransform: "uppercase", letterSpacing: ".06em", height: "auto"
-              }}
+              style={{ padding: "6px 12px", fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, textTransform: "uppercase", letterSpacing: ".06em", height: "auto" }}
             >Reset</button>
           </div>
         </div>
-        {/* agent chips */}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+
+        {/* ── Agent chips — multiple can pulse simultaneously ── */}
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
           {agents.map(a => {
-            const live = a.status === "active" || a.status === "thinking" || a.status === "tool_executing";
+            const isActive   = activeAgentSet.has(a.name.toLowerCase());
+            const isRunningParallel = isActive && isParallel && activeCount >= 2;
+            const live = isActive || a.status === "tool_executing";
+
             return (
-              <span key={a.name} className="ac-chip" style={{
-                fontSize: 11, padding: "4px 10px", fontWeight: 700,
-                background: live ? "var(--accent-light)" : "#fff",
-                border: "var(--border-brutal)",
-                color: "var(--text-primary)",
-                borderRadius: "var(--radius-sm)",
-                boxShadow: live ? "2px 2px 0 var(--text-primary)" : "none",
-                display: "inline-flex", alignItems: "center", gap: 6,
-                transform: live ? "translate(-1px, -1px)" : "none",
-              }}>
+              <span
+                key={a.name}
+                className={`ac-chip${isRunningParallel ? " ac-chip-parallel" : ""}`}
+                style={{
+                  fontSize: 11, padding: "4px 10px", fontWeight: 700,
+                  background: live ? (isRunningParallel ? "#fff7ed" : "var(--accent-light)") : "#fff",
+                  border: "var(--border-brutal)",
+                  color: "var(--text-primary)",
+                  borderRadius: "var(--radius-sm)",
+                  boxShadow: live ? "2px 2px 0 var(--text-primary)" : "none",
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  transform: live ? "translate(-1px, -1px)" : "none",
+                }}
+              >
                 {a.emoji} {a.name}
-                {live && <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--accent)", animation: "agentPulse 1.5s ease-in-out infinite", marginLeft: 2 }} />}
+                {live && (
+                  <span style={{
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: isRunningParallel ? "#f97316" : "var(--accent)",
+                    animation: "agentPulse 1.5s ease-in-out infinite",
+                    marginLeft: 2,
+                  }} />
+                )}
               </span>
             );
           })}
+
+          {/* ── Parallel badge — appears when ≥2 agents are active ── */}
+          {isParallel && activeCount >= 2 && streaming && (
+            <span style={{
+              fontSize: 10, padding: "4px 8px", fontWeight: 800,
+              background: "#f97316", color: "#fff",
+              border: "var(--border-brutal)",
+              borderRadius: "var(--radius-sm)",
+              boxShadow: "2px 2px 0 var(--text-primary)",
+              display: "inline-flex", alignItems: "center", gap: 4,
+              animation: "parallelBadgePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards",
+              fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: ".05em",
+            }}>
+              ⚡ Parallel
+            </span>
+          )}
         </div>
       </div>
 
-      {/* messages */}
+      {/* ── Messages ── */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 24px 12px", background: "var(--bg-page)" }} className="grid-lines">
         {loading && (
           <div style={{ textAlign: "center", paddingTop: 80 }}>
@@ -272,16 +363,28 @@ export default function AgentChat({ onAnalysisRefresh }) {
               fontSize: 32, boxShadow: "var(--shadow-brutal-lg)",
             }}>🧠</div>
             <div style={{ textAlign: "center" }}>
-              <h2 style={{
-                fontFamily: "var(--font-display)", fontWeight: 800,
-                fontSize: "clamp(1.4rem, 4vw, 2.2rem)",
-                letterSpacing: "-0.03em", color: "var(--text-primary)",
-                lineHeight: 1.2, marginBottom: 12,
-              }}>
-                Meet your <span className="highlight-accent rotate-left-1" style={{ display: "inline-block", color: "#fff", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600", padding: "2px 8px" }}>career team</span>.
+              <h2>
+                <span style={{
+                  fontFamily: "var(--font-display)", fontWeight: 800,
+                  fontSize: "clamp(1.4rem, 4vw, 2.2rem)",
+                  letterSpacing: "-0.03em", color: "var(--text-primary)",
+                  lineHeight: 1.2, marginBottom: 12,
+                }}>Meet your </span>
+                <span style={{ 
+                  display: "inline-block", background: "var(--accent)", color: "#fff", 
+                  fontFamily: "var(--font-display)", fontStyle: "italic", fontWeight: "700", 
+                  padding: "4px 12px", borderRadius: "var(--radius-sm)", border: "var(--border-brutal)",
+                  boxShadow: "2px 2px 0 var(--text-primary)",
+                  fontSize: "clamp(1.2rem, 3.5vw, 1.8rem)",
+                  transform: "translateY(-4px)"
+                }}>career team</span><span style={{
+                  fontFamily: "var(--font-display)", fontWeight: 800,
+                  fontSize: "clamp(1.4rem, 4vw, 2.2rem)",
+                  color: "var(--text-primary)",
+                }}>.</span>
               </h2>
               <p style={{ color: "var(--text-secondary)", fontSize: 13.5, lineHeight: 1.7, maxWidth: 440, margin: "0 auto" }}>
-                Five specialized AI agents collaborate in real-time to get you placed.
+                Five specialized AI agents collaborate in real-time — and run <strong>in parallel</strong> when tasks are independent.
                 Ask for a resume review, job recommendations, or mock interviews.
               </p>
             </div>
@@ -318,19 +421,21 @@ export default function AgentChat({ onAnalysisRefresh }) {
             background: "var(--bg-elevated)", border: "1px dashed var(--border-muted)", borderRadius: "var(--radius-sm)",
           }}>
             <span style={{ fontSize: 14 }}>🧠</span>
-            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>Coordinating agents</span>
+            <span className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>
+              {isParallel && activeCount >= 2 ? `${activeCount} agents running in parallel` : "Coordinating agents"}
+            </span>
             <div style={{ display: "flex", gap: 4, marginLeft: 4 }}>
-              {[0,1,2].map(i => <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--accent)", animation: "agentPulse 1.4s ease-in-out infinite", animationDelay: `${i * .2}s` }} />)}
+              {[0,1,2].map(i => <div key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: isParallel ? "#f97316" : "var(--accent)", animation: "agentPulse 1.4s ease-in-out infinite", animationDelay: `${i * .2}s` }} />)}
             </div>
           </div>
         )}
         <div ref={endRef} style={{ height: 20 }} />
       </div>
 
-      {/* trace */}
+      {/* ── Trace ── */}
       {trace.length > 0 && <TraceViewer messages={trace} isOpen={traceOpen} onToggle={() => setTraceOpen(p => !p)} />}
 
-      {/* input */}
+      {/* ── Input ── */}
       <div style={{ padding: "16px 24px", borderTop: "var(--border-brutal)", background: "#fffdf7", flexShrink: 0 }}>
         <div style={{
           display: "flex", gap: 12, alignItems: "flex-end",
@@ -344,7 +449,7 @@ export default function AgentChat({ onAnalysisRefresh }) {
             placeholder="Ask the team anything (e.g. 'review my resume')..." disabled={streaming} rows={1}
             style={{ flex: 1, background: "none", border: "none", color: "var(--text-primary)", fontSize: 14, fontFamily: "var(--font-sans)", lineHeight: 1.6, maxHeight: 100, overflowY: "auto" }}
           />
-          <button onClick={() => send()} disabled={!input.trim() || streaming} 
+          <button onClick={() => send()} disabled={!input.trim() || streaming}
             className="btn btn-primary"
             style={{
               width: 40, height: 40, padding: 0,

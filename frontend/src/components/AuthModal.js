@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { gsap } from "gsap";
-import { API_BASE, setAuthToken } from "../utils";
+import api from "../lib/api";
+import { setAuthToken } from "../utils";
 
 export default function AuthModal({ isOpen, onClose, initialView = "login" }) {
     const [view, setView] = useState(initialView);
@@ -47,20 +47,20 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }) {
             if (view === "login") {
                 const params = new URLSearchParams();
                 params.append("username", email); params.append("password", password);
-                const { data } = await axios.post(`${API_BASE}/login`, params, {
+                const { data } = await api.post("/login", params, {
                     headers: { "Content-Type": "application/x-www-form-urlencoded" }
                 });
                 setAuthToken(data.access_token); navigate("/dashboard"); handleClose();
             } else {
                 const fd = new FormData();
                 fd.append("email", email); fd.append("username", username); fd.append("password", password);
-                const { data } = await axios.post(`${API_BASE}/signup`, fd, {
+                const { data } = await api.post("/signup", fd, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
                 if (data.success) {
                     const params = new URLSearchParams();
                     params.append("username", email); params.append("password", password);
-                    const { data: ld } = await axios.post(`${API_BASE}/login`, params, {
+                    const { data: ld } = await api.post("/login", params, {
                         headers: { "Content-Type": "application/x-www-form-urlencoded" }
                     });
                     setAuthToken(ld.access_token); navigate("/dashboard"); handleClose();
@@ -174,6 +174,20 @@ export default function AuthModal({ isOpen, onClose, initialView = "login" }) {
                             placeholder="••••••••"
                         />
                     </div>
+
+                    {view === "signup" && (
+                        <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 8 }}>
+                            <input 
+                                type="checkbox" 
+                                id="modal-terms" 
+                                required 
+                                style={{ marginTop: 2, cursor: "pointer", width: 14, height: 14, accentColor: "var(--accent)" }}
+                            />
+                            <label htmlFor="modal-terms" style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.4, cursor: "pointer" }}>
+                                I agree to the <a href="/terms" target="_blank" style={{ color: "var(--text-primary)", fontWeight: 600, textDecoration: "underline" }}>Terms</a> and <a href="/privacy" target="_blank" style={{ color: "var(--text-primary)", fontWeight: 600, textDecoration: "underline" }}>Privacy</a>.
+                            </label>
+                        </div>
+                    )}
 
                     {error && (
                         <div className="alert alert-error" style={{ marginBottom: 16, fontSize: 13 }}>

@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useScrollReveal } from "../utils";
 
 const STEPS = [
   { num: "01", title: "Upload & Heuristic Extraction", desc: "Drop your PDF resume. Our client-side and backend python parsers extract all text blocks, spacing metrics, and hidden metadata using advanced PDF heuristics (pdfminer & pdfplumber) in under 500ms.", color: "#d97706" },
@@ -20,6 +21,7 @@ const FAQS = [
 
 export default function HowItWorksPage() {
   const navigate = useNavigate();
+  useScrollReveal();
 
   return (
     <div style={{ background: "var(--bg-page)", minHeight: "100vh" }} className="grid-lines">
@@ -30,7 +32,7 @@ export default function HowItWorksPage() {
         <div style={{ marginBottom: 56 }}>
           <div className="section-label sr"><span className="section-label-text">How It Works</span></div>
           <h1 className="text-display sr" style={{ marginBottom: 16, maxWidth: 600 }}>
-            5 steps to a <span className="highlight-accent rotate-right-1" style={{ display: "inline-block", color: "#fff", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>perfect resume</span>.
+            5 steps to a <span className="highlight-accent" style={{ display: "inline-block", color: "#fff", border: "none", boxShadow: "none", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>perfect resume</span>.
           </h1>
           <p className="sr" style={{ fontSize: 16, color: "var(--text-secondary)", lineHeight: 1.75, maxWidth: 520 }}>
             From PDF upload to a complete diagnostic report — here's exactly what happens under the hood.
@@ -47,12 +49,11 @@ export default function HowItWorksPage() {
             >
               <div style={{ flexShrink: 0 }}>
                 <div style={{
-                  width: 48, height: 48, borderRadius: "var(--radius-sm)",
-                  background: step.color, border: "var(--border-brutal)",
+                  width: 48, height: 48, borderRadius: "var(--radius-md)",
+                  background: "var(--accent-light)", border: "1px solid rgba(99, 102, 241, 0.15)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontFamily: "var(--font-mono)", fontWeight: 800, fontSize: 16,
-                  color: "#fff",
-                  boxShadow: "2px 2px 0px var(--text-primary)"
+                  color: "var(--accent)",
                 }}>{step.num}</div>
               </div>
               <div>

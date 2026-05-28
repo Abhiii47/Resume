@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { API_BASE, getAuthToken } from '../utils';
+import api from '../lib/api';
 
 const DEFAULT_RESUME_DATA = {
   personal: { name: '', email: '', phone: '', linkedin: '', github: '' },
@@ -90,16 +89,14 @@ export default function ResumeBuilder() {
 
   const loadResume = async () => {
     try {
-      const res = await axios.get(`${API_BASE}/resume/load`, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` }
-      });
+      const res = await api.get("/resume/load");
       if (res.data.content) {
         setResumeData(normalizeResumeData(res.data.content));
         setSaveStatus('saved');
         setLastSavedAt(new Date());
       }
     } catch (err) {
-      console.error("Failed to load resume profile", err);
+      console.warn("Failed to load resume profile", err?.message);
     } finally {
       setLoading(false);
     }
@@ -108,11 +105,9 @@ export default function ResumeBuilder() {
   const saveResume = async (silent = false) => {
     setSaveStatus('saving');
     try {
-      await axios.post(`${API_BASE}/resume/save`, {
+      await api.post("/resume/save", {
         title: "My Resume",
         content: resumeData
-      }, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` }
       });
       setSaveStatus('saved');
       setLastSavedAt(new Date());
@@ -139,8 +134,8 @@ export default function ResumeBuilder() {
     formData.append("file", file);
 
     try {
-      const res = await axios.post(`${API_BASE}/resume/parse-pdf`, formData, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` }
+      const res = await api.post("/resume/parse-pdf", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
       setResumeData(normalizeResumeData(res.data));
       setSaveStatus('dirty');
@@ -161,14 +156,9 @@ export default function ResumeBuilder() {
   const handleAnalyzeBuilder = async () => {
     setAnalyzingBuilder(true);
     try {
-      const res = await axios.post(`${API_BASE}/resume/analyze-builder`, {
+      const res = await api.post("/resume/analyze-builder", {
         content: resumeData,
         jd: analysisJd
-      }, {
-        headers: {
-          Authorization: `Bearer ${getAuthToken()}`,
-          'Content-Type': 'application/json'
-        }
       });
       setBuilderAnalysis({
         atsScore: res.data.ats_score,
@@ -395,8 +385,8 @@ export default function ResumeBuilder() {
       const fd = new FormData();
       fd.append('bullet', bulletItem.line);
       fd.append('role', 'Software Engineer');
-      const res = await axios.post(`${API_BASE}/resume/rewrite-bullet`, fd, {
-        headers: { Authorization: `Bearer ${getAuthToken()}` }
+      const res = await api.post("/resume/rewrite-bullet", fd, {
+        headers: { "Content-Type": "multipart/form-data" }
       });
       const rewrites = Array.isArray(res.data?.rewrites) ? res.data.rewrites : [];
       if (rewrites.length > 0) {
@@ -1387,209 +1377,36 @@ export default function ResumeBuilder() {
           </div>
         </div>
 
-        {/* Status Dashboard Box */}
-        <div className="card" style={{ padding: 18, marginBottom: 20, background: "#fff" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 16, fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--text-secondary)" }}>
-            <div>COMPLETION: <strong style={{ color: "var(--text-primary)" }}>{completionScore}%</strong></div>
-            <div>SUMMARY: <strong style={{ color: "var(--text-primary)" }}>{getWordCount(resumeData.summary)}w</strong></div>
-            <div>EXPERIENCE: <strong style={{ color: "var(--text-primary)" }}>{resumeData.experience.length} job{resumeData.experience.length !== 1 ? 's' : ''}</strong></div>
-            <div>PROJECTS: <strong style={{ color: "var(--text-primary)" }}>{resumeData.projects.length}</strong></div>
-            <div>STRONG BULLETS: <strong style={{ color: "var(--color-success)" }}>{strongBullets}/{allBullets.length || 0}</strong></div>
+        {/* Simplified Status Bar */}
+        <div className="card" style={{ padding: "12px 18px", marginBottom: 20, background: "#fff", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 16, fontSize: 11, fontFamily: "var(--font-mono)", fontWeight: 700, color: "var(--text-secondary)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span>COMPLETION:</span>
+              <div style={{ width: 60, height: 6, background: "var(--bg-elevated)", borderRadius: 3, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${completionScore}%`, background: completionScore > 80 ? "var(--color-success)" : "var(--accent)" }} />
+              </div>
+              <strong style={{ color: "var(--text-primary)" }}>{completionScore}%</strong>
+            </div>
             <div style={{
-              marginLeft: "auto",
               color: saveStatus === 'error' ? 'var(--color-error)' : saveStatus === 'dirty' ? 'var(--color-warning)' : 'var(--color-success)',
             }}>
               ● {saveStatus === 'dirty' && 'Unsaved changes'}
               {saveStatus === 'saving' && 'Saving...'}
-              {saveStatus === 'saved' && `Saved ${lastSavedAt ? lastSavedAt.toLocaleTimeString() : ''}`}
+              {saveStatus === 'saved' && `Saved`}
               {saveStatus === 'error' && 'Save failed'}
               {saveStatus === 'idle' && 'Ready'}
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8, marginTop: 14 }} className="quick-actions-row">
-            <input
-              className="input-field"
-              style={{ flex: 1, padding: "8px 12px", fontSize: 12, height: "auto" }}
-              value={analysisJd}
-              onChange={e => setAnalysisJd(e.target.value)}
-              placeholder="Target job description for specialized AI builder analysis..."
-            />
-          </div>
-
           {builderAnalysis && (
-            <div className="card-surface" style={{ marginTop: 16, padding: 18, border: "var(--border-brutal)", background: "var(--bg-surface)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, borderBottom: "1px dashed var(--border-muted)", paddingBottom: 8 }}>
-                <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--accent)" }}>🔍 Maya's Analysis & Max's Rewrites</h3>
-                <div style={{ display: "flex", gap: 12, fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700 }}>
-                  <span style={{ color: "var(--text-secondary)" }}>ATS SCORE: <strong style={{ color: "var(--text-primary)" }}>{builderAnalysis.atsScore}/100</strong></span>
-                  <span style={{ color: "var(--text-secondary)" }}>DELTA: <strong style={{ color: builderAnalysis.scoreDiff > 0 ? "var(--color-success)" : builderAnalysis.scoreDiff < 0 ? "var(--color-error)" : "var(--text-primary)" }}>
-                    {builderAnalysis.scoreDiff > 0 ? `+${builderAnalysis.scoreDiff}` : builderAnalysis.scoreDiff}
-                  </strong></span>
-                </div>
-              </div>
-              
-              {builderAnalysis.verdict && <p style={{ fontSize: 12.5, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 14 }}>{builderAnalysis.verdict}</p>}
-              
-              {builderAnalysis.topFixes && builderAnalysis.topFixes.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <h4 style={{ fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", fontSize: 9, letterSpacing: "0.08em" }}>Top Suggested Fixes</h4>
-                  {builderAnalysis.topFixes.map((fix, idx) => (
-                    <div key={idx} className="card" style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, background: "#fff" }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span className="badge badge-blue" style={{ fontSize: 9, padding: "2px 6px" }}>{fix.category.replace('_', ' ')}</span>
-                        <span style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>Priority {fix.priority}</span>
-                      </div>
-                      {fix.original && (
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <span style={{ color: "var(--color-error)", fontWeight: 800 }}>-</span>
-                          <span style={{ color: "var(--text-muted)", textDecoration: "line-through", fontSize: 12 }}>{fix.original}</span>
-                        </div>
-                      )}
-                      <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
-                        <span style={{ color: "var(--color-success)", fontWeight: 800 }}>+</span>
-                        <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 12 }}>{fix.fix}</span>
-                      </div>
-                      
-                      {fix.original && (
-                        <button 
-                          onClick={() => applyMaxRewrite(fix)}
-                          className="btn btn-secondary btn-sm"
-                          style={{ alignSelf: "flex-end", marginTop: 4, fontSize: 9, padding: "3px 10px", height: "auto" }}
-                        >
-                          1-Click Apply ⚡
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                  {builderAnalysis.suggestions.map((sug, idx) => (
-                    <p key={idx} style={{ fontSize: 12, color: "var(--text-secondary)" }}>- {sug}</p>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* ATS Bullet Checker */}
-        {allBullets.length > 0 && (
-          <div className="card" style={{ padding: 18, marginBottom: 20, background: "#fff" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>ATS Bullet Quality</h3>
-              <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>
-                Goal: Action Verb + Metric Result
-              </span>
-            </div>
-            {weakBullets.length === 0 ? (
-              <p style={{ fontSize: 12, color: "var(--color-success)", fontWeight: 700 }}>✓ Outstanding! All bullet points are impact-oriented and contain metrics.</p>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 180, overflowY: "auto" }}>
-                {weakBullets.slice(0, 4).map((item, idx) => (
-                  <div key={idx} className="card-surface" style={{ padding: 12, border: "var(--border-brutal)", background: "var(--bg-surface)" }}>
-                    <p style={{ fontSize: 12.5, color: "var(--text-primary)", lineHeight: 1.5 }}>"{item.line}"</p>
-                    <p style={{ fontSize: 10, color: "var(--accent-dark)", fontWeight: 700, marginTop: 6, fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
-                      {!item.hasActionVerb ? "⚠️ Missing Action Verb. " : ""}
-                      {!item.hasMetric ? "⚠️ Missing Measurable Impact (%, $, numbers)." : ""}
-                    </p>
-                    <button
-                      onClick={() => handleAiRewriteWeakBullet(item)}
-                      disabled={rewritingKey === item.key}
-                      className="btn btn-secondary btn-sm"
-                      style={{ marginTop: 8, fontSize: 9, padding: "3px 8px", height: "auto" }}
-                    >
-                      {rewritingKey === item.key ? 'Rewriting...' : 'AI Rewrite →'}
-                    </button>
-                  </div>
-                ))}
-                {weakBullets.length > 4 && (
-                  <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700, textAlign: "right" }}>
-                    +{weakBullets.length - 4} more weak bullets
-                  </p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Section Scores */}
-        <div className="card" style={{ padding: 18, marginBottom: 20, background: "#fff" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>Section ATS Scores</h3>
-            <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>Target 80+ per section</span>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }} className="section-scores-grid">
-            {Object.entries(sectionScores).map(([key, value]) => {
-              const valColor = value.score >= 80 ? "var(--color-success)" : value.score >= 60 ? "var(--accent)" : "var(--color-error)";
-              const valBg = value.score >= 80 ? "rgba(22,163,74,0.06)" : value.score >= 60 ? "var(--accent-glow)" : "rgba(220,38,38,0.06)";
-              return (
-                <div key={key} className="card-surface" style={{ padding: 10, textAlign: "center", border: "var(--border-brutal)", background: valBg }}>
-                  <p style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-secondary)", textTransform: "uppercase" }}>{key}</p>
-                  <p style={{ fontSize: 20, fontWeight: 900, color: valColor, fontFamily: "var(--font-serif)", fontStyle: "italic", marginTop: 4 }}>{value.score}</p>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {Object.entries(sectionScores).map(([key, value]) => (
-              <div key={`hint-${key}`} className="card" style={{ padding: 12, background: "#fff" }}>
-                <p style={{ fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-primary)", textTransform: "uppercase", marginBottom: 4 }}>{key} Hints</p>
-                {value.hints.length ? (
-                  <ul style={{ paddingLeft: 14, fontSize: 11.5, color: "var(--text-secondary)", lineHeight: 1.5, listStyle: "square" }}>
-                    {value.hints.map((hint, idx) => <li key={idx} style={{ marginBottom: 2 }}>{hint}</li>)}
-                  </ul>
-                ) : (
-                  <p style={{ fontSize: 11, color: "var(--color-success)", fontWeight: 700 }}>✓ Perfect! Section is fully optimized.</p>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Section Score History Trend */}
-        <div className="card" style={{ padding: 18, marginBottom: 20, background: "#fff" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>Section Score Trend</h3>
-            <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>Last {Math.min(sectionScoreHistory.length, 12)} saves</span>
-          </div>
-          {sectionScoreHistory.length < 2 ? (
-            <p style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontWeight: 500 }}>Save a few times to track score changes over iterations.</p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 150, overflowY: "auto" }}>
-              {sectionScoreHistory.map((snap, idx) => {
-                const prev = sectionScoreHistory[idx + 1];
-                const delta = (field) => (prev ? snap[field] - prev[field] : 0);
-                const deltaLabel = (d) => (d > 0 ? `+${d}` : `${d}`);
-                return (
-                  <div key={snap.ts} className="card-surface" style={{ padding: 10, fontSize: 11, fontFamily: "var(--font-mono)", background: "#fff", border: "var(--border-brutal)" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontWeight: 800, color: "var(--text-primary)" }}>
-                      <span>SAVE #{sectionScoreHistory.length - idx}</span>
-                      <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>{new Date(snap.ts).toLocaleTimeString()}</span>
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
-                      {['summary', 'experience', 'projects', 'skills'].map((field) => {
-                        const d = delta(field);
-                        const cl = d > 0 ? 'var(--color-success)' : d < 0 ? 'var(--color-error)' : 'var(--text-secondary)';
-                        return (
-                          <span key={`${snap.ts}-${field}`} style={{ color: cl, fontWeight: 700, fontSize: 9.5 }}>
-                            {field.charAt(0).toUpperCase() + field.slice(1, 3)}: {snap[field]} ({deltaLabel(d)})
-                          </span>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+            <div style={{ fontSize: 11, fontWeight: 800, color: "var(--accent)", cursor: "pointer" }} onClick={() => setActiveTab('analysis')}>
+              ATS Score: {builderAnalysis.atsScore}/100 →
             </div>
           )}
         </div>
 
         {/* Section Tabs */}
         <div style={{ display: "flex", gap: 6, marginBottom: 20, overflowX: "auto", paddingBottom: 8 }}>
-          {['personal', 'summary', 'experience', 'education', 'projects', 'skills'].map(tab => {
+          {['personal', 'summary', 'experience', 'education', 'projects', 'skills', 'analysis'].map(tab => {
             const active = activeTab === tab;
             return (
               <button
@@ -1600,8 +1417,8 @@ export default function ResumeBuilder() {
                   padding: "6px 14px",
                   borderRadius: "var(--radius-sm)",
                   border: "var(--border-brutal)",
-                  background: active ? "var(--accent)" : "#fff",
-                  color: active ? "#fff" : "var(--text-secondary)",
+                  background: active ? (tab === 'analysis' ? "var(--text-primary)" : "var(--accent)") : "#fff",
+                  color: active ? "#fff" : (tab === 'analysis' ? "var(--accent)" : "var(--text-secondary)"),
                   fontFamily: "var(--font-display)",
                   fontSize: 11, fontWeight: 700,
                   cursor: "pointer",
@@ -1611,7 +1428,7 @@ export default function ResumeBuilder() {
                   textTransform: "uppercase"
                 }}
               >
-                {tab}
+                {tab === 'analysis' ? '✨ Review & Analyze' : tab}
               </button>
             );
           })}
@@ -1619,6 +1436,189 @@ export default function ResumeBuilder() {
 
         {/* Editor Forms */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {activeTab === 'analysis' && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div style={{ display: "flex", gap: 8 }} className="quick-actions-row">
+                <input
+                  className="input-field"
+                  style={{ flex: 1, padding: "8px 12px", fontSize: 12, height: "auto" }}
+                  value={analysisJd}
+                  onChange={e => setAnalysisJd(e.target.value)}
+                  placeholder="Target job description for specialized AI builder analysis..."
+                />
+              </div>
+
+              {builderAnalysis && (
+                <div className="card-surface" style={{ padding: 18, border: "var(--border-brutal)", background: "var(--bg-surface)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, borderBottom: "1px dashed var(--border-muted)", paddingBottom: 8 }}>
+                    <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--accent)" }}>🔍 AI Analysis & Rewrites</h3>
+                    <div style={{ display: "flex", gap: 12, fontFamily: "var(--font-mono)", fontSize: 11, fontWeight: 700 }}>
+                      <span style={{ color: "var(--text-secondary)" }}>ATS SCORE: <strong style={{ color: "var(--text-primary)" }}>{builderAnalysis.atsScore}/100</strong></span>
+                      <span style={{ color: "var(--text-secondary)" }}>DELTA: <strong style={{ color: builderAnalysis.scoreDiff > 0 ? "var(--color-success)" : builderAnalysis.scoreDiff < 0 ? "var(--color-error)" : "var(--text-primary)" }}>
+                        {builderAnalysis.scoreDiff > 0 ? `+${builderAnalysis.scoreDiff}` : builderAnalysis.scoreDiff}
+                      </strong></span>
+                    </div>
+                  </div>
+                  
+                  {builderAnalysis.verdict && <p style={{ fontSize: 12.5, color: "var(--text-primary)", lineHeight: 1.6, marginBottom: 14 }}>{builderAnalysis.verdict}</p>}
+                  
+                  {builderAnalysis.topFixes && builderAnalysis.topFixes.length > 0 ? (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <h4 style={{ fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase", fontSize: 9, letterSpacing: "0.08em" }}>Top Suggested Fixes</h4>
+                      {builderAnalysis.topFixes.map((fix, idx) => (
+                        <div key={idx} className="card" style={{ padding: 12, display: "flex", flexDirection: "column", gap: 8, background: "#fff" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                            <span className="badge badge-blue" style={{ fontSize: 9, padding: "2px 6px" }}>{fix.category.replace('_', ' ')}</span>
+                            <span style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontWeight: 700 }}>Priority {fix.priority}</span>
+                          </div>
+                          {fix.original && (
+                            <div style={{ display: "flex", gap: 8 }}>
+                              <span style={{ color: "var(--color-error)", fontWeight: 800 }}>-</span>
+                              <span style={{ color: "var(--text-muted)", textDecoration: "line-through", fontSize: 12 }}>{fix.original}</span>
+                            </div>
+                          )}
+                          <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                            <span style={{ color: "var(--color-success)", fontWeight: 800 }}>+</span>
+                            <span style={{ color: "var(--text-primary)", fontWeight: 700, fontSize: 12 }}>{fix.fix}</span>
+                          </div>
+                          
+                          {fix.original && (
+                            <button 
+                              onClick={() => applyMaxRewrite(fix)}
+                              className="btn btn-secondary btn-sm"
+                              style={{ alignSelf: "flex-end", marginTop: 4, fontSize: 9, padding: "3px 10px", height: "auto" }}
+                            >
+                              1-Click Apply ⚡
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      {builderAnalysis.suggestions.map((sug, idx) => (
+                        <p key={idx} style={{ fontSize: 12, color: "var(--text-secondary)" }}>- {sug}</p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ATS Bullet Checker */}
+              {allBullets.length > 0 && (
+                <div className="card" style={{ padding: 18, background: "#fff" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                    <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>ATS Bullet Quality</h3>
+                    <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>
+                      Goal: Action Verb + Metric Result
+                    </span>
+                  </div>
+                  {weakBullets.length === 0 ? (
+                    <p style={{ fontSize: 12, color: "var(--color-success)", fontWeight: 700 }}>✓ Outstanding! All bullet points are impact-oriented and contain metrics.</p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 180, overflowY: "auto" }}>
+                      {weakBullets.slice(0, 4).map((item, idx) => (
+                        <div key={idx} className="card-surface" style={{ padding: 12, border: "var(--border-brutal)", background: "var(--bg-surface)" }}>
+                          <p style={{ fontSize: 12.5, color: "var(--text-primary)", lineHeight: 1.5 }}>"{item.line}"</p>
+                          <p style={{ fontSize: 10, color: "var(--accent-dark)", fontWeight: 700, marginTop: 6, fontFamily: "var(--font-mono)", textTransform: "uppercase" }}>
+                            {!item.hasActionVerb ? "⚠️ Missing Action Verb. " : ""}
+                            {!item.hasMetric ? "⚠️ Missing Measurable Impact (%, $, numbers)." : ""}
+                          </p>
+                          <button
+                            onClick={() => handleAiRewriteWeakBullet(item)}
+                            disabled={rewritingKey === item.key}
+                            className="btn btn-secondary btn-sm"
+                            style={{ marginTop: 8, fontSize: 9, padding: "3px 8px", height: "auto" }}
+                          >
+                            {rewritingKey === item.key ? 'Rewriting...' : 'AI Rewrite →'}
+                          </button>
+                        </div>
+                      ))}
+                      {weakBullets.length > 4 && (
+                        <p style={{ fontSize: 11, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700, textAlign: "right" }}>
+                          +{weakBullets.length - 4} more weak bullets
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Section Scores */}
+              <div className="card" style={{ padding: 18, background: "#fff" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>Section ATS Scores</h3>
+                  <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>Target 80+ per section</span>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 16 }} className="section-scores-grid">
+                  {Object.entries(sectionScores).map(([key, value]) => {
+                    const valColor = value.score >= 80 ? "var(--color-success)" : value.score >= 60 ? "var(--accent)" : "var(--color-error)";
+                    const valBg = value.score >= 80 ? "rgba(22,163,74,0.06)" : value.score >= 60 ? "var(--accent-glow)" : "rgba(220,38,38,0.06)";
+                    return (
+                      <div key={key} className="card-surface" style={{ padding: 10, textAlign: "center", border: "var(--border-brutal)", background: valBg }}>
+                        <p style={{ fontSize: 9, fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-secondary)", textTransform: "uppercase" }}>{key}</p>
+                        <p style={{ fontSize: 20, fontWeight: 900, color: valColor, fontFamily: "var(--font-serif)", fontStyle: "italic", marginTop: 4 }}>{value.score}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {Object.entries(sectionScores).map(([key, value]) => (
+                    <div key={`hint-${key}`} className="card" style={{ padding: 12, background: "#fff" }}>
+                      <p style={{ fontSize: 10, fontFamily: "var(--font-mono)", fontWeight: 800, color: "var(--text-primary)", textTransform: "uppercase", marginBottom: 4 }}>{key} Hints</p>
+                      {value.hints.length ? (
+                        <ul style={{ paddingLeft: 14, fontSize: 11.5, color: "var(--text-secondary)", lineHeight: 1.5, listStyle: "square" }}>
+                          {value.hints.map((hint, idx) => <li key={idx} style={{ marginBottom: 2 }}>{hint}</li>)}
+                        </ul>
+                      ) : (
+                        <p style={{ fontSize: 11, color: "var(--color-success)", fontWeight: 700 }}>✓ Perfect! Section is fully optimized.</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Section Score History Trend */}
+              <div className="card" style={{ padding: 18, background: "#fff" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 800, fontSize: 13, color: "var(--text-primary)" }}>Section Score Trend</h3>
+                  <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--text-muted)", fontWeight: 700 }}>Last {Math.min(sectionScoreHistory.length, 12)} saves</span>
+                </div>
+                {sectionScoreHistory.length < 2 ? (
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-mono)", fontWeight: 500 }}>Save a few times to track score changes over iterations.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 150, overflowY: "auto" }}>
+                    {sectionScoreHistory.map((snap, idx) => {
+                      const prev = sectionScoreHistory[idx + 1];
+                      const delta = (field) => (prev ? snap[field] - prev[field] : 0);
+                      const deltaLabel = (d) => (d > 0 ? `+${d}` : `${d}`);
+                      return (
+                        <div key={snap.ts} className="card-surface" style={{ padding: 10, fontSize: 11, fontFamily: "var(--font-mono)", background: "#fff", border: "var(--border-brutal)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6, fontWeight: 800, color: "var(--text-primary)" }}>
+                            <span>SAVE #{sectionScoreHistory.length - idx}</span>
+                            <span style={{ color: "var(--text-muted)", fontWeight: 500 }}>{new Date(snap.ts).toLocaleTimeString()}</span>
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6 }}>
+                            {['summary', 'experience', 'projects', 'skills'].map((field) => {
+                              const d = delta(field);
+                              const cl = d > 0 ? 'var(--color-success)' : d < 0 ? 'var(--color-error)' : 'var(--text-secondary)';
+                              return (
+                                <span key={`${snap.ts}-${field}`} style={{ color: cl, fontWeight: 700, fontSize: 9.5 }}>
+                                  {field.charAt(0).toUpperCase() + field.slice(1, 3)}: {snap[field]} ({deltaLabel(d)})
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
           {activeTab === 'personal' && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <div><label className="input-label" style={{ fontSize: 10, marginBottom: 4 }}>Full Name</label><input className="input-field" value={resumeData.personal.name} onChange={e => updatePersonal('name', e.target.value)} /></div>

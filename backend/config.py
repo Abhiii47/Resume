@@ -43,6 +43,10 @@ class Settings:
     GITHUB_STATE_TTL_SECONDS: int = int(os.getenv("GITHUB_STATE_TTL_SECONDS", "600"))
     FRONTEND_APP_URL: str = os.getenv("FRONTEND_APP_URL", "").strip()
 
+    # --- Email (Resend) ---
+    RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "").strip()
+    FROM_EMAIL: str = os.getenv("FROM_EMAIL", "onboarding@resend.dev").strip()
+
     # --- CORS ---
     ALLOWED_ORIGINS: list[str] = [
         origin.strip()

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import axios from "axios";
-import { API_BASE, setAuthToken, updateMetaTags } from "../utils";
+import api from "../lib/api";
+import { setAuthToken, updateMetaTags } from "../utils";
 
 /* ── Rotating Stats ─────────────────────────────────────────────── */
 const STATS = [
-  { value: "6s",   text: <>Average recruiter scan time. <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>Make it count.</span></> },
-  { value: "75%",  text: <>Of resumes are <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>rejected by ATS bots</span> before a human sees them.</> },
-  { value: "87%",  text: <>Of SmartResume users pass ATS after <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>fixing their score.</span></> },
+  { value: "6s", text: <>Average recruiter scan time. <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>Make it count.</span></> },
+  { value: "75%", text: <>Of resumes are <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>rejected by ATS bots</span> before a human sees them.</> },
+  { value: "87%", text: <>Of SmartResume users pass ATS after <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>fixing their score.</span></> },
   { value: "<60s", text: <>To get your first honest ATS score. <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>No card. Just results.</span></> },
   { value: "200+", text: <>Applications sent, zero callbacks. <span style={{ fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: 600 }}>It's the resume.</span></> },
 ];
@@ -40,12 +40,12 @@ function RotatingStat() {
 
 /* ── Main ───────────────────────────────────────────────────────── */
 export default function LoginPage() {
-  const [email, setEmail]       = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPw, setShowPw]     = useState(false);
-  const [error, setError]       = useState("");
-  const [success, setSuccess]   = useState("");
-  const [loading, setLoading]   = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -61,7 +61,7 @@ export default function LoginPage() {
       const params = new URLSearchParams();
       params.append("username", email);
       params.append("password", password);
-      const { data } = await axios.post(`${API_BASE}/login`, params, {
+      const { data } = await api.post("/login", params, {
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
       });
       setAuthToken(data.access_token);
@@ -177,7 +177,16 @@ export default function LoginPage() {
 
               {/* Password */}
               <div style={{ marginBottom: 20 }}>
-                <label className="input-label">Password</label>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 6 }}>
+                  <label className="input-label" style={{ marginBottom: 0 }}>Password</label>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/forgot-password")}
+                    style={{ background: "none", border: "none", color: "var(--accent)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}
+                  >
+                    Forgot Password?
+                  </button>
+                </div>
                 <div style={{ position: "relative" }}>
                   <input
                     id="login-password"

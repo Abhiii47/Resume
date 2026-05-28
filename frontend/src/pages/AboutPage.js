@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useScrollReveal } from "../utils";
 
 const FEATURES = [
   { icon: "🎯", label: "Hybrid AI Engine", desc: "Heuristic analysis + LLM deep evaluation in a single batched call. 7-dimension scoring with human-readable reasoning.", color: "#d97706" },
@@ -20,6 +21,7 @@ const STATS = [
 
 export default function AboutPage() {
   const navigate = useNavigate();
+  useScrollReveal();
 
   return (
     <div style={{ background: "var(--bg-page)", minHeight: "100vh" }} className="grid-lines">
@@ -60,12 +62,12 @@ export default function AboutPage() {
             {FEATURES.map((f, i) => (
               <div key={f.label} className={`card-premium sr sr-delay-${(i % 3) + 1}`} style={{ padding: "28px" }}>
                 <div style={{
-                  width: 44, height: 44, borderRadius: "var(--radius-sm)",
-                  background: f.color, border: "var(--border-brutal)",
+                  width: 44, height: 44, borderRadius: "var(--radius-md)",
+                  background: "var(--accent-light)",
+                  border: "1px solid rgba(99, 102, 241, 0.15)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: 22, marginBottom: 16,
-                  color: "#fff",
-                  boxShadow: "2px 2px 0px var(--text-primary)"
+                  color: "var(--accent)",
                 }}>{f.icon}</div>
                 <h3 style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 15, marginBottom: 8, color: "var(--text-primary)" }}>
                   {f.label}
@@ -77,7 +79,7 @@ export default function AboutPage() {
         </div>
 
         {/* Tech Stack */}
-        <div className="card sr" style={{ padding: "32px 36px", marginBottom: 64 }}>
+        <div className="card sr" style={{ padding: "32px 36px", marginBottom: 32 }}>
           <div className="section-label" style={{ marginBottom: 20 }}><span className="section-label-text">Tech Stack</span></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }} id="tech-stack">
             <div>
@@ -97,6 +99,14 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
+        </div>
+
+        {/* Credits & Inspiration */}
+        <div className="card sr" style={{ padding: "32px 36px", marginBottom: 64, borderStyle: "dashed" }}>
+          <div className="section-label" style={{ marginBottom: 20 }}><span className="section-label-text">Credits & Inspiration</span></div>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.7 }}>
+            SmartResume's high-contrast neobrutalist design system is inspired by <a href="https://github.com/nutlope/resumefyi" target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-primary)", fontWeight: 600, textDecoration: "underline" }}>ResumeFyi</a>, an outstanding open-source project. We are deeply grateful to their creators and the open-source community for making beautiful design patterns and architectures accessible to everyone.
+          </p>
         </div>
 
         {/* CTA */}

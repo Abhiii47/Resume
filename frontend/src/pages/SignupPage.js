@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { API_BASE, updateMetaTags } from "../utils";
+import api from "../lib/api";
+import { updateMetaTags } from "../utils";
 
 /* ── Password Strength ──────────────────────────────────────────── */
 function getStrength(pw) {
   if (!pw) return null;
   if (pw.length < 6) return { label: "Too short", color: "#dc2626", pct: "20%" };
-  if (pw.length < 8) return { label: "Weak",      color: "#f97316", pct: "40%" };
-  if (pw.length < 12 && /[^a-zA-Z0-9]/.test(pw)) return { label: "Good",   color: "#eab308", pct: "65%" };
+  if (pw.length < 8) return { label: "Weak", color: "#f97316", pct: "40%" };
+  if (pw.length < 12 && /[^a-zA-Z0-9]/.test(pw)) return { label: "Good", color: "#eab308", pct: "65%" };
   if (pw.length >= 12) return { label: "Strong", color: "#16a34a", pct: "100%" };
   return { label: "Fair", color: "#f59e0b", pct: "50%" };
 }
@@ -23,12 +23,12 @@ const PERKS = [
 ];
 
 export default function SignupPage() {
-  const [email,    setEmail]    = useState("");
+  const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [showPw,   setShowPw]   = useState(false);
-  const [error,    setError]    = useState("");
-  const [loading,  setLoading]  = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { updateMetaTags({ title: "Sign Up — SmartResume" }); }, []);
@@ -41,7 +41,9 @@ export default function SignupPage() {
       fd.append("email", email);
       fd.append("username", username);
       fd.append("password", password);
-      await axios.post(`${API_BASE}/signup`, fd);
+      await api.post("/signup", fd, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       navigate("/login", { state: { message: "Account created! Log in to get started." } });
     } catch (err) {
       const d = err?.response?.data?.detail;
@@ -212,6 +214,19 @@ export default function SignupPage() {
                     </span>
                   </div>
                 )}
+              </div>
+
+              {/* Terms Checkbox */}
+              <div style={{ marginBottom: 24, display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <input
+                  type="checkbox"
+                  id="signup-terms"
+                  required
+                  style={{ marginTop: 3, cursor: "pointer", width: 16, height: 16, accentColor: "var(--accent)" }}
+                />
+                <label htmlFor="signup-terms" style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.4, cursor: "pointer" }}>
+                  I agree to the <a href="/terms" target="_blank" style={{ color: "var(--text-primary)", fontWeight: 600, textDecoration: "underline" }}>Terms of Service</a> and <a href="/privacy" target="_blank" style={{ color: "var(--text-primary)", fontWeight: 600, textDecoration: "underline" }}>Privacy Policy</a>.
+                </label>
               </div>
 
               {error && (

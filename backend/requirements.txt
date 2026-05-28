@@ -13,3 +13,4 @@ slowapi
 groq
 httpx
 PyPDF2
+resend

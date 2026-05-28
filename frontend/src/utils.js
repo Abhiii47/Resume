@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 // Utility function for className merging
 export function cn(...inputs) {
   return inputs.filter(Boolean).join(" ");
@@ -65,7 +67,26 @@ export const removeAuthToken = () => {
 
 export const isAuthenticated = () => {
   const token = getAuthToken();
-  return !!token;
+  if (!token) return false;
+  // Decode JWT payload (middle segment) and check expiry without a library
+  try {
+    const payloadB64 = token.split(".")[1];
+    if (!payloadB64) return false;
+    // atob needs standard base64; JWT uses base64url — replace chars
+    const json = atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/"));
+    const payload = JSON.parse(json);
+    if (!payload.exp) return true; // no exp claim → treat as valid
+    // exp is seconds since epoch; Date.now() is milliseconds
+    if (Date.now() >= payload.exp * 1000) {
+      removeAuthToken(); // clean up the stale token immediately
+      return false;
+    }
+    return true;
+  } catch {
+    // Malformed token — treat as unauthenticated
+    removeAuthToken();
+    return false;
+  }
 };
 
 // Error handler for API calls
@@ -154,3 +175,21 @@ export const updateMetaTags = (options = {}) => {
   }
   canonical.setAttribute("href", url);
 };
+
+// Hook to trigger scroll animations for elements with the .sr class
+export function useScrollReveal() {
+  useEffect(() => {
+    const els = document.querySelectorAll(".sr");
+    const io = new IntersectionObserver(
+      entries => entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add("sr-visible");
+          io.unobserve(e.target);
+        }
+      }),
+      { threshold: 0.08 }
+    );
+    els.forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+}

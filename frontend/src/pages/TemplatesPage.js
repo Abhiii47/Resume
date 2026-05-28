@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { useScrollReveal } from "../utils";
 
 const TEMPLATES = [
   {
@@ -88,6 +89,7 @@ function ResumePreviewMock({ template }) {
 
 export default function TemplatesPage() {
   const navigate = useNavigate();
+  useScrollReveal();
 
   return (
     <div style={{ background: "var(--bg-page)", minHeight: "100vh" }} className="grid-lines">
@@ -98,7 +100,7 @@ export default function TemplatesPage() {
         <div style={{ marginBottom: 48 }}>
           <div className="section-label" style={{ marginBottom: 12 }}><span className="section-label-text">Resume Templates</span></div>
           <h1 className="text-display" style={{ marginBottom: 16 }}>
-            ATS-optimized <span className="highlight-accent rotate-left-1" style={{ color: "#fff", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>templates</span>.
+            ATS-optimized <span className="highlight-accent" style={{ color: "#fff", border: "none", boxShadow: "none", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>templates</span>.
           </h1>
           <p style={{ fontSize: 16, color: "var(--text-secondary)", lineHeight: 1.75, maxWidth: 520, fontWeight: 500 }}>
             Every template is designed to pass ATS parsers while looking professional.
@@ -139,11 +141,10 @@ export default function TemplatesPage() {
                     <span key={j} style={{
                       padding: "3px 10px",
                       background: "var(--accent-light)",
-                      border: "var(--border-brutal)",
-                      boxShadow: "1px 1px 0 var(--text-primary)",
-                      borderRadius: "var(--radius-sm)",
-                      fontSize: 11, fontWeight: 700,
-                      color: "var(--text-primary)",
+                      border: "1px solid rgba(22, 78, 59, 0.15)",
+                      borderRadius: "12px",
+                      fontSize: 11, fontWeight: 600,
+                      color: "var(--accent)",
                     }}>{tag}</span>
                   ))}
                 </div>
@@ -159,10 +160,10 @@ export default function TemplatesPage() {
                       <span key={j} style={{
                         padding: "2px 8px",
                         background: "var(--bg-page)",
-                        border: "var(--border-brutal)",
+                        border: "1px solid rgba(15, 23, 42, 0.08)",
                         borderRadius: "var(--radius-sm)",
-                        fontSize: 11, color: "var(--text-primary)",
-                        fontWeight: 700,
+                        fontSize: 11, color: "var(--text-secondary)",
+                        fontWeight: 500,
                       }}>{s}</span>
                     ))}
                   </div>

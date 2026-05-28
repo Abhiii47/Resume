@@ -1,6 +1,6 @@
 import base64
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
 
 from cryptography.fernet import Fernet, InvalidToken
@@ -46,7 +46,7 @@ def create_signed_state(payload: dict[str, Any], expires_seconds: int) -> str:
     body.update(
         {
             "purpose": "github_oauth_state",
-            "exp": datetime.utcnow() + timedelta(seconds=expires_seconds),
+            "exp": datetime.now(timezone.utc) + timedelta(seconds=expires_seconds),
         }
     )
     return jwt.encode(body, settings.SECRET_KEY, algorithm=settings.ALGORITHM)

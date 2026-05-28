@@ -14,22 +14,25 @@ logger = logging.getLogger(__name__)
 WORKFLOW_TEMPLATES = {
     "full_review": {
         "description": "Complete resume review with improvements",
+        "parallel": True,   # Maya, Max, Alex are fully independent — run simultaneously
         "steps": [
             {"agent": "maya", "task": "Score and analyze the resume for flaws"},
-            {"agent": "max", "task": "Rewrite the top 3 weakest bullet points"},
-            {"agent": "alex", "task": "Provide strategic career advice based on the analysis"},
+            {"agent": "max",  "task": "Rewrite the top 3 weakest bullet points"},
+            {"agent": "alex", "task": "Provide strategic career advice based on the resume"},
         ],
     },
     "job_hunt": {
         "description": "Find matching jobs and prepare applications",
+        "parallel": False,  # Scout → Maya → Max: later agents need prior results
         "steps": [
             {"agent": "scout", "task": "Search for matching jobs based on the user's skills"},
-            {"agent": "maya", "task": "Analyze resume fit for the top matching job"},
-            {"agent": "max", "task": "Generate a tailored cover letter for the best match"},
+            {"agent": "maya",  "task": "Analyze resume fit for the top matching job"},
+            {"agent": "max",   "task": "Generate a tailored cover letter for the best match"},
         ],
     },
     "interview_prep": {
         "description": "Prepare for interviews",
+        "parallel": True,   # Maya (gap analysis) + Alex (questions) are independent
         "steps": [
             {"agent": "maya", "task": "Identify skill gaps and weak areas in the resume"},
             {"agent": "alex", "task": "Generate interview questions and preparation tips"},
@@ -37,15 +40,17 @@ WORKFLOW_TEMPLATES = {
     },
     "quick_fix": {
         "description": "Quick resume improvements",
+        "parallel": False,  # Max needs Maya's findings — keep sequential
         "steps": [
             {"agent": "maya", "task": "Identify the top 3 most critical resume flaws"},
-            {"agent": "max", "task": "Rewrite and fix the identified flaws"},
+            {"agent": "max",  "task": "Rewrite and fix the identified flaws"},
         ],
     },
     "end_to_end_journey": {
         "description": "Complete career journey: analyze resume, find jobs, find gaps, and generate learning roadmap",
+        "parallel": False,  # Each step depends on prior agent output
         "steps": [
-            {"agent": "maya", "task": "Analyze the resume to extract current skills and identify areas of improvement"},
+            {"agent": "maya",  "task": "Analyze the resume to extract current skills and identify areas of improvement"},
             {
                 "agent": "scout",
                 "task": "Search for top matching jobs based on the user's skills and compare the resume against the best job",
@@ -64,6 +69,7 @@ class OrchestratorAgent(BaseAgent):
     Nova — the orchestrator that routes requests and coordinates agents.
     Unlike other agents, Nova doesn't have domain tools.
     Instead, she classifies intent and delegates to specialists.
+    Supports both parallel (simultaneous) and sequential (chained) execution.
     """
 
     def __init__(self):
@@ -200,7 +206,6 @@ Rules:
             tasks["max"] = message
 
         job_kw = ["job", "apply", "application", "company", "position", "salary", "remote"]
-        # But not just "job" in context of other things
         if any(k in ml for k in job_kw):
             agents.append("scout")
             tasks["scout"] = message
@@ -246,13 +251,74 @@ Rules:
             "direct_response": None,
         }
 
+    # ── Parallel fan-in helpers ────────────────────────────────────────────────
+
+    async def _agent_to_queue(
+        self,
+        agent,
+        agent_context: AgentContext,
+        queue: asyncio.Queue,
+        sentinel: str,
+    ) -> dict:
+        """
+        Run one agent, pushing every SSEEvent into queue.
+        Returns the agent's final response dict for accumulated_context.
+        """
+        agent_response = ""
+        agent_tools_used: list[str] = []
+        try:
+            async for event in agent.run(agent_context):
+                await queue.put(("event", event))
+                if event.event == "agent_message":
+                    agent_response = event.data.get("content", "")
+                    agent_tools_used = event.data.get("tools_used", [])
+        except Exception as exc:
+            logger.error("Agent %s raised in parallel run: %s", agent.name, exc)
+            await queue.put((
+                "event",
+                SSEEvent(event="error", data={"agent": agent.name, "error": str(exc)}),
+            ))
+        finally:
+            await queue.put(("sentinel", sentinel))
+
+        return {
+            "agent": agent.name,
+            "response": agent_response[:900],
+            "tools_used": agent_tools_used,
+        }
+
+    async def _drain_parallel(
+        self,
+        coros,  # list of coroutines that push to queue
+        queue: asyncio.Queue,
+        total: int,
+    ) -> AsyncGenerator[SSEEvent, None]:
+        """
+        Start all coroutines simultaneously and yield SSEEvents in arrival order.
+        Returns collected agent results.
+        """
+        tasks = [asyncio.create_task(c) for c in coros]
+        pending = total
+
+        while pending > 0:
+            kind, payload = await queue.get()
+            if kind == "event":
+                yield payload
+            elif kind == "sentinel":
+                pending -= 1
+
+        # Gather results (already done, just collect return values from tasks)
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+    # ── Public run ────────────────────────────────────────────────────────────
+
     async def run(self, context: AgentContext) -> AsyncGenerator[SSEEvent, None]:
         """
         Nova's orchestration flow:
         1. Classify intent
         2. If direct response → reply immediately
-        3. If workflow → execute predefined multi-agent workflow
-        4. If specific agents → delegate and synthesize
+        3. If workflow → execute predefined multi-agent workflow (parallel or sequential)
+        4. If specific agents → delegate (parallel when multiple)
         """
         self.status = AgentStatus.THINKING
 
@@ -296,21 +362,28 @@ Rules:
         tasks = classification.get("tasks", {})
 
         if not agent_keys:
-            # Fallback: Alex handles general questions
             agent_keys = ["alex"]
             tasks = {"alex": context.user_message}
 
-        agents_used = []
-        all_results = []
-
+        # Build (agent, task) pairs
+        valid_pairs = []
         for agent_key in agent_keys:
             agent = self._team.get(agent_key)
-            if not agent:
-                continue
+            if agent:
+                valid_pairs.append((agent, tasks.get(agent_key, context.user_message)))
 
-            task_msg = tasks.get(agent_key, context.user_message)
+        if not valid_pairs:
+            yield SSEEvent(
+                event="error",
+                data={"message": f"No matching agents found for keys: {agent_keys}. Available: {list(self._team.keys())}"},
+            )
+            yield SSEEvent(event="done", data={"agents_used": [], "trace_id": context.request_id})
+            self.status = AgentStatus.STANDBY
+            return
 
-            # Announce handoff
+        if len(valid_pairs) == 1:
+            # Single agent — stream directly (no overhead)
+            agent, task_msg = valid_pairs[0]
             yield SSEEvent(
                 event="agent_handoff",
                 data={
@@ -319,63 +392,68 @@ Rules:
                     "task": task_msg[:100],
                     "from_emoji": self.emoji,
                     "to_emoji": agent.emoji,
+                    "parallel": False,
                 },
             )
-
-            # Create agent-specific context
-            agent_context = AgentContext(
-                user_id=context.user_id,
-                user_message=task_msg,
-                conversation_history=context.conversation_history,
-                resume_text=context.resume_text,
-                job_description=context.job_description,
-                user_state=context.user_state,
-                shared_context={**context.shared_context, "previous_results": all_results},
-                session_id=context.session_id,
-                request_id=context.request_id,
-                db=context.db,
-                user=context.user,
-            )
-
-            # Run the specialist agent — stream its events through
-            agent_response = ""
+            agent_context = self._make_context(context, task_msg)
             async for event in agent.run(agent_context):
                 yield event
-                # Capture the final message for synthesis
-                if event.event == "agent_message":
-                    agent_response = event.data.get("content", "")
+            agents_used = [agent.name]
+        else:
+            # Multiple independent agents — run in PARALLEL
+            agents_used = []
+            queue: asyncio.Queue = asyncio.Queue()
 
-            agents_used.append(agent.name)
-            if agent_response:
-                all_results.append(
-                    {
-                        "agent": agent.name,
-                        "response": agent_response[:1000],
-                    }
+            # Announce all handoffs first so UI shows them all active
+            for agent, task_msg in valid_pairs:
+                yield SSEEvent(
+                    event="agent_handoff",
+                    data={
+                        "from_agent": self.name,
+                        "to_agent": agent.name,
+                        "task": task_msg[:100],
+                        "from_emoji": self.emoji,
+                        "to_emoji": agent.emoji,
+                        "parallel": True,
+                    },
                 )
 
-        if not agents_used:
-            yield SSEEvent(
-                event="error",
-                data={"message": f"No matching agents found for keys: {agent_keys}. Available agents: {list(self._team.keys())}"},
-            )
+            sentinel_ids = [a.name for a, _ in valid_pairs]
+            coros = [
+                self._agent_to_queue(agent, self._make_context(context, task_msg), queue, agent.name)
+                for agent, task_msg in valid_pairs
+            ]
 
-        # Done event
+            tasks_futures = [asyncio.create_task(c) for c in coros]
+            pending = len(tasks_futures)
+
+            while pending > 0:
+                kind, payload = await queue.get()
+                if kind == "event":
+                    yield payload
+                elif kind == "sentinel":
+                    pending -= 1
+
+            results = await asyncio.gather(*tasks_futures, return_exceptions=True)
+            for r in results:
+                if isinstance(r, dict) and r.get("agent"):
+                    agents_used.append(r["agent"])
+
         yield SSEEvent(
             event="done",
-            data={
-                "agents_used": agents_used,
-                "trace_id": context.request_id,
-            },
+            data={"agents_used": agents_used, "trace_id": context.request_id},
         )
         self.status = AgentStatus.STANDBY
 
+    # ── Workflow dispatcher ────────────────────────────────────────────────────
+
     async def _run_workflow(self, workflow_name: str, context: AgentContext) -> AsyncGenerator[SSEEvent, None]:
-        """Execute a predefined multi-agent workflow with rich inter-agent context."""
+        """Route to parallel or sequential workflow execution based on template flag."""
         workflow = WORKFLOW_TEMPLATES[workflow_name]
 
-        # Announce the workflow
         self.status = AgentStatus.ACTIVE
+        is_parallel = workflow.get("parallel", False)
+
         yield SSEEvent(
             event="agent_message",
             data={
@@ -385,12 +463,100 @@ Rules:
                 "role": self.role,
                 "content": (
                     f"🚀 Starting **{workflow_name.replace('_', ' ').title()}** workflow: "
-                    f"{workflow['description']}. I'll coordinate the team now."
+                    f"{workflow['description']}. "
+                    + ("Running all agents **simultaneously** ⚡" if is_parallel else "Coordinating agents step-by-step.")
                 ),
                 "tools_used": [],
             },
         )
 
+        if is_parallel:
+            async for event in self._run_parallel_workflow(workflow_name, context):
+                yield event
+        else:
+            async for event in self._run_sequential_workflow(workflow_name, context):
+                yield event
+
+    async def _run_parallel_workflow(self, workflow_name: str, context: AgentContext) -> AsyncGenerator[SSEEvent, None]:
+        """
+        Execute a workflow where all agents run SIMULTANEOUSLY.
+        Each agent receives the base context (no dependency on each other's output).
+        SSE events from all agents are merged and streamed in arrival order.
+        """
+        workflow = WORKFLOW_TEMPLATES[workflow_name]
+        steps = workflow["steps"]
+
+        # Collect valid (agent, step) pairs
+        valid_steps = []
+        for step in steps:
+            agent = self._team.get(step["agent"])
+            if agent:
+                valid_steps.append((agent, step))
+
+        if not valid_steps:
+            yield SSEEvent(event="error", data={"message": "No valid agents found for workflow"})
+            return
+
+        # Announce all handoffs simultaneously so UI shows everyone active at once
+        for agent, step in valid_steps:
+            yield SSEEvent(
+                event="agent_handoff",
+                data={
+                    "from_agent": self.name,
+                    "to_agent": agent.name,
+                    "task": step["task"],
+                    "from_emoji": self.emoji,
+                    "to_emoji": agent.emoji,
+                    "parallel": True,
+                },
+            )
+
+        # Build contexts (all get the same base context — no accumulated prior results)
+        queue: asyncio.Queue = asyncio.Queue()
+        coros = [
+            self._agent_to_queue(
+                agent,
+                self._make_context(context, step["task"], workflow=workflow_name),
+                queue,
+                agent.name,
+            )
+            for agent, step in valid_steps
+        ]
+
+        # Fire all simultaneously
+        tasks_futures = [asyncio.create_task(c) for c in coros]
+        pending = len(tasks_futures)
+
+        while pending > 0:
+            kind, payload = await queue.get()
+            if kind == "event":
+                yield payload
+            elif kind == "sentinel":
+                pending -= 1
+
+        results = await asyncio.gather(*tasks_futures, return_exceptions=True)
+        agents_used = ["Nova"]
+        for r in results:
+            if isinstance(r, dict) and r.get("agent"):
+                agents_used.append(r["agent"])
+
+        yield SSEEvent(
+            event="done",
+            data={
+                "agents_used": agents_used,
+                "trace_id": context.request_id,
+                "workflow": workflow_name,
+                "parallel": True,
+            },
+        )
+        self.status = AgentStatus.STANDBY
+
+    async def _run_sequential_workflow(self, workflow_name: str, context: AgentContext) -> AsyncGenerator[SSEEvent, None]:
+        """
+        Execute a predefined multi-agent workflow with rich inter-agent context.
+        Each step waits for the prior agent to finish and receives their output.
+        """
+        workflow = WORKFLOW_TEMPLATES[workflow_name]
         agents_used = [self.name]
         accumulated_context = []
 
@@ -410,7 +576,7 @@ Rules:
                     tools_str = f" (used: {', '.join(tools_used)})" if tools_used else ""
                     prior_summary_lines.append(f"[{prior['agent']}{tools_str}]:\n{excerpt}")
                 prior_block = "\n\n".join(prior_summary_lines)
-                enriched_task = f"{step['task']}\n\n" f"Context from previous agents:\n{prior_block}"
+                enriched_task = f"{step['task']}\n\nContext from previous agents:\n{prior_block}"
 
             # Handoff
             yield SSEEvent(
@@ -421,26 +587,16 @@ Rules:
                     "task": step["task"],
                     "from_emoji": self.emoji,
                     "to_emoji": agent.emoji,
+                    "parallel": False,
                 },
             )
 
             # Build context with accumulated prior results
-            agent_context = AgentContext(
-                user_id=context.user_id,
-                user_message=enriched_task,
-                conversation_history=context.conversation_history,
-                resume_text=context.resume_text,
-                job_description=context.job_description,
-                user_state=context.user_state,
-                shared_context={
-                    **context.shared_context,
-                    "workflow": workflow_name,
-                    "previous_results": accumulated_context,
-                },
-                session_id=context.session_id,
-                request_id=context.request_id,
-                db=context.db,
-                user=context.user,
+            agent_context = self._make_context(
+                context,
+                enriched_task,
+                workflow=workflow_name,
+                previous_results=accumulated_context,
             )
 
             # Stream agent events — collect full response + tools used
@@ -469,6 +625,37 @@ Rules:
                 "agents_used": agents_used,
                 "trace_id": context.request_id,
                 "workflow": workflow_name,
+                "parallel": False,
             },
         )
         self.status = AgentStatus.STANDBY
+
+    # ── Context factory ────────────────────────────────────────────────────────
+
+    def _make_context(
+        self,
+        base: AgentContext,
+        task_msg: str,
+        workflow: Optional[str] = None,
+        previous_results: Optional[list] = None,
+    ) -> AgentContext:
+        """Create an agent-specific context derived from the base context."""
+        shared = {**base.shared_context}
+        if workflow:
+            shared["workflow"] = workflow
+        if previous_results:
+            shared["previous_results"] = previous_results
+
+        return AgentContext(
+            user_id=base.user_id,
+            user_message=task_msg,
+            conversation_history=base.conversation_history,
+            resume_text=base.resume_text,
+            job_description=base.job_description,
+            user_state=base.user_state,
+            shared_context=shared,
+            session_id=base.session_id,
+            request_id=base.request_id,
+            db=base.db,
+            user=base.user,
+        )
