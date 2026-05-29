@@ -3,17 +3,14 @@ from typing import Optional
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from config import settings
 from database import User, get_db
 
-# Single authoritative password hashing context — bcrypt via passlib.
-# passlib handles the 72-byte bcrypt limit internally.
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
+# Single authoritative password hashing context — using bcrypt directly.
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 
@@ -22,17 +19,18 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     try:
         if not plain_password or not hashed_password:
             return False
-        return pwd_context.verify(plain_password, hashed_password)
+        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
     except Exception as e:
         print(f"Password verification error: {e}")
         return False
 
 
 def get_password_hash(password: str) -> str:
-    """Hash a password using bcrypt via passlib."""
+    """Hash a password using bcrypt directly."""
     if not password:
         raise ValueError("Password cannot be empty")
-    return pwd_context.hash(password)
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
@@ -54,10 +52,11 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        email: str = payload.get("sub")
+        email_val = payload.get("sub")
         token_version: int = payload.get("tv", 1)
-        if email is None:
+        if email_val is None:
             raise credentials_exception
+        email: str = str(email_val)
     except JWTError as e:
         print(f"JWT decode error: {e}")
         raise credentials_exception

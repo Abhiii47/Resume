@@ -97,6 +97,9 @@ async def signup(
 ):
     """Register a new user - OPTIMIZED"""
     # Validate input
+    email = email.strip()
+    username = username.strip()
+    
     if not email or "@" not in email:
         raise HTTPException(status_code=400, detail="Invalid email address")
 
@@ -105,6 +108,9 @@ async def signup(
 
     if not password or len(password) < 6:
         raise HTTPException(status_code=400, detail="Password must be at least 6 characters")
+    
+    if len(password.encode('utf-8')) > 72:
+        raise HTTPException(status_code=400, detail="Password cannot be longer than 72 bytes")
 
     # Check if user exists
     existing_email = db.query(User).filter(User.email == email.lower()).first()
@@ -139,8 +145,9 @@ async def signup(
 async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Login endpoint - OPTIMIZED"""
     try:
-        # Find user by email (case-insensitive)
-        user = db.query(User).filter(User.email == form_data.username.lower()).first()
+        # Find user by email (case-insensitive and stripped of whitespace)
+        user_email = form_data.username.strip().lower()
+        user = db.query(User).filter(User.email == user_email).first()
 
         if not user:
             raise HTTPException(

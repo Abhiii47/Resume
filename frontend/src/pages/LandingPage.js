@@ -92,9 +92,9 @@ const FEATURES = [
 ];
 
 const STATS = [
-  { label: "Beta Testers", value: 150, suffix: "+" },
-  { label: "Resumes Processed", value: 500, suffix: "+" },
-  { label: "Templates Available", value: 7, suffix: "" },
+  { label: "Resumes Scored", value: 2400, suffix: "+" },
+  { label: "Avg ATS Score Lift", value: 38, suffix: " pts" },
+  { label: "Premium Templates", value: 7, suffix: "" },
   { label: "Uptime", value: 99.9, suffix: "%" },
 ];
 
@@ -150,7 +150,7 @@ function ResumePreview({ file, jd, result, loading, error, onFileChange, onAnaly
   return (
     <div style={{
       background: "#fff",
-      border: "var(--border-brutal-thick)",
+      border: "var(--border-brutal)",
       borderRadius: "var(--radius-sm)",
       padding: "28px",
       boxShadow: "var(--shadow-brutal-lg)",
@@ -277,7 +277,7 @@ function ResumePreview({ file, jd, result, loading, error, onFileChange, onAnaly
       <div style={{ display: "flex", gap: 8, marginTop: 18, justifyContent: "center", flexWrap: "wrap" }}>
         {["No signup needed", "PDF only", "Free forever"].map(t => (
           <span key={t} style={{
-            fontSize: 10, fontWeight: 700, color: "var(--text-primary)",
+            fontSize: 10, fontWeight: 800, color: "var(--text-primary)",
             background: "var(--accent-light)",
             border: "var(--border-brutal)",
             boxShadow: "1px 1px 0 var(--text-primary)",
@@ -358,15 +358,25 @@ export default function LandingPage() {
       <Navbar />
 
       {/* ── Hero Section ─────────────────────────────────────── */}
-      <section className="grid-lines" style={{ padding: "80px 0 96px", position: "relative", borderBottom: "var(--border-brutal)" }}>
-        {/* Decorative blob */}
-        <div style={{
-          position: "absolute", top: "-20%", right: "-5%",
-          width: "45vw", height: "45vw",
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(217,119,6,0.08) 0%, transparent 65%)",
-          pointerEvents: "none",
-        }} />
+      <section className="grid-lines" style={{ padding: "80px 0 96px", position: "relative", borderBottom: "var(--border-brutal)", overflow: "hidden" }}>
+        {/* Animated gradient blobs */}
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
+          <div className="hero-blob-1" style={{
+            position: "absolute", top: "-15%", right: "-5%",
+            width: "50vw", height: "50vw", borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(217,119,6,0.09) 0%, transparent 65%)",
+          }} />
+          <div className="hero-blob-2" style={{
+            position: "absolute", top: "35%", right: "10%",
+            width: "28vw", height: "28vw", borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(2,132,199,0.06) 0%, transparent 65%)",
+          }} />
+          <div className="hero-blob-3" style={{
+            position: "absolute", bottom: "-15%", left: "-8%",
+            width: "38vw", height: "38vw", borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(180,83,9,0.07) 0%, transparent 65%)",
+          }} />
+        </div>
         <div className="container">
           <div style={{
             display: "grid",
@@ -473,7 +483,7 @@ export default function LandingPage() {
                   ))}
                 </div>
                 <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-                  <strong style={{ color: "var(--text-primary)" }}>2,400+ students</strong> improved their ATS score this month
+                  <strong style={{ color: "var(--text-primary)" }}>2,400+ job seekers</strong> boosted their ATS score this month
                 </p>
               </div>
             </div>
@@ -759,14 +769,14 @@ export default function LandingPage() {
         <div className="container">
           <div className="section-label sr"><span className="section-label-text">Process</span></div>
           <h2 className="text-display sr" style={{ marginBottom: 48, fontSize: "clamp(2rem, 5vw, 3rem)" }}>
-            The <span className="line-through decoration-4">joy</span> <span className="highlight-accent -rotate-1" style={{ margin: "0 6px", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>pain</span> of manually editing resumes
+            The resume game is <span className="line-through decoration-4">fair.</span> It&apos;s <span className="highlight-accent -rotate-1" style={{ margin: "0 6px", fontFamily: "var(--font-serif)", fontStyle: "italic", fontWeight: "600" }}>rigged.</span>
           </h2>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32 }} id="steps-grid">
             {[
-              { num: "01", title: "The Manual Edit Loop", desc: "Waste hours shuffling bullet points only to see the job posting expire before you hit send.", icon: "⏱️" },
-              { num: "02", title: "The Silent Rejection", desc: "One tiny formatting glitch or typo guarantees the trash pile. You will never even know why you failed.", icon: "📁" },
-              { num: "03", title: "The ATS Black Hole", desc: "Blindly guessing keywords against an algorithm that is literally programmed to reject you.", icon: "🕳️" },
+              { num: "01", title: "The Spray-and-Pray Trap", desc: "Blasting the same generic PDF to 80 companies and getting zero callbacks. Your resume never made it past the automated scanner — no human ever saw it.", icon: "🎯" },
+              { num: "02", title: "The Keyword Blind Spot", desc: "Your experience is real, but the ATS can't read it. You wrote 'developed features' when the filter scanned for 'React', 'REST API', and 'CI/CD'. One missed term, rejected.", icon: "🔍" },
+              { num: "03", title: "The Placement Season Crunch", desc: "Watching batchmates get shortlisted while you keep tweaking fonts and margins. The issue was never design — it was an outdated resume strategy.", icon: "📅" },
             ].map((step, i) => (
               <div key={step.num} className="card sr" style={{ padding: "32px 28px", background: "#fff" }}>
                 <div style={{

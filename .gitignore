@@ -1,8 +1,4 @@
-# ========================
-# SmartResume — .gitignore
-# ========================
 
-# --- Environment Variables (NEVER commit these) ---
 .env
 .env.*
 !.env.example

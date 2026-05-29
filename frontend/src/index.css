@@ -3,49 +3,49 @@
    Theme: Warm cream whites + Amber gold accents
    ═══════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Petrona:ital,wght@0,300..900;1,300..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
 
 @import "tailwindcss";
 
 /* ── Design Tokens ────────────────────────────────────────────── */
 :root {
   /* Backgrounds */
-  --bg-page: #fffdf7;
-  --bg-surface: #fdf8ee;
-  --bg-elevated: #f5f0e0;
-  --bg-deep: #1c1917;
+  --bg-page: #FFF8F0;
+  --bg-surface: #FFFBF6;
+  --bg-elevated: #FFF0E6;
+  --bg-deep: #21293C;
 
   /* Borders */
-  --border-subtle: rgba(180, 140, 60, 0.14);
-  --border-muted: rgba(180, 140, 60, 0.30);
-  --border-strong: rgba(120, 80, 20, 0.40);
+  --border-subtle: #F0E4D8;
+  --border-muted: #E8DED4;
+  --border-strong: rgba(218, 85, 47, 0.3);
   --border-brutal: 2px solid #1c1917;
   --border-brutal-thick: 3px solid #1c1917;
 
-  /* Amber accent palette */
-  --accent: #d97706;
-  --accent-dark: #b45309;
-  --accent-light: #fef3c7;
-  --accent-glow: rgba(217, 119, 6, 0.18);
-  --accent-ring: rgba(217, 119, 6, 0.35);
+  /* Terra Cotta / Orange accent palette */
+  --accent: #DA552F;
+  --accent-dark: #C04A29;
+  --accent-light: #FFF0E6;
+  --accent-glow: rgba(218, 85, 47, 0.15);
+  --accent-ring: rgba(218, 85, 47, 0.35);
 
   /* Semantic colors */
-  --color-success: #16a34a;
+  --color-success: #3D9A6A;
   --color-error: #dc2626;
   --color-warning: #f59e0b;
-  --color-info: #0284c7;
+  --color-info: #4A7FD4;
 
   /* Text */
-  --text-primary: #1c1917;
-  --text-secondary: #57534e;
-  --text-muted: #a8a29e;
-  --text-inverse: #fffdf7;
+  --text-primary: #21293C;
+  --text-secondary: #4B587C;
+  --text-muted: #667085;
+  --text-inverse: #ffffff;
 
   /* Typography */
-  --font-display: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+  --font-display: 'Chakra Petch', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-serif: 'Petrona', Georgia, serif;
+  --font-serif: 'Chakra Petch', system-ui, sans-serif;
 
   /* Spacing scale (8px base) */
   --space-1: 8px;
@@ -58,24 +58,24 @@
   --space-10: 80px;
   --space-12: 96px;
 
-  /* Border radius - Neobrutalism uses smaller radius */
+  /* Border radius - Sharp neobrutalist */
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
   --radius-full: 9999px;
 
-  /* Shadows — Neobrutalist flat shadows */
-  --shadow-sm: 0 1px 3px rgba(120, 80, 20, 0.08);
-  --shadow-md: 0 4px 16px rgba(120, 80, 20, 0.10);
-  --shadow-lg: 0 12px 40px rgba(120, 80, 20, 0.12);
-  --shadow-xl: 0 24px 64px rgba(120, 80, 20, 0.15);
-  --shadow-accent: 0 8px 32px rgba(217, 119, 6, 0.25);
+  /* Shadows — Sharp block shadows (resumematcher.fyi style) */
+  --shadow-sm: 2px 2px 0px #1c1917;
+  --shadow-md: 4px 4px 0px #1c1917;
+  --shadow-lg: 6px 6px 0px #1c1917;
+  --shadow-xl: 8px 8px 0px #1c1917;
+  --shadow-accent: 4px 4px 0px var(--accent);
 
-  --shadow-brutal: 4px 4px 0px #1c1917;
-  --shadow-brutal-lg: 6px 6px 0px #1c1917;
-  --shadow-brutal-xl: 8px 8px 0px #1c1917;
-  --shadow-brutal-ink: var(--shadow-brutal);
+  --shadow-brutal: var(--shadow-md);
+  --shadow-brutal-lg: var(--shadow-lg);
+  --shadow-brutal-xl: var(--shadow-xl);
+  --shadow-brutal-ink: var(--shadow-sm);
 
   /* Transitions */
   --transition-fast: 100ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -203,39 +203,39 @@ h6 {
 
 /* ── Card Variants ─────────────────────────────────────────────── */
 .card {
-  background: #fff;
+  background: var(--bg-surface);
   border: var(--border-brutal);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-brutal);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
   position: relative;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-brutal-lg);
-  transform: translate(-3px, -3px) rotate(0.5deg);
+  box-shadow: var(--shadow-lg);
+  transform: translate(-2px, -2px);
 }
 
 .card-surface {
   background: var(--bg-surface);
   border: var(--border-brutal);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-brutal);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-amber {
   background: var(--accent-light);
   border: var(--border-brutal);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-brutal);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
 }
 
 /* Premium feature card with top highlight */
 .card-premium {
-  background: #fff;
+  background: var(--bg-surface);
   border: var(--border-brutal);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-brutal);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   position: relative;
   transition: box-shadow var(--transition-fast), transform var(--transition-fast);
@@ -250,17 +250,12 @@ h6 {
   height: 4px;
   background: var(--accent);
   border-bottom: var(--border-brutal);
-  opacity: 0;
-  transition: opacity var(--transition-fast);
-}
-
-.card-premium:hover::before {
   opacity: 1;
 }
 
 .card-premium:hover {
-  box-shadow: var(--shadow-brutal-lg);
-  transform: translate(-3px, -3px) rotate(-0.5deg);
+  box-shadow: var(--shadow-lg);
+  transform: translate(-2px, -2px);
 }
 
 /* ── Navigation ────────────────────────────────────────────────── */
@@ -385,10 +380,10 @@ h6 {
   border: var(--border-brutal);
   outline: none;
   text-decoration: none;
-  background: #fff;
+  background: var(--bg-surface);
   color: var(--text-primary);
-  box-shadow: var(--shadow-brutal);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast), color var(--transition-fast);
   position: relative;
   white-space: nowrap;
 }
@@ -401,17 +396,18 @@ h6 {
 .btn-primary {
   background: var(--accent);
   color: #fff;
+  border-color: var(--text-primary);
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translate(1px, 1px);
-  box-shadow: 3px 3px 0px var(--text-primary);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
   background: var(--accent-dark);
 }
 
 .btn-primary:active:not(:disabled) {
-  transform: translate(3px, 3px);
-  box-shadow: 1px 1px 0px var(--text-primary);
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--text-primary);
 }
 
 .btn-secondary {
@@ -422,13 +418,13 @@ h6 {
 
 .btn-secondary:hover:not(:disabled) {
   background: #fff;
-  transform: translate(1px, 1px);
-  box-shadow: 3px 3px 0px var(--text-primary);
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-secondary:active:not(:disabled) {
-  transform: translate(3px, 3px);
-  box-shadow: 1px 1px 0px var(--text-primary);
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px var(--text-primary);
 }
 
 .btn-ghost {
@@ -771,6 +767,20 @@ h6 {
     opacity: 0.4;
   }
 }
+
+@keyframes blob-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(28px, -18px) scale(1.06); }
+}
+
+@keyframes blob-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-22px, 24px) scale(0.94); }
+}
+
+.hero-blob-1 { animation: blob-drift-1 11s ease-in-out infinite; }
+.hero-blob-2 { animation: blob-drift-2 14s ease-in-out infinite; }
+.hero-blob-3 { animation: blob-drift-1 17s ease-in-out infinite reverse; }
 
 @keyframes float-up-in {
   from {
